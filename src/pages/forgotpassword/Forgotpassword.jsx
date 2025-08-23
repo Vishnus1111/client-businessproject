@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./ForgotPassword.module.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,6 +17,11 @@ function ForgotPassword() {
   const [showOtp, setShowOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Debug step changes
+  useEffect(() => {
+    console.log("📍 Step changed to:", step);
+  }, [step]);
 
   // Email validation
   const validateEmail = (email) => {
@@ -84,6 +89,8 @@ function ForgotPassword() {
 
     try {
       setLoading(true);
+      console.log("🔍 Verifying OTP:", { email, otp }); // Debug log
+      
       const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -91,15 +98,35 @@ function ForgotPassword() {
       });
 
       const data = await res.json();
+      console.log("📥 OTP verification response:", { status: res.status, data }); // Debug log
       setLoading(false);
 
       if (res.ok) {
         toast.success("OTP verified successfully!");
-        navigate("/reset-password", { state: { email } }); // ✅ Pass email to reset page
+        console.log("✅ OTP verification successful, navigating to reset password with email:", email);
+        
+        // Store email in localStorage as backup
+        localStorage.setItem('resetEmail', email);
+        
+        setTimeout(() => {
+          console.log("🔄 About to navigate to reset-password with state:", { email });
+          try {
+            navigate("/reset-password", { state: { email } }); // ✅ Pass email to reset page
+            console.log("🎯 React Router navigation command executed");
+          } catch (error) {
+            console.error("❌ React Router navigation failed:", error);
+            // Fallback to window location
+            console.log("🔄 Using window location fallback");
+            window.location.href = `/reset-password?email=${encodeURIComponent(email)}`;
+          }
+        }, 500); // Reduced timeout for faster testing
       } else {
+        console.log("❌ OTP verification failed:", data.error); // Debug log
         toast.error(data.error || "Invalid or expired OTP");
+        // Don't go back to email step, stay on OTP step
       }
     } catch (err) {
+      console.error("❌ OTP verification error:", err); // Debug log
       setLoading(false);
       toast.error("Server error. Please try again.");
     }
@@ -107,6 +134,7 @@ function ForgotPassword() {
 
   // ✅ Go back to email step
   const handleGoBack = () => {
+    console.log("🔙 Going back to email step"); // Debug log
     setStep(1);
     setOtp("");
     setShowOtp(false);

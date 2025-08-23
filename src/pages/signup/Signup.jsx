@@ -88,18 +88,37 @@ function Signup() {
             });
 
             const data = await res.json();
+            console.log("Signup response:", { status: res.status, ok: res.ok, data });
 
             if (!res.ok) {
-                toast.error(data.error || "Registration failed");
+                // Handle specific error messages
+                if (res.status === 400) {
+                    if (data.error && data.error.toLowerCase().includes('already exists')) {
+                        toast.error("Email already registered. Please use a different email or try logging in.");
+                    } else {
+                        toast.error(data.error || "Registration failed. Please try again.");
+                    }
+                } else if (res.status === 500) {
+                    toast.error("Server error. Please try again later.");
+                    console.error("Server error details:", data.details);
+                } else {
+                    toast.error(data.error || "Registration failed. Please try again.");
+                }
                 setLoading(false);
             } else {
-                toast.success("Account created successfully! Please login.", {
+                // Success response (201)
+                toast.success(data.msg || "Account created successfully! Please login.", {
                     onClose: () => navigate('/login'),
                     autoClose: 2000
                 });
             }
         } catch (error) {
-            toast.error("Server error");
+            console.error("Signup error:", error);
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                toast.error("Unable to connect to server. Please check your internet connection.");
+            } else {
+                toast.error("Something went wrong. Please try again later.");
+            }
             setLoading(false);
         }
     };

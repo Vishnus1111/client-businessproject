@@ -16,14 +16,29 @@ function Resetpassword() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || localStorage.getItem('resetEmail');
+  
+  const email = location.state?.email || 
+                localStorage.getItem('resetEmail') || 
+                (() => {
+                  const urlParams = new URLSearchParams(location.search);
+                  return urlParams.get('email');
+                })();
 
   useEffect(() => {
+    console.log("🔍 Resetpassword component loaded with email:", email);
+    console.log("📍 Location state:", location.state);
+    console.log("💾 localStorage resetEmail:", localStorage.getItem('resetEmail'));
+    const urlParams = new URLSearchParams(location.search);
+    console.log("🔗 URL params email:", urlParams.get('email'));
+    
     if (!email) {
+      console.log("❌ No email found, redirecting to forgot-password");
       toast.error('Invalid access. Please start the password reset process again.');
       navigate('/forgot-password');
+    } else {
+      console.log("✅ Email found, ready for password reset:", email);
     }
-  }, [email, navigate]);
+  }, [email, navigate, location.state, location.search]);
 
   // Enhanced password validation function
   const validatePassword = (password) => {

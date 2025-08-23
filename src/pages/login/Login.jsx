@@ -36,6 +36,7 @@ function Login() {
             });
 
             const data = await res.json();
+            console.log("Login response:", { status: res.status, ok: res.ok, data });
 
             if (!res.ok) {
                 // Handle specific error messages based on status code and error content
