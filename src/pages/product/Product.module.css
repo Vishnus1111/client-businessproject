@@ -22,6 +22,7 @@
   flex: 1;
   max-width: 300px;
   margin-left: 20px;
+  position: relative;
 }
 
 .searchInput {
@@ -36,6 +37,19 @@
 
 .searchInput:focus {
   border-color: #007bff;
+}
+
+.searchIndicator {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+  z-index: 10;
 }
 
 /* Overall Inventory Section */

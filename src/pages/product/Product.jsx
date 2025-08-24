@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import AddProductForm from './AddProductForm';
@@ -24,16 +24,21 @@ const Product = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchInputFocused, setSearchInputFocused] = useState(false);
+  const searchInputRef = useRef(null);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (searchTerm = '') => {
     console.log("🔍 fetchProducts called - starting to fetch products...");
+    
     try {
       setLoading(true);
+      setIsSearching(!!searchTerm);
       const token = localStorage.getItem('token');
       
       let url = `${API_BASE_URL}/api/products/all`;
-      if (searchQuery.trim()) {
-        url = `${API_BASE_URL}/api/products/search?query=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=10`;
+      if (searchTerm.trim()) {
+        url = `${API_BASE_URL}/api/products/search?query=${encodeURIComponent(searchTerm)}&page=${currentPage}&limit=10`;
       }
 
       console.log("🌐 Making API request to:", url);
@@ -48,7 +53,7 @@ const Product = () => {
         const data = await response.json();
         console.log("✅ API response received:", data);
         
-        if (searchQuery.trim()) {
+        if (searchTerm.trim()) {
           setProducts(data.results?.products || []);
           setTotalPages(data.results?.pagination?.totalPages || 1);
           console.log("📊 Updated products (search mode):", data.results?.products?.length || 0);
@@ -57,6 +62,7 @@ const Product = () => {
           setTotalPages(Math.ceil((data.products?.length || 0) / 10));
           console.log("📊 Updated products (all mode):", data.products?.length || 0);
         }
+        
       } else {
         console.error("❌ API response not OK:", response.status, response.statusText);
         toast.error('Failed to load products');
@@ -66,9 +72,10 @@ const Product = () => {
       toast.error('Error loading products');
     } finally {
       setLoading(false);
+      setIsSearching(false);
       console.log("🏁 fetchProducts completed");
     }
-  }, [currentPage, searchQuery]);
+  }, [currentPage]);
 
   const fetchInventoryStats = useCallback(async () => {
     try {
@@ -96,14 +103,58 @@ const Product = () => {
     }
   }, []);
 
+  // Initial load
   useEffect(() => {
-    fetchProducts();
-    fetchInventoryStats();
-  }, [fetchProducts, fetchInventoryStats]);
+    const loadInitialData = async () => {
+      await fetchProducts();
+      await fetchInventoryStats();
+    };
+    loadInitialData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced search effect with better focus management
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      // Store current focus state and cursor position
+      const wasSearchFocused = document.activeElement === searchInputRef.current;
+      const cursorPosition = searchInputRef.current?.selectionStart || 0;
+      
+      const performSearch = async () => {
+        if (searchQuery !== '') {
+          await fetchProducts(searchQuery);
+        } else if (searchQuery === '') {
+          await fetchProducts();
+        }
+        
+        // Restore focus and cursor position after search completes
+        if (wasSearchFocused && searchInputRef.current) {
+          requestAnimationFrame(() => {
+            searchInputRef.current?.focus();
+            searchInputRef.current?.setSelectionRange(cursorPosition, cursorPosition);
+          });
+        }
+      };
+      
+      performSearch();
+    }, 300); // Reduced debounce time for better responsiveness
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    setSearchQuery(value);
     setCurrentPage(1);
+  };
+
+  // Prevent blur on search input during search operations
+  const handleSearchBlur = (e) => {
+    setSearchInputFocused(false);
+  };
+
+  // Handle search input focus
+  const handleSearchFocus = () => {
+    setSearchInputFocused(true);
   };
 
   const getStatusColor = (availability) => {
@@ -171,7 +222,11 @@ const Product = () => {
 
   const handleProductAdded = () => {
     console.log("🔄 handleProductAdded called - refreshing product list...");
-    fetchProducts();
+    if (searchQuery.trim()) {
+      fetchProducts(searchQuery);
+    } else {
+      fetchProducts();
+    }
     fetchInventoryStats();
     console.log("📝 Refresh functions called: fetchProducts() and fetchInventoryStats()");
   };
@@ -197,12 +252,21 @@ const Product = () => {
         <h1 className={styles.pageTitle}>Product</h1>
         <div className={styles.searchContainer}>
           <input 
+            ref={searchInputRef}
             type="text" 
-            placeholder="Search here..." 
+            placeholder="Search products by name, ID, category, price, quantity, expiry date..." 
             className={styles.searchInput}
             value={searchQuery}
             onChange={handleSearch}
+            onBlur={handleSearchBlur}
+            onFocus={handleSearchFocus}
+            autoComplete="off"
           />
+          {isSearching && (
+            <div className={styles.searchIndicator}>
+              Searching...
+            </div>
+          )}
         </div>
       </div>
 
