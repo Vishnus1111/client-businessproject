@@ -205,7 +205,8 @@
   overflow: hidden;
 }
 
-.actionDropdown:hover .dropdownContent {
+/* Show dropdown when the show class is applied */
+.dropdownContent.show {
   display: block;
 }
 

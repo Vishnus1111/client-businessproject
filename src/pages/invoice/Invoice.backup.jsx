@@ -20,6 +20,20 @@ const Invoice = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [invoicesPerPage] = useState(9);
+  const [statistics, setStatistics] = useState({
+    recentTransactions: 0,
+    totalInvoices: { total: 0, processed: 0 },
+    paidAmount: { amount: 0, customers: 0 },
+    unpaidAmount: { amount: 0, pending: 0 }
+  });
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const dropdownRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [invoicesPerPage] = useState(9);
 
   // Format currency with Indian Rupee symbol
   const formatCurrency = (amount) => {
@@ -227,7 +241,7 @@ const Invoice = () => {
     }
     
     try {
-      // For now we're just removing it from UI since delete endpoint isn't implemented
+      // For now were just removing it from UI since delete endpoint isnt implemented
       // In production, you would make a DELETE API call here
       const updatedInvoices = invoices.filter(inv => inv.invoiceId !== invoice.invoiceId);
       setInvoices(updatedInvoices);
@@ -259,6 +273,27 @@ const Invoice = () => {
     }
   };
 
+  // Get current invoices for pagination
+  const indexOfLastInvoice = currentPage * invoicesPerPage;
+  const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
+  const currentInvoices = invoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(invoices.length / invoicesPerPage);
+  
+  // Go to next or previous page
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading invoices...</div>;
   }
@@ -274,7 +309,7 @@ const Invoice = () => {
         <h1 className={styles.pageTitle}>Invoice</h1>
         <div className={styles.searchContainer}>
           <input type="text" className={styles.searchInput} placeholder="Search..." />
-          <button className={styles.searchButton}>🔍</button>
+          <button className={styles.searchButton}>���</button>
         </div>
       </div>
       
@@ -326,15 +361,15 @@ const Invoice = () => {
               </tr>
             </thead>
             <tbody>
+              {/* Get current invoices for pagination */}
               {(() => {
-                const indexOfLastInvoice = currentPage * invoicesPerPage;
-                const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
+                const indexOfLastInvoice = currentPage * 9;
+                const indexOfFirstInvoice = indexOfLastInvoice - 9;
                 const currentInvoices = invoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
                 
-                if (currentInvoices.length === 0 && invoices.length > 0 && currentPage > 1) {
+                if (currentInvoices.length === 0 && invoices.length > 0) {
                   // If current page has no invoices but there are invoices, go to previous page
                   setCurrentPage(currentPage - 1);
-                  return null;
                 }
                 
                 return currentInvoices.map((invoice) => (
@@ -429,20 +464,16 @@ const Invoice = () => {
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
-          >
-            Previous
-          </button>
+          >Previous</button>
           <span className={styles.pageInfo}>
-            Page {currentPage} of {Math.max(1, Math.ceil(invoices.length / invoicesPerPage))}
+            Page {currentPage} of {Math.max(1, Math.ceil(invoices.length / 9))}
           </span>
           <button 
             className={styles.paginationButton}
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(invoices.length / invoicesPerPage)))}
-            disabled={currentPage >= Math.ceil(invoices.length / invoicesPerPage)}
-            style={{ opacity: currentPage >= Math.ceil(invoices.length / invoicesPerPage) ? 0.5 : 1, cursor: currentPage >= Math.ceil(invoices.length / invoicesPerPage) ? 'not-allowed' : 'pointer' }}
-          >
-            Next
-          </button>
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(invoices.length / 9)))}
+            disabled={currentPage >= Math.ceil(invoices.length / 9)}
+            style={{ opacity: currentPage >= Math.ceil(invoices.length / 9) ? 0.5 : 1, cursor: currentPage >= Math.ceil(invoices.length / 9) ? 'not-allowed' : 'pointer' }}
+          >Next</button>
         </div>
       </div>
       
@@ -454,5 +485,4 @@ const Invoice = () => {
   );
 };
 
-// Make sure we're exporting the component correctly
 export default Invoice;

@@ -2,8 +2,6 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-// Import components one by one to identify any problematic imports
 import Login from './pages/login/Login';
 import Signup from './pages/signup/Signup';
 import Forgotpassword from './pages/forgotpassword/Forgotpassword';
@@ -11,7 +9,6 @@ import Resetpassword from './pages/forgotpassword/Resetpassword';
 import DashboardLayout from './pages/dashboard/DashboardLayout';
 import Home from './pages/dashboard/Home';
 import Product from './pages/product/Product';
-// Re-created Invoice component
 import Invoice from './pages/invoice/Invoice';
 import Statistics from './pages/statistics/Statistics';
 import Settings from './pages/settings/Settings';

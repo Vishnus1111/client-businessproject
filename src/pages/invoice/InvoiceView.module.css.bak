@@ -23,43 +23,56 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.header {
+.invoiceLayout {
   display: flex;
-  justify-content: flex-end;
-  padding: 10px;
+  position: relative;
+}
+
+.actionButtonsColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 10px;
   background-color: #f8f9fa;
   border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
 .closeButton, .downloadButton, .printButton {
   background: none;
   border: none;
-  font-size: 20px;
   cursor: pointer;
-  color: #444;
-  margin-left: 10px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
 }
 
 .closeButton {
   background-color: #ff5c5c;
   color: white;
+  font-size: 20px;
 }
 
 .downloadButton {
   background-color: #4f9cff;
   color: white;
+  font-size: 16px;
 }
 
 .printButton {
   background-color: #ffc107;
   color: white;
+  font-size: 16px;
+}
+
+.closeButton:hover, .downloadButton:hover, .printButton:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .icon {
@@ -69,6 +82,8 @@
 .invoiceContainer {
   padding: 30px;
   background-color: white;
+  flex-grow: 1;
+  overflow-y: auto;
 }
 
 .invoiceTitle {
@@ -112,20 +127,33 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.invoiceNumber, .invoiceDate, .dueDate {
-  width: 30%;
+.invoiceInfoColumn, .referenceColumn {
+  padding: 0 10px;
 }
 
-.invoiceNumber h4, .invoiceDate h4, .dueDate h4 {
+.invoiceInfoColumn {
+  width: 60%;
+}
+
+.referenceColumn {
+  width: 40%;
+}
+
+.detailRow {
+  margin-bottom: 10px;
+}
+
+.detailRow h4 {
   font-size: 14px;
   color: #777;
   margin-bottom: 5px;
 }
 
-.invoiceNumber p, .invoiceDate p, .dueDate p {
+.detailRow p {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+  margin: 0;
 }
 
 .productTable {
@@ -236,4 +264,44 @@
   color: #555;
 }
 
-/* The following styles have been moved to the top as they're duplicates */
+/* Responsive styles */
+@media (max-width: 768px) {
+  .invoiceLayout {
+    flex-direction: column;
+  }
+  
+  .actionButtonsColumn {
+    flex-direction: row;
+    padding: 10px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 0;
+  }
+  
+  .closeButton, .downloadButton, .printButton {
+    margin: 0 5px;
+  }
+  
+  .addressSection {
+    flex-direction: column;
+  }
+  
+  .billedTo, .businessAddress {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .invoiceInfo {
+    flex-direction: column;
+  }
+  
+  .invoiceInfoColumn, .referenceColumn {
+    width: 100%;
+    padding: 0;
+    margin-bottom: 15px;
+  }
+  
+  .summary {
+    width: 100%;
+  }
+}
