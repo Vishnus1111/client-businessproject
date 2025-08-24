@@ -1,0 +1,433 @@
+/* Home Dashboard Styles */
+.homeContainer {
+  padding: 0;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Header */
+.header {
+  background: white;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.searchInput {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f8f9fa;
+  width: 300px;
+  font-size: 0.95rem;
+}
+
+.searchInput::placeholder {
+  color: #999;
+}
+
+/* Overview Sections */
+.overviewSection {
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  margin-bottom: 1rem;
+  padding: 0 2rem;
+}
+
+.sectionHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 0 2rem;
+}
+
+/* Stat Cards */
+.statCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+}
+
+.statIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.statCard.blue .statIcon {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.statCard.orange .statIcon {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.statCard.green .statIcon {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
+.statCard.purple .statIcon {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+.statContent {
+  flex: 1;
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1.2;
+}
+
+.statTitle {
+  font-size: 0.95rem;
+  color: #7f8c8d;
+  margin-top: 0.25rem;
+}
+
+.statSubtitle {
+  font-size: 0.85rem;
+  color: #95a5a6;
+}
+
+/* Bottom Section */
+.bottomSection {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  padding: 0 2rem;
+}
+
+/* Chart Section */
+.chartSection {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.chartHeader h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.periodSelector {
+  position: relative;
+}
+
+.periodSelect {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.chartContainer {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartPlaceholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chartBars {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.chartBar {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 2px;
+  height: 100%;
+  max-width: 40px;
+}
+
+.barPurchase,
+.barSales {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  min-height: 20px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.barPurchase {
+  background: #3498db;
+}
+
+.barSales {
+  background: #2ecc71;
+}
+
+.chartBar:hover .barPurchase,
+.chartBar:hover .barSales {
+  opacity: 1;
+}
+
+.chartLegend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding-top: 1rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* Right Sidebar */
+.rightSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.summaryCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.summaryCard h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+}
+
+.inventoryItems {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inventoryItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.inventoryIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.inventoryContent {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inventoryLabel {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.inventoryValue {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Top Products */
+.topProductsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.topProductItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.topProductItem:last-child {
+  border-bottom: none;
+}
+
+.productName {
+  font-size: 0.95rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.productRating {
+  font-size: 0.85rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .bottomSection {
+    grid-template-columns: 1fr;
+  }
+  
+  .rightSidebar {
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .homeContainer {
+    padding: 0;
+  }
+  
+  .header {
+    padding: 1rem;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .searchInput {
+    width: 100%;
+  }
+  
+  .sectionHeader,
+  .bottomSection {
+    padding: 0 1rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+  
+  .chartSection,
+  .summaryCard {
+    padding: 1rem;
+  }
+  
+  .chartHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+  
+  .statCard {
+    padding: 1rem;
+  }
+  
+  .statValue {
+    font-size: 1.5rem;
+  }
+  
+  .chartContainer {
+    height: 250px;
+  }
+}

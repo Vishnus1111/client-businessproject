@@ -1,0 +1,56 @@
+/* Dashboard Layout Styles */
+.dashboardContainer {
+  display: flex;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.mainContent {
+  flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+}
+
+.contentWrapper {
+  padding: 2rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Adjust for collapsed sidebar */
+@media (max-width: 768px) {
+  .mainContent {
+    margin-left: 0;
+  }
+  
+  .contentWrapper {
+    padding: 1rem;
+  }
+}
+
+/* When sidebar is collapsed */
+.dashboardContainer:has(.sidebar.collapsed) .mainContent {
+  margin-left: 80px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .contentWrapper {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardContainer {
+    flex-direction: column;
+  }
+  
+  .mainContent {
+    margin-left: 0;
+  }
+  
+  .contentWrapper {
+    padding: 1rem;
+  }
+}
