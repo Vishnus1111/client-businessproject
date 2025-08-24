@@ -82,8 +82,8 @@ const Invoice = () => {
           const unpaid = response.data.invoices.filter(invoice => invoice.status === "Unpaid");
           
           // Calculate total paid and unpaid amounts
-          const paidAmount = paid.reduce((total, invoice) => total + Number(invoice.totalAmount), 0);
-          const unpaidAmount = unpaid.reduce((total, invoice) => total + Number(invoice.totalAmount), 0);
+          const paidAmount = paid.reduce((total, invoice) => total + Number(invoice.totalAmount || 0), 0);
+          const unpaidAmount = unpaid.reduce((total, invoice) => total + Number(invoice.totalAmount || 0), 0);
           
           setStatistics({
             recentTransactions: recentInvoices.length,
@@ -153,11 +153,11 @@ const Invoice = () => {
             processed: paid.length 
           },
           paidAmount: { 
-            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0),
+            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0),
             customers: paid.length 
           },
           unpaidAmount: { 
-            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0), 
+            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0), 
             pending: unpaid.length 
           }
         }));
@@ -203,11 +203,11 @@ const Invoice = () => {
             processed: paid.length 
           },
           paidAmount: { 
-            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0),
+            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0),
             customers: paid.length 
           },
           unpaidAmount: { 
-            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0), 
+            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0), 
             pending: unpaid.length 
           }
         }));
@@ -250,11 +250,11 @@ const Invoice = () => {
           processed: paid.length 
         },
         paidAmount: { 
-          amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0),
+          amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0),
           customers: paid.length 
         },
         unpaidAmount: { 
-          amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0), 
+          amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0), 
           pending: unpaid.length 
         }
       });
@@ -362,7 +362,7 @@ const Invoice = () => {
                   <tr key={invoice._id}>
                     <td>{invoice.invoiceId}</td>
                     <td>{invoice.reference || `INV-${invoice.invoiceId.substring(invoice.invoiceId.length - 3)}`}</td>
-                    <td>₹ {Number(invoice.totalAmount).toLocaleString()}</td>
+                    <td>₹ {Number(invoice.totalAmount || 0).toLocaleString()}</td>
                     <td>
                       <span className={`${styles.status} ${styles[invoice.status.toLowerCase()]}`}>
                         {invoice.status}

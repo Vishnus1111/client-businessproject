@@ -57,17 +57,17 @@ const InvoiceView = ({ invoice, onClose }) => {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <div className={styles.invoiceLayout}>
-          <div className={styles.actionButtonsColumn}>
-            <button className={styles.closeButton} onClick={onClose}>×</button>
-            <button className={styles.downloadButton} onClick={handleDownload} title="Download Invoice">
-              <span className={styles.icon}>⬇️</span>
-            </button>
-            <button className={styles.printButton} onClick={handlePrint} title="Print Invoice">
-              <span className={styles.icon}>🖨️</span>
-            </button>
-          </div>
-          
+        <div className={styles.actionButtonsColumn}>
+          <button className={styles.closeButton} onClick={onClose}>×</button>
+          <button className={styles.downloadButton} onClick={handleDownload} title="Download Invoice">
+            <span className={styles.icon}>⬇️</span>
+          </button>
+          <button className={styles.printButton} onClick={handlePrint} title="Print Invoice">
+            <span className={styles.icon}>🖨️</span>
+          </button>
+        </div>
+        
+        <div className={styles.invoiceLayout}>          
           <div className={styles.invoiceContainer} id="invoice-printable">
             <h1 className={styles.invoiceTitle}>INVOICE</h1>
             
@@ -90,16 +90,8 @@ const InvoiceView = ({ invoice, onClose }) => {
             <div className={styles.invoiceInfo}>
               <div className={styles.invoiceInfoColumn}>
                 <div className={styles.detailRow}>
-                  <h4>Invoice #</h4>
-                  <p>{invoice?.invoiceId || 'INV-1067'}</p>
-                </div>
-                <div className={styles.detailRow}>
                   <h4>Invoice date</h4>
                   <p>{invoice?.createdAt ? formatDate(invoice.createdAt) : '01-Apr-2025'}</p>
-                </div>
-                <div className={styles.detailRow}>
-                  <h4>Due date</h4>
-                  <p>{invoice?.dueDate ? formatDate(invoice.dueDate) : '15-Apr-2025'}</p>
                 </div>
               </div>
               
@@ -107,6 +99,14 @@ const InvoiceView = ({ invoice, onClose }) => {
                 <div className={styles.detailRow}>
                   <h4>Reference</h4>
                   <p>{invoice?.reference || 'INV-057'}</p>
+                </div>
+                <div className={styles.detailRow}>
+                  <h4>Invoice #</h4>
+                  <p>{invoice?.invoiceId || 'INV-1067'}</p>
+                </div>
+                <div className={styles.detailRow}>
+                  <h4>Due date</h4>
+                  <p>{invoice?.dueDate ? formatDate(invoice.dueDate) : '15-Apr-2025'}</p>
                 </div>
               </div>
             </div>

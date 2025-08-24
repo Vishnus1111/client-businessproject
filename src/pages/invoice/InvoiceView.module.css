@@ -1,0 +1,245 @@
+/* InvoiceView Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background-color: #fff;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  margin-top: 20px;
+}
+
+.invoiceLayout {
+  display: flex;
+  position: relative;
+}
+
+.actionButtonsColumn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.closeButton,
+.printButton,
+.downloadButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeButton {
+  background-color: #e74c3c;
+  color: white;
+  font-size: 20px;
+}
+
+.closeButton:hover {
+  background-color: #c0392b;
+}
+
+.printButton, 
+.downloadButton {
+  background-color: #495057;
+  color: white;
+}
+
+.printButton:hover,
+.downloadButton:hover {
+  background-color: #6c757d;
+}
+
+/* Invoice Content Styles */
+.invoiceContainer {
+  padding: 40px;
+  width: 100%;
+  background-color: white;
+  color: #333;
+}
+
+.invoiceTitle {
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #2c3e50;
+}
+
+.addressSection {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.billedTo, 
+.businessAddress {
+  flex: 1;
+}
+
+.billedTo h4, 
+.businessAddress h4 {
+  color: #7f8c8d;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.billedTo p, 
+.businessAddress p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.invoiceInfo {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.invoiceInfoColumn {
+  flex: 2;
+}
+
+.referenceColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.detailRow {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.detailRow h4 {
+  width: 120px;
+  color: #7f8c8d;
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.detailRow p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.productTable {
+  margin-bottom: 30px;
+}
+
+.productTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.productTable th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+  color: #555;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.productTable td {
+  padding: 12px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 14px;
+}
+
+.summary {
+  margin-left: auto;
+  width: 40%;
+  margin-top: 30px;
+}
+
+.summaryDetails {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.summaryDetails h4 {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.summaryDetails p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.total {
+  border-top: 2px solid #e9ecef;
+  padding-top: 15px;
+  margin-top: 5px;
+}
+
+.total h4, .total p {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.paymentNote {
+  margin: 30px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paymentNote input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.paymentNote span {
+  font-size: 14px;
+  color: #555;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid #e9ecef;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.footerItem {
+  font-size: 12px;
+  color: #7f8c8d;
+  text-align: center;
+}
