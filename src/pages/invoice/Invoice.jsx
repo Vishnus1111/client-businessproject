@@ -7,6 +7,9 @@ import API_BASE_URL from "../config";
 
 const Invoice = () => {
   const [invoices, setInvoices] = useState([]);
+  const [filteredInvoices, setFilteredInvoices] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const [statistics, setStatistics] = useState({
     recentTransactions: 0,
     totalInvoices: { total: 0, processed: 0 },
@@ -57,6 +60,58 @@ const Invoice = () => {
   const toggleDropdown = (id) => {
     setOpenDropdownId(prevId => prevId === id ? null : id);
   };
+  
+  // Handle search functionality
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    
+    // Only filter if there's actual text entered
+    if (!term || !isSearchActive) {
+      setFilteredInvoices(invoices); // Reset to all invoices when empty
+      return;
+    }
+    
+    // Filter invoices based on all properties
+    const filtered = invoices.filter(invoice => {
+      // Check if term is in any items (products) in the invoice
+      const itemsMatch = invoice.items && invoice.items.some(item => {
+        return (
+          (item.productName && item.productName.toLowerCase().includes(term)) ||
+          (item.quantity && item.quantity.toString().includes(term)) ||
+          (item.price && item.price.toString().includes(term))
+        );
+      });
+      
+      // Check all searchable fields
+      return (
+        (invoice.invoiceId && invoice.invoiceId.toLowerCase().includes(term)) ||
+        (invoice.reference && invoice.reference.toLowerCase().includes(term)) ||
+        (invoice.totalAmount && invoice.totalAmount.toString().includes(term)) ||
+        (invoice.status && invoice.status.toLowerCase().includes(term)) ||
+        (invoice.dueDate && formatDate(invoice.dueDate).toLowerCase().includes(term)) ||
+        (invoice.customerName && invoice.customerName.toLowerCase().includes(term)) ||
+        (invoice.createdAt && formatDate(invoice.createdAt).toLowerCase().includes(term)) ||
+        itemsMatch
+      );
+    });
+    
+    setFilteredInvoices(filtered);
+    setCurrentPage(1); // Reset to first page when search changes
+  };
+  
+  // Handle search field focus
+  const handleSearchFocus = () => {
+    setIsSearchActive(true);
+  };
+  
+  // Handle search field blur
+  const handleSearchBlur = (e) => {
+    // Only deactivate search if the field is empty
+    if (!e.target.value) {
+      setIsSearchActive(false);
+    }
+  };
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -66,6 +121,7 @@ const Invoice = () => {
         
         if (response.data.success) {
           setInvoices(response.data.invoices);
+          setFilteredInvoices(response.data.invoices);
           
           // Calculate statistics
           const now = new Date();
@@ -142,6 +198,13 @@ const Invoice = () => {
         );
         setInvoices(updatedInvoices);
         
+        // Also update filtered invoices
+        setFilteredInvoices(prevFiltered => 
+          prevFiltered.map(inv => 
+            inv.invoiceId === invoice.invoiceId ? { ...inv, status: "Paid" } : inv
+          )
+        );
+        
         // Recalculate statistics
         const paid = updatedInvoices.filter(inv => inv.status === "Paid");
         const unpaid = updatedInvoices.filter(inv => inv.status === "Unpaid");
@@ -192,6 +255,13 @@ const Invoice = () => {
         );
         setInvoices(updatedInvoices);
         
+        // Also update filtered invoices
+        setFilteredInvoices(prevFiltered => 
+          prevFiltered.map(inv => 
+            inv.invoiceId === invoice.invoiceId ? { ...inv, status: "Returned" } : inv
+          )
+        );
+        
         // Recalculate statistics (same as above but considering returned status)
         const paid = updatedInvoices.filter(inv => inv.status === "Paid");
         const unpaid = updatedInvoices.filter(inv => inv.status === "Unpaid");
@@ -238,6 +308,11 @@ const Invoice = () => {
       // In production, you would make a DELETE API call here
       const updatedInvoices = invoices.filter(inv => inv.invoiceId !== invoiceToDelete.invoiceId);
       setInvoices(updatedInvoices);
+      
+      // Also update filtered invoices
+      setFilteredInvoices(prevFiltered => 
+        prevFiltered.filter(inv => inv.invoiceId !== invoiceToDelete.invoiceId)
+      );
       
       // Recalculate statistics
       const paid = updatedInvoices.filter(inv => inv.status === "Paid");
@@ -288,9 +363,26 @@ const Invoice = () => {
       {/* Header with search */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Invoice</h1>
-        <div className={styles.searchContainer}>
-          <input type="text" className={styles.searchInput} placeholder="Search..." />
-          <button className={styles.searchButton}>🔍</button>
+        <div className={`${styles.searchContainer} ${isSearchActive ? styles.activeSearch : ''}`}>
+          <input 
+            type="text" 
+            className={styles.searchInput} 
+            placeholder="Search by ID, reference, amount, status, date..." 
+            value={searchTerm}
+            onChange={handleSearch}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+          />
+          <button 
+            className={styles.searchButton} 
+            onClick={() => {
+              const searchInput = document.querySelector(`.${styles.searchInput}`);
+              setIsSearchActive(true);
+              searchInput.focus();
+            }}
+          >
+            🔍
+          </button>
         </div>
       </div>
       
@@ -333,7 +425,25 @@ const Invoice = () => {
       
       {/* Invoice List */}
       <div className={styles.invoiceListContainer}>
-        <h2 className={styles.listTitle}>Invoices List</h2>
+        <div className={styles.listHeaderRow}>
+          <h2 className={styles.listTitle}>Invoices List</h2>
+          {isSearchActive && searchTerm && (
+            <div className={styles.searchIndicator}>
+              <span>Showing results for: "{searchTerm}"</span>
+              <button 
+                className={styles.clearSearch} 
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilteredInvoices(invoices);
+                  setIsSearchActive(false);
+                  document.querySelector(`.${styles.searchInput}`).blur();
+                }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
         <div className={styles.tableContainer}>
           <table className={styles.invoiceTable}>
             <thead>
@@ -350,9 +460,9 @@ const Invoice = () => {
               {(() => {
                 const indexOfLastInvoice = currentPage * invoicesPerPage;
                 const indexOfFirstInvoice = indexOfLastInvoice - invoicesPerPage;
-                const currentInvoices = invoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
+                const currentInvoices = filteredInvoices.slice(indexOfFirstInvoice, indexOfLastInvoice);
                 
-                if (currentInvoices.length === 0 && invoices.length > 0 && currentPage > 1) {
+                if (currentInvoices.length === 0 && filteredInvoices.length > 0 && currentPage > 1) {
                   // If current page has no invoices but there are invoices, go to previous page
                   setCurrentPage(currentPage - 1);
                   return null;
@@ -442,10 +552,10 @@ const Invoice = () => {
                   </tr>
                 ));
               })()}
-              {invoices.length === 0 && (
+              {filteredInvoices.length === 0 && (
                 <tr>
                   <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
-                    No invoices found
+                    {searchTerm ? "No matching invoices found" : "No invoices found"}
                   </td>
                 </tr>
               )}
@@ -464,13 +574,13 @@ const Invoice = () => {
             Previous
           </button>
           <span className={styles.pageInfo}>
-            Page {currentPage} of {Math.max(1, Math.ceil(invoices.length / invoicesPerPage))}
+            Page {currentPage} of {Math.max(1, Math.ceil(filteredInvoices.length / invoicesPerPage))}
           </span>
           <button 
             className={styles.paginationButton}
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(invoices.length / invoicesPerPage)))}
-            disabled={currentPage >= Math.ceil(invoices.length / invoicesPerPage)}
-            style={{ opacity: currentPage >= Math.ceil(invoices.length / invoicesPerPage) ? 0.5 : 1, cursor: currentPage >= Math.ceil(invoices.length / invoicesPerPage) ? 'not-allowed' : 'pointer' }}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredInvoices.length / invoicesPerPage)))}
+            disabled={currentPage >= Math.ceil(filteredInvoices.length / invoicesPerPage)}
+            style={{ opacity: currentPage >= Math.ceil(filteredInvoices.length / invoicesPerPage) ? 0.5 : 1, cursor: currentPage >= Math.ceil(filteredInvoices.length / invoicesPerPage) ? 'not-allowed' : 'pointer' }}
           >
             Next
           </button>
