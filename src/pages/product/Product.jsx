@@ -96,7 +96,7 @@ const Product = () => {
         setInventoryStats({
           categories: data.overallInventory?.categories?.count || 0,
           totalProducts: data.overallInventory?.totalProducts?.count || 0,
-          totalRevenue: data.overallInventory?.totalProducts?.revenue || 0,
+          totalRevenue: calculateTotalWithTaxAndShipping(data.overallInventory?.totalProducts?.revenue || 0),
           totalCost: data.overallInventory?.topSelling?.cost || 0,
           topSelling: Math.min(5, data.overallInventory?.topSelling?.count || 5), // Force max 5 for top selling
           lowStocks: data.overallInventory?.lowStocks || { ordered: 0, notInStock: 0 }
@@ -180,6 +180,14 @@ const Product = () => {
 
   const formatCurrency = (amount) => {
     return `₹${amount?.toFixed(0) || 0}`;
+  };
+  
+  // Calculate total with tax (10%) and shipping (₹50)
+  const calculateTotalWithTaxAndShipping = (amount) => {
+    const baseAmount = Number(amount || 0);
+    const tax = baseAmount * 0.10; // 10% tax
+    const shipping = 50; // Fixed shipping charge
+    return baseAmount + tax + shipping;
   };
 
   const AddProductModal = () => (
@@ -365,7 +373,7 @@ const Product = () => {
                   className={styles.productRow}
                 >
                   <td className={styles.productCell}>{product.productName}</td>
-                  <td>{formatCurrency(product.sellingPrice)}</td>
+                  <td>{formatCurrency(calculateTotalWithTaxAndShipping(product.sellingPrice))}</td>
                   <td>{product.quantity} {product.unit || 'Packets'}</td>
                   <td>{product.thresholdValue} {product.unit || 'Packets'}</td>
                   <td>{formatDate(product.expiryDate)}</td>

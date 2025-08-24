@@ -16,9 +16,9 @@ const InvoiceView = ({ invoice, onClose }) => {
     });
   };
 
-  // Calculate tax (18% GST)
+  // Calculate tax (10% GST)
   const calculateTax = (amount) => {
-    return amount * 0.18;
+    return amount * 0.10;
   };
 
   // Fixed shipping charge
@@ -147,7 +147,7 @@ const InvoiceView = ({ invoice, onClose }) => {
                 <p>{formatCurrency(invoice?.totalAmount || 5000)}</p>
               </div>
               <div className={styles.summaryDetails}>
-                <h4>Tax (18%)</h4>
+                <h4>Tax (10%)</h4>
                 <p>{formatCurrency(calculateTax(invoice?.totalAmount || 5000))}</p>
               </div>
               <div className={styles.summaryDetails}>

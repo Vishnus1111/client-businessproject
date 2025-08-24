@@ -41,6 +41,14 @@ const Invoice = () => {
       year: "2-digit"
     });
   };
+  
+  // Calculate total with tax (10%) and shipping (₹50)
+  const calculateTotalWithTaxAndShipping = (amount) => {
+    const baseAmount = Number(amount || 0);
+    const tax = baseAmount * 0.10; // 10% tax
+    const shipping = 50; // Fixed shipping charge
+    return baseAmount + tax + shipping;
+  };
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -84,9 +92,12 @@ const Invoice = () => {
       });
       
       // Check all searchable fields
+      const referenceMatch = (invoice.reference && invoice.reference.toLowerCase().includes(term)) || 
+                             (invoice.invoiceId && `INV-${invoice.invoiceId.substring(invoice.invoiceId.length - 3)}`.toLowerCase().includes(term));
+      
       return (
         (invoice.invoiceId && invoice.invoiceId.toLowerCase().includes(term)) ||
-        (invoice.reference && invoice.reference.toLowerCase().includes(term)) ||
+        referenceMatch ||
         (invoice.totalAmount && invoice.totalAmount.toString().includes(term)) ||
         (invoice.status && invoice.status.toLowerCase().includes(term)) ||
         (invoice.dueDate && formatDate(invoice.dueDate).toLowerCase().includes(term)) ||
@@ -137,9 +148,9 @@ const Invoice = () => {
           const paid = response.data.invoices.filter(invoice => invoice.status === "Paid");
           const unpaid = response.data.invoices.filter(invoice => invoice.status === "Unpaid");
           
-          // Calculate total paid and unpaid amounts
-          const paidAmount = paid.reduce((total, invoice) => total + Number(invoice.totalAmount || 0), 0);
-          const unpaidAmount = unpaid.reduce((total, invoice) => total + Number(invoice.totalAmount || 0), 0);
+          // Calculate total paid and unpaid amounts with tax and shipping
+          const paidAmount = paid.reduce((total, invoice) => total + calculateTotalWithTaxAndShipping(invoice.totalAmount), 0);
+          const unpaidAmount = unpaid.reduce((total, invoice) => total + calculateTotalWithTaxAndShipping(invoice.totalAmount), 0);
           
           setStatistics({
             recentTransactions: recentInvoices.length,
@@ -216,11 +227,11 @@ const Invoice = () => {
             processed: paid.length 
           },
           paidAmount: { 
-            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0),
+            amount: paid.reduce((sum, inv) => sum + calculateTotalWithTaxAndShipping(inv.totalAmount), 0),
             customers: paid.length 
           },
           unpaidAmount: { 
-            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0), 
+            amount: unpaid.reduce((sum, inv) => sum + calculateTotalWithTaxAndShipping(inv.totalAmount), 0), 
             pending: unpaid.length 
           }
         }));
@@ -273,11 +284,11 @@ const Invoice = () => {
             processed: paid.length 
           },
           paidAmount: { 
-            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0),
+            amount: paid.reduce((sum, inv) => sum + calculateTotalWithTaxAndShipping(inv.totalAmount), 0),
             customers: paid.length 
           },
           unpaidAmount: { 
-            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0), 
+            amount: unpaid.reduce((sum, inv) => sum + calculateTotalWithTaxAndShipping(inv.totalAmount), 0), 
             pending: unpaid.length 
           }
         }));
@@ -325,11 +336,11 @@ const Invoice = () => {
           processed: paid.length 
         },
         paidAmount: { 
-          amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0),
+          amount: paid.reduce((sum, inv) => sum + calculateTotalWithTaxAndShipping(inv.totalAmount), 0),
           customers: paid.length 
         },
         unpaidAmount: { 
-          amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount || 0), 0), 
+          amount: unpaid.reduce((sum, inv) => sum + calculateTotalWithTaxAndShipping(inv.totalAmount), 0), 
           pending: unpaid.length 
         }
       });
@@ -472,7 +483,7 @@ const Invoice = () => {
                   <tr key={invoice._id}>
                     <td>{invoice.invoiceId}</td>
                     <td>{invoice.reference || `INV-${invoice.invoiceId.substring(invoice.invoiceId.length - 3)}`}</td>
-                    <td>₹ {Number(invoice.totalAmount || 0).toLocaleString()}</td>
+                    <td>₹ {calculateTotalWithTaxAndShipping(invoice.totalAmount).toLocaleString()}</td>
                     <td>
                       <span className={`${styles.status} ${styles[invoice.status.toLowerCase()]}`}>
                         {invoice.status}
