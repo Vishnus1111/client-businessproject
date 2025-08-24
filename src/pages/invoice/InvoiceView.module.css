@@ -14,113 +14,226 @@
 .modalContent {
   background-color: white;
   border-radius: 8px;
-  padding: 20px;
-  width: 600px;
-  max-width: 90%;
-  max-height: 80vh;
+  padding: 0;
+  width: 800px;
+  max-width: 95%;
+  max-height: 90vh;
   overflow-y: auto;
   position: relative;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.closeButtonWrapper {
-  text-align: right;
+.header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.closeButton, .downloadButton, .printButton {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #444;
+  margin-left: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .closeButton {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
+  background-color: #ff5c5c;
+  color: white;
+}
+
+.downloadButton {
+  background-color: #4f9cff;
+  color: white;
+}
+
+.printButton {
+  background-color: #ffc107;
+  color: white;
+}
+
+.icon {
+  font-size: 18px;
 }
 
 .invoiceContainer {
-  padding: 20px;
+  padding: 30px;
+  background-color: white;
 }
 
 .invoiceTitle {
   text-align: center;
-  margin-bottom: 20px;
-  font-size: 24px;
-  font-weight: 600;
+  margin-bottom: 30px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #333;
 }
 
-.invoiceDetails {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 20px;
-}
-
-.detail {
+.addressSection {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.billedTo, .businessAddress {
+  width: 48%;
+}
+
+.billedTo h4, .businessAddress h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #555;
   margin-bottom: 10px;
 }
 
-.label {
-  font-weight: 600;
+.billedTo p, .businessAddress p {
+  font-size: 14px;
+  margin: 4px 0;
   color: #555;
 }
 
-.value {
-  color: #333;
-}
-
-.section {
-  margin-bottom: 20px;
-}
-
-.section h3 {
-  font-size: 18px;
-  margin-bottom: 10px;
-  color: #333;
-  font-weight: 600;
-}
-
-.productDetails {
+.invoiceInfo {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 4px;
+  margin-bottom: 30px;
+  padding: 15px 0;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.productName {
-  font-weight: 500;
+.invoiceNumber, .invoiceDate, .dueDate {
+  width: 30%;
 }
 
-.productPrice {
+.invoiceNumber h4, .invoiceDate h4, .dueDate h4 {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 5px;
+}
+
+.invoiceNumber p, .invoiceDate p, .dueDate p {
+  font-size: 16px;
   font-weight: 600;
+  color: #333;
+}
+
+.productTable {
+  margin-bottom: 30px;
+}
+
+.productTable table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.productTable th {
+  background-color: #f5f5f5;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #444;
+  font-size: 14px;
+}
+
+.productTable td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+  font-size: 14px;
+}
+
+.productTable th:first-child,
+.productTable td:first-child {
+  width: 60%;
+}
+
+.productTable th:nth-child(2),
+.productTable td:nth-child(2) {
+  width: 20%;
+  text-align: center;
+}
+
+.productTable th:last-child,
+.productTable td:last-child {
+  width: 20%;
+  text-align: right;
+}
+
+.summary {
+  margin-top: 20px;
+  width: 60%;
+  margin-left: auto;
+}
+
+.summaryDetails {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.summaryDetails h4 {
+  font-weight: 500;
+  color: #666;
+  margin: 0;
+}
+
+.summaryDetails p {
+  font-weight: 500;
+  color: #333;
+  margin: 0;
 }
 
 .total {
-  text-align: right;
-  font-size: 20px;
+  font-weight: bold;
+  font-size: 16px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 10px;
+  margin-top: 5px;
+}
+
+.total h4, .total p {
   font-weight: 700;
-  color: #0066cc;
+  color: #333;
+  font-size: 18px;
 }
 
-.actions {
+.paymentNote {
+  margin-top: 30px;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+  align-items: center;
+  font-size: 14px;
+  color: #555;
 }
 
-.downloadButton, .printButton {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
+.paymentNote input {
+  margin-right: 10px;
 }
 
-.downloadButton {
-  background-color: #3498db;
+.footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
 }
 
-.printButton {
-  background-color: #f39c12;
+.footerItem {
+  margin: 0 15px;
+  font-size: 14px;
+  color: #555;
 }
+
+/* The following styles have been moved to the top as they're duplicates */
