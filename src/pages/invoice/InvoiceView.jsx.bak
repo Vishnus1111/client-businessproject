@@ -110,66 +110,65 @@ const InvoiceView = ({ invoice, onClose }) => {
                 </div>
               </div>
             </div>
-            
-            <div className={styles.productTable}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Products</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoice?.items && invoice.items.length > 0 ? (
-                    invoice.items.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.productName}</td>
-                        <td>{item.quantity}</td>
-                        <td>{formatCurrency(item.price)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    // Sample product display if no items in invoice
-                    <tr>
-                      <td>{invoice?.productName || 'Product'}</td>
-                      <td>{invoice?.quantityOrdered || 1}</td>
-                      <td>{formatCurrency(invoice?.pricePerUnit || 1000)}</td>
+          
+          <div className={styles.productTable}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Products</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice?.items && invoice.items.length > 0 ? (
+                  invoice.items.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.productName}</td>
+                      <td>{item.quantity}</td>
+                      <td>{formatCurrency(item.price)}</td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  ))
+                ) : (
+                  // Sample product display if no items in invoice
+                  <tr>
+                    <td>{invoice?.productName || 'Product'}</td>
+                    <td>{invoice?.quantityOrdered || 1}</td>
+                    <td>{formatCurrency(invoice?.pricePerUnit || 1000)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className={styles.summary}>
+            <div className={styles.summaryDetails}>
+              <h4>Subtotal</h4>
+              <p>{formatCurrency(invoice?.totalAmount || 5000)}</p>
             </div>
-            
-            <div className={styles.summary}>
-              <div className={styles.summaryDetails}>
-                <h4>Subtotal</h4>
-                <p>{formatCurrency(invoice?.totalAmount || 5000)}</p>
-              </div>
-              <div className={styles.summaryDetails}>
-                <h4>Tax (18%)</h4>
-                <p>{formatCurrency(calculateTax(invoice?.totalAmount || 5000))}</p>
-              </div>
-              <div className={styles.summaryDetails}>
-                <h4>Shipping</h4>
-                <p>{formatCurrency(shippingCharge)}</p>
-              </div>
-              <div className={`${styles.summaryDetails} ${styles.total}`}>
-                <h4>Total due</h4>
-                <p>{formatCurrency(calculateTotal(invoice?.totalAmount || 5000))}</p>
-              </div>
+            <div className={styles.summaryDetails}>
+              <h4>Tax (18%)</h4>
+              <p>{formatCurrency(calculateTax(invoice?.totalAmount || 5000))}</p>
             </div>
-            
-            <div className={styles.paymentNote}>
-              <input type="checkbox" checked readOnly />
-              <span>Please pay within 15 days of receiving this invoice.</span>
+            <div className={styles.summaryDetails}>
+              <h4>Shipping</h4>
+              <p>{formatCurrency(shippingCharge)}</p>
             </div>
-            
-            <div className={styles.footer}>
-              <div className={styles.footerItem}>www.zipkart.com</div>
-              <div className={styles.footerItem}>+91 1234567890</div>
-              <div className={styles.footerItem}>vishnu@email.com</div>
+            <div className={`${styles.summaryDetails} ${styles.total}`}>
+              <h4>Total due</h4>
+              <p>{formatCurrency(calculateTotal(invoice?.totalAmount || 5000))}</p>
             </div>
+          </div>
+          
+          <div className={styles.paymentNote}>
+            <input type="checkbox" checked readOnly />
+            <span>Please pay within 15 days of receiving this invoice.</span>
+          </div>
+          
+          <div className={styles.footer}>
+            <div className={styles.footerItem}>www.zipkart.com</div>
+            <div className={styles.footerItem}>+91 1234567890</div>
+            <div className={styles.footerItem}>vishnu@email.com</div>
           </div>
         </div>
       </div>
