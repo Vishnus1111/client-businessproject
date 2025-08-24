@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styles from './Invoice.module.css';
 import InvoiceView from './InvoiceView';
-import API_BASE_URL from '../config';
+import { API_BASE_URL } from '../config';
 
 const Invoice = () => {
   const [invoices, setInvoices] = useState([]);

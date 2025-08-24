@@ -1,0 +1,126 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 600px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.closeButtonWrapper {
+  text-align: right;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.invoiceContainer {
+  padding: 20px;
+}
+
+.invoiceTitle {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.invoiceDetails {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
+}
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.label {
+  font-weight: 600;
+  color: #555;
+}
+
+.value {
+  color: #333;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #333;
+  font-weight: 600;
+}
+
+.productDetails {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.productName {
+  font-weight: 500;
+}
+
+.productPrice {
+  font-weight: 600;
+}
+
+.total {
+  text-align: right;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0066cc;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.downloadButton, .printButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.downloadButton {
+  background-color: #3498db;
+}
+
+.printButton {
+  background-color: #f39c12;
+}

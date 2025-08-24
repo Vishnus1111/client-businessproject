@@ -1,0 +1,495 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modalContent {
+  width: 90%;
+  max-width: 500px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease;
+}
+
+.modalHeader {
+  display: flex;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  border: none;
+  background: transparent;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.2s ease;
+  z-index: 5;
+}
+
+.closeButton:hover {
+  color: #e74c3c;
+}
+
+.productDetails {
+  display: flex;
+  gap: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.productImageContainer {
+  flex: 0 0 120px;
+  height: 160px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 1px solid #e1e1e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.productName {
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.priceContainer {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.priceLabel {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-right: 0.3rem;
+}
+
+.productPrice {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e67e22;
+}
+
+.perUnit {
+  font-size: 0.9rem;
+  color: #95a5a6;
+  margin-left: 0.3rem;
+}
+
+.productDescription {
+  font-size: 0.95rem;
+  color: #7f8c8d;
+  line-height: 1.5;
+  margin: 0.5rem 0 1rem;
+}
+
+.stockInfo {
+  display: flex;
+  align-items: center;
+}
+
+.stockLabel {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-right: 0.5rem;
+}
+
+.stockStatus {
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: #f1f1f1;
+}
+
+.instock {
+  color: #27ae60;
+  background: rgba(39, 174, 96, 0.1);
+}
+
+.lowstock {
+  color: #f39c12;
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.outofstock {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.orderSection {
+  background: #f8f9fa;
+  padding: 1.2rem;
+  border-radius: 8px;
+}
+
+.quantitySection {
+  margin-bottom: 1.5rem;
+}
+
+.quantityLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: #2c3e50;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  max-width: 180px;
+}
+
+.quantityButton {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #3498db;
+  background: white;
+  color: #3498db;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quantityButton:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.quantityButton:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.quantityButton:hover {
+  background: #3498db;
+  color: white;
+}
+
+.quantityButton:disabled {
+  background: #f5f5f5;
+  border-color: #ddd;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.quantityDisplay {
+  width: 60px;
+  height: 36px;
+  border-top: 1px solid #3498db;
+  border-bottom: 1px solid #3498db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: white;
+}
+
+.ratingSection {
+  margin-bottom: 1.5rem;
+}
+
+.ratingLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: #2c3e50;
+}
+
+.ratingStars {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.star {
+  font-size: 2rem;
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.star:hover {
+  color: #f39c12;
+  transform: scale(1.1);
+}
+
+.activeStar {
+  color: #f39c12;
+}
+
+.totalSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 0.8rem 0;
+  border-top: 1px dashed #ddd;
+  border-bottom: 1px dashed #ddd;
+}
+
+.totalLabel {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.totalAmount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #3498db;
+}
+
+.orderButton {
+  width: 100%;
+  padding: 0.9rem 0;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.orderButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.orderButton:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .productDetails {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .productImageContainer {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+  }
+  
+  .productInfo {
+    text-align: center;
+  }
+  
+  .priceContainer {
+    justify-content: center;
+  }
+  
+  .stockInfo {
+    justify-content: center;
+  }
+  
+  .quantityControl {
+    margin: 0 auto;
+  }
+  
+  .ratingStars {
+    justify-content: center;
+  }
+}
+.productBasicInfo {
+  flex: 1;
+}
+
+.productName {
+  font-size: 18px;
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.priceInfo {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.priceLabel {
+  font-weight: 500;
+  margin-right: 5px;
+  color: #666;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.unit {
+  font-size: 14px;
+  color: #777;
+  margin-left: 5px;
+}
+
+/* Modal body with controls */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sectionLabel {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+/* Quantity controls */
+.quantityControl {
+  display: flex;
+  flex-direction: column;
+}
+
+.quantityActions {
+  display: flex;
+  align-items: center;
+}
+
+.quantityButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quantityButton:hover:not(:disabled) {
+  background-color: #eee;
+}
+
+.quantityButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantityDisplay {
+  min-width: 60px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Rating stars */
+.ratingContainer {
+  margin: 15px 0;
+}
+
+.ratingStars {
+  display: flex;
+  gap: 8px;
+}
+
+.ratingStar {
+  font-size: 28px;
+  color: #ddd;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.ratingStar:hover,
+.activeRating {
+  color: #f39c12;
+}
+
+/* Total amount */
+.totalContainer {
+  margin: 15px 0;
+  padding: 10px 15px;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+}
+
+.totalAmount {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Order button */
+.placeOrderButton {
+  width: 100%;
+  padding: 12px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.placeOrderButton:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.placeOrderButton:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}

@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import AddProductForm from './AddProductForm';
 import CSVUploadModal from './CSVUploadModal';
+import ProductDetailModal from './ProductDetailModal';
 import styles from './Product.module.css';
 
 const Product = () => {
@@ -11,6 +12,7 @@ const Product = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showIndividualForm, setShowIndividualForm] = useState(false);
   const [showCSVUpload, setShowCSVUpload] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [inventoryStats, setInventoryStats] = useState({
     categories: 0,
     totalProducts: 0,
@@ -343,7 +345,11 @@ const Product = () => {
             </thead>
             <tbody>
               {displayedProducts.length > 0 ? displayedProducts.map((product) => (
-                <tr key={product._id}>
+                <tr 
+                  key={product._id} 
+                  onClick={() => setSelectedProduct(product)}
+                  className={styles.productRow}
+                >
                   <td className={styles.productCell}>{product.productName}</td>
                   <td>{formatCurrency(product.sellingPrice)}</td>
                   <td>{product.quantity} {product.unit || 'Packets'}</td>
@@ -408,6 +414,19 @@ const Product = () => {
         <CSVUploadModal
           onClose={() => setShowCSVUpload(false)}
           onProductsAdded={handleProductAdded}
+        />
+      )}
+      
+      {/* Product Detail Modal */}
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onPlaceOrder={(orderData) => {
+            console.log('Order placed:', orderData);
+            toast.success(`Order placed for ${orderData.quantity} ${selectedProduct.unit || 'units'} of ${selectedProduct.productName}`);
+            // Here you would typically call an API to place the order
+          }}
         />
       )}
     </div>
