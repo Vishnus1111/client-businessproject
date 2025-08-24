@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 import styles from "./Invoice.module.css";
 import InvoiceView from "./InvoiceView";
 import API_BASE_URL from "../config";
@@ -20,6 +21,9 @@ const Invoice = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [invoicesPerPage] = useState(9);
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState(null);
 
   // Format currency with Indian Rupee symbol
   const formatCurrency = (amount) => {
@@ -158,14 +162,13 @@ const Invoice = () => {
           }
         }));
         
-        // Show success message
-        alert("Invoice paid successfully");
+        // Show success message with toast instead of alert
+        toast.success("Invoice paid successfully");
       } else {
-        alert(response.data.message || "Failed to pay invoice");
+        toast.error(response.data.message || "Failed to pay invoice");
       }
     } catch (error) {
-      console.error("Error paying invoice:", error);
-      alert("Error paying invoice");
+      toast.error("Error paying invoice");
     }
   };
   
@@ -209,27 +212,31 @@ const Invoice = () => {
           }
         }));
         
-        // Show success message
-        alert("Invoice returned/cancelled successfully");
+        // Show success message with toast
+        toast.success("Invoice returned/cancelled successfully");
       } else {
-        alert(response.data.message || "Failed to return/cancel invoice");
+        toast.error(response.data.message || "Failed to return/cancel invoice");
       }
     } catch (error) {
-      console.error("Error returning invoice:", error);
-      alert("Error returning/cancelling invoice");
+      toast.error("Error returning/cancelling invoice");
     }
   };
   
-  const handleDeleteInvoice = async (invoice) => {
-    // Confirm before deleting
-    if (!window.confirm("Are you sure you want to delete this invoice?")) {
-      return;
-    }
+  // Handle initiating the delete process - shows confirmation dialog
+  const handleDeleteInvoice = (invoice) => {
+    // Show delete confirmation dialog
+    setInvoiceToDelete(invoice);
+    setShowDeleteConfirm(true);
+  };
+  
+  // Handle confirming the deletion
+  const confirmDeleteInvoice = () => {
+    if (!invoiceToDelete) return;
     
     try {
       // For now we're just removing it from UI since delete endpoint isn't implemented
       // In production, you would make a DELETE API call here
-      const updatedInvoices = invoices.filter(inv => inv.invoiceId !== invoice.invoiceId);
+      const updatedInvoices = invoices.filter(inv => inv.invoiceId !== invoiceToDelete.invoiceId);
       setInvoices(updatedInvoices);
       
       // Recalculate statistics
@@ -252,11 +259,20 @@ const Invoice = () => {
         }
       });
       
-      alert("Invoice deleted successfully");
+      toast.success("Invoice deleted successfully");
+      setShowDeleteConfirm(false);
+      setInvoiceToDelete(null);
     } catch (error) {
-      console.error("Error deleting invoice:", error);
-      alert("Error deleting invoice");
+      toast.error("Error deleting invoice");
+      setShowDeleteConfirm(false);
+      setInvoiceToDelete(null);
     }
+  };
+  
+  // Handle canceling the deletion
+  const cancelDeleteInvoice = () => {
+    setShowDeleteConfirm(false);
+    setInvoiceToDelete(null);
   };
 
   if (loading) {
@@ -280,8 +296,14 @@ const Invoice = () => {
       
       {/* Invoice Statistics Dashboard */}
       <div className={styles.dashboard}>
-        <h2 className={styles.dashboardTitle}>Recent Transactions</h2>
+        <h2 className={styles.dashboardTitle}>Overall Invoice</h2>
         <div className={styles.statsRow}>
+          <div className={styles.statBox}>
+            <div className={styles.statTitle}>Recent Transactions</div>
+            <div className={styles.statValue}>{statistics.recentTransactions}</div>
+            <div className={styles.statSubText}>Last 7 days</div>
+          </div>
+          
           <div className={styles.statBox}>
             <div className={styles.statTitle}>Total Invoices</div>
             <div className={styles.statValue}>{statistics.totalInvoices.total}</div>
@@ -294,7 +316,7 @@ const Invoice = () => {
             <div className={styles.statValue}>{formatCurrency(statistics.paidAmount.amount)}</div>
             <div className={styles.statSubText}>Last 7 days</div>
             <div className={styles.statContent}>
-              <span className={styles.statProcessed}>{statistics.paidAmount.customers} Customers</span>
+              <span className={styles.statProcessed}>{statistics.paidAmount.customers} customers</span>
             </div>
           </div>
           
@@ -303,7 +325,7 @@ const Invoice = () => {
             <div className={styles.statValue}>{formatCurrency(statistics.unpaidAmount.amount)}</div>
             <div className={styles.statSubText}>Last 7 days</div>
             <div className={styles.statContent}>
-              <span className={styles.statProcessed}>{statistics.unpaidAmount.pending} Pending</span>
+              <span className={styles.statProcessed}>{statistics.unpaidAmount.pending} Pending Payment</span>
             </div>
           </div>
         </div>
@@ -311,15 +333,14 @@ const Invoice = () => {
       
       {/* Invoice List */}
       <div className={styles.invoiceListContainer}>
-        <h2 className={styles.listTitle}>Invoices</h2>
+        <h2 className={styles.listTitle}>Invoices List</h2>
         <div className={styles.tableContainer}>
           <table className={styles.invoiceTable}>
             <thead>
               <tr>
                 <th>Invoice ID</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Amount</th>
+                <th>Reference Number</th>
+                <th>Amount (₹)</th>
                 <th>Status</th>
                 <th>Due Date</th>
                 <th>Actions</th>
@@ -340,8 +361,7 @@ const Invoice = () => {
                 return currentInvoices.map((invoice) => (
                   <tr key={invoice._id}>
                     <td>{invoice.invoiceId}</td>
-                    <td>{formatDate(invoice.createdAt)}</td>
-                    <td>{invoice.customerInfo?.name || "N/A"}</td>
+                    <td>{invoice.reference || `INV-${invoice.invoiceId.substring(invoice.invoiceId.length - 3)}`}</td>
                     <td>₹ {Number(invoice.totalAmount).toLocaleString()}</td>
                     <td>
                       <span className={`${styles.status} ${styles[invoice.status.toLowerCase()]}`}>
@@ -356,8 +376,32 @@ const Invoice = () => {
                           onClick={() => toggleDropdown(invoice._id)}
                         >⋮</button>
                         <div className={`${styles.dropdownContent} ${invoice._id === openDropdownId ? styles.show : ''}`}>
-                          {/* Only show View Invoice button for Paid and Returned invoices */}
-                          {(invoice.status === "Paid" || invoice.status === "Returned") && (
+                          {/* For Paid invoices, show View Invoice and Delete options */}
+                          {invoice.status === "Paid" && (
+                            <>
+                              <button 
+                                className={styles.viewButton}
+                                onClick={() => {
+                                  handleViewInvoice(invoice);
+                                  setOpenDropdownId(null);
+                                }}
+                              >
+                                <span className={styles.viewIcon}>👁️</span> View Invoice
+                              </button>
+                              <button 
+                                className={styles.deleteButton}
+                                onClick={() => {
+                                  handleDeleteInvoice(invoice);
+                                  setOpenDropdownId(null);
+                                }}
+                              >
+                                <span className={styles.deleteIcon}>🗑️</span> Delete
+                              </button>
+                            </>
+                          )}
+                          
+                          {/* For Returned invoices, only show View Invoice */}
+                          {invoice.status === "Returned" && (
                             <button 
                               className={styles.viewButton}
                               onClick={() => {
@@ -365,11 +409,11 @@ const Invoice = () => {
                                 setOpenDropdownId(null);
                               }}
                             >
-                              <span className={styles.viewIcon}>👁️</span> View Invoice
+                              <span className={styles.viewIcon}>�️</span> View Invoice
                             </button>
                           )}
                           
-                          {/* Different actions based on invoice status */}
+                          {/* For Unpaid invoices, show Pay and Return/Cancel options */}
                           {invoice.status === "Unpaid" && (
                             <>
                               <button 
@@ -391,19 +435,6 @@ const Invoice = () => {
                                 <span className={styles.returnIcon}>↩️</span> Return/Cancel
                               </button>
                             </>
-                          )}
-                          
-                          {/* Only show delete option for paid invoices */}
-                          {invoice.status === "Paid" && (
-                            <button 
-                              className={styles.deleteButton}
-                              onClick={() => {
-                                handleDeleteInvoice(invoice);
-                                setOpenDropdownId(null);
-                              }}
-                            >
-                              <span className={styles.deleteIcon}>🗑️</span> Delete
-                            </button>
                           )}
                         </div>
                       </div>
@@ -449,6 +480,30 @@ const Invoice = () => {
       {/* Invoice View Modal */}
       {selectedInvoice && (
         <InvoiceView invoice={selectedInvoice} onClose={handleCloseInvoiceView} />
+      )}
+      
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.confirmDeleteModal}>
+            <h3>Confirm Delete</h3>
+            <p>This invoice will be deleted.</p>
+            <div className={styles.confirmButtonGroup}>
+              <button 
+                className={styles.cancelButton} 
+                onClick={cancelDeleteInvoice}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.confirmButton} 
+                onClick={confirmDeleteInvoice}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
