@@ -164,12 +164,18 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
   };
 
   const uploadCSV = async () => {
+    console.log("🚀 Starting CSV upload...");
     setLoading(true);
 
     try {
       const token = localStorage.getItem('token');
+      console.log("📝 Token:", token ? "Present" : "Missing");
+      
       const formData = new FormData();
-      formData.append('csvFile', csvFile);
+      formData.append('csv', csvFile); // Changed from 'csvFile' to 'csv' to match backend expectation
+      console.log("📁 FormData prepared with file:", csvFile?.name);
+
+      console.log("🌐 Making request to:", `${API_BASE_URL}/api/products/add-multiple`);
 
       // Use the add-multiple endpoint for actual upload
       const response = await fetch(`${API_BASE_URL}/api/products/add-multiple`, {
@@ -180,31 +186,47 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
         body: formData
       });
 
-      const data = await response.json();
+      console.log("📡 Response status:", response.status);
+      console.log("📡 Response ok:", response.ok);
 
-      if (response.ok) {
+      const data = await response.json();
+      console.log("📋 Response data:", data);
+
+      // Check if products were actually added, regardless of success flag
+      const successCount = data.results?.successful?.length || 0;
+      const failedCount = data.results?.failed?.length || 0;
+      const totalProcessed = data.results?.total || 0;
+
+      if (response.ok || successCount > 0) {
         // Success - products were added
-        const successCount = data.results?.successful?.length || 0;
-        const failedCount = data.results?.failed?.length || 0;
-        
         if (successCount > 0) {
+          console.log("✅ Upload successful! Calling onProductsAdded and onClose");
           toast.success(`Successfully added ${successCount} products to your inventory!`);
           if (failedCount > 0) {
             toast.warning(`${failedCount} products had issues and were skipped.`);
           }
-          onProductsAdded();
-          onClose();
+          
+          console.log("🔄 Calling onProductsAdded to refresh product list...");
+          onProductsAdded(); // Refresh the product list
+          
+          console.log("🚪 Calling onClose to close modal...");
+          onClose(); // Close the modal
+        } else if (totalProcessed > 0) {
+          // Products were processed but none succeeded
+          toast.error('No products were added. Please check the CSV data format.');
         } else {
-          toast.error('No products were added. Please check the CSV data.');
+          toast.error('No products were processed. Please check the CSV file.');
         }
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Failed to upload CSV');
+        console.log("❌ Upload failed - Response not ok");
+        console.log("📋 Error response data:", data);
+        toast.error(data.message || 'Failed to upload CSV');
       }
     } catch (error) {
-      console.error('Error uploading CSV:', error);
-      toast.error('Error uploading CSV file');
+      console.error('❌ Upload error caught:', error);
+      toast.error('Error uploading CSV file: ' + error.message);
     } finally {
+      console.log("🏁 Upload process completed");
       setLoading(false);
     }
   };
@@ -259,6 +281,19 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
     setCsvFile(null);
     setValidationStep('upload');
     setValidationData(null);
+  };
+
+  const handleButtonClick = () => {
+    console.log("🔘 Button clicked! validationStep:", validationStep);
+    console.log("🔘 Current state - csvFile:", csvFile?.name, "loading:", loading);
+    
+    if (validationStep === 'validated') {
+      console.log("🚀 Should call uploadCSV");
+      uploadCSV();
+    } else {
+      console.log("📋 Should call handleUpload (validation)");
+      handleUpload();
+    }
   };
 
   const getButtonText = () => {
@@ -397,7 +432,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
             </button>
             <button 
               className={styles.nextButton}
-              onClick={validationStep === 'validated' ? onClose : handleUpload}
+              onClick={handleButtonClick}
               disabled={!csvFile || loading}
               type="button"
             >

@@ -26,6 +26,7 @@ const Product = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchProducts = useCallback(async () => {
+    console.log("🔍 fetchProducts called - starting to fetch products...");
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -35,6 +36,7 @@ const Product = () => {
         url = `${API_BASE_URL}/api/products/search?query=${encodeURIComponent(searchQuery)}&page=${currentPage}&limit=10`;
       }
 
+      console.log("🌐 Making API request to:", url);
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -44,21 +46,27 @@ const Product = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("✅ API response received:", data);
+        
         if (searchQuery.trim()) {
           setProducts(data.results?.products || []);
           setTotalPages(data.results?.pagination?.totalPages || 1);
+          console.log("📊 Updated products (search mode):", data.results?.products?.length || 0);
         } else {
           setProducts(data.products || []);
           setTotalPages(Math.ceil((data.products?.length || 0) / 10));
+          console.log("📊 Updated products (all mode):", data.products?.length || 0);
         }
       } else {
+        console.error("❌ API response not OK:", response.status, response.statusText);
         toast.error('Failed to load products');
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('❌ Error fetching products:', error);
       toast.error('Error loading products');
     } finally {
       setLoading(false);
+      console.log("🏁 fetchProducts completed");
     }
   }, [currentPage, searchQuery]);
 
@@ -162,8 +170,10 @@ const Product = () => {
   );
 
   const handleProductAdded = () => {
+    console.log("🔄 handleProductAdded called - refreshing product list...");
     fetchProducts();
     fetchInventoryStats();
+    console.log("📝 Refresh functions called: fetchProducts() and fetchInventoryStats()");
   };
 
   if (loading) {
