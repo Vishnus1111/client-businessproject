@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import AddProductForm from './AddProductForm';
 import CSVUploadModal from './CSVUploadModal';
-import ProductDetailModal from './ProductDetailModal';
+import ProductOrderHandler from './ProductOrderHandler';
 import styles from './Product.module.css';
 
 const Product = () => {
@@ -12,7 +12,6 @@ const Product = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showIndividualForm, setShowIndividualForm] = useState(false);
   const [showCSVUpload, setShowCSVUpload] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [inventoryStats, setInventoryStats] = useState({
     categories: 0,
     totalProducts: 0,
@@ -21,6 +20,9 @@ const Product = () => {
     topSelling: 0,
     lowStocks: { ordered: 0, notInStock: 0 }
   });
+  
+  // State for product ordering
+  const [selectedProductId, setSelectedProductId] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -232,6 +234,18 @@ const Product = () => {
     fetchInventoryStats();
     console.log("📝 Refresh functions called: fetchProducts() and fetchInventoryStats()");
   };
+  
+  // Function to refresh inventory after placing an order
+  const handleRefreshInventory = useCallback(() => {
+    console.log("🔄 handleRefreshInventory called - refreshing inventory after order placement");
+    // Force full refresh of products and stats
+    if (searchQuery.trim()) {
+      fetchProducts(searchQuery);
+    } else {
+      fetchProducts();
+    }
+    fetchInventoryStats();
+  }, [fetchProducts, fetchInventoryStats, searchQuery]);
 
   if (loading) {
     return (
@@ -347,7 +361,7 @@ const Product = () => {
               {displayedProducts.length > 0 ? displayedProducts.map((product) => (
                 <tr 
                   key={product._id} 
-                  onClick={() => setSelectedProduct(product)}
+                  onClick={() => setSelectedProductId(product.productId)}
                   className={styles.productRow}
                 >
                   <td className={styles.productCell}>{product.productName}</td>
@@ -416,17 +430,13 @@ const Product = () => {
           onProductsAdded={handleProductAdded}
         />
       )}
-      
-      {/* Product Detail Modal */}
-      {selectedProduct && (
-        <ProductDetailModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          onPlaceOrder={(orderData) => {
-            console.log('Order placed:', orderData);
-            toast.success(`Order placed for ${orderData.quantity} ${selectedProduct.unit || 'units'} of ${selectedProduct.productName}`);
-            // Here you would typically call an API to place the order
-          }}
+
+      {/* Product Order Handler */}
+      {selectedProductId && (
+        <ProductOrderHandler
+          productId={selectedProductId}
+          onClose={() => setSelectedProductId(null)}
+          refreshInventory={handleRefreshInventory}
         />
       )}
     </div>

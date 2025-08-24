@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import styles from './Invoice.module.css';
-import InvoiceView from './InvoiceView';
-import API_BASE_URL from '../config';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import styles from "./Invoice.module.css";
+import InvoiceView from "./InvoiceView";
+import API_BASE_URL from "../config";
 
 const Invoice = () => {
   const [invoices, setInvoices] = useState([]);
@@ -23,10 +23,10 @@ const Invoice = () => {
 
   // Format date in DD-MMM-YY format
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "2-digit"
     });
   };
 
@@ -49,40 +49,40 @@ const Invoice = () => {
             new Date(invoice.createdAt) >= sevenDaysAgo
           );
           
-          // Total, paid and unpaid invoices
-          const paid = response.data.invoices.filter(invoice => invoice.status === 'Paid');
-          const unpaid = response.data.invoices.filter(invoice => invoice.status === 'Unpaid');
+          // Separate paid and unpaid invoices
+          const paid = response.data.invoices.filter(invoice => invoice.status === "Paid");
+          const unpaid = response.data.invoices.filter(invoice => invoice.status === "Unpaid");
           
-          // Calculate total amounts
-          const paidAmount = paid.reduce((total, invoice) => total + invoice.totalAmount, 0);
-          const unpaidAmount = unpaid.reduce((total, invoice) => total + invoice.totalAmount, 0);
+          // Calculate total paid and unpaid amounts
+          const paidAmount = paid.reduce((total, invoice) => total + Number(invoice.totalAmount), 0);
+          const unpaidAmount = unpaid.reduce((total, invoice) => total + Number(invoice.totalAmount), 0);
           
           setStatistics({
             recentTransactions: recentInvoices.length,
-            totalInvoices: { 
-              total: response.data.invoices.length, 
-              processed: paid.length 
+            totalInvoices: {
+              total: response.data.invoices.length,
+              processed: paid.length
             },
-            paidAmount: { 
-              amount: paidAmount, 
-              customers: paid.length 
+            paidAmount: {
+              amount: paidAmount,
+              customers: paid.length
             },
-            unpaidAmount: { 
-              amount: unpaidAmount, 
-              pending: unpaid.length 
+            unpaidAmount: {
+              amount: unpaidAmount,
+              pending: unpaid.length
             }
           });
         } else {
           setError("Failed to fetch invoices");
         }
       } catch (err) {
-        setError("Error fetching data from the server");
         console.error("Error fetching invoices:", err);
+        setError("Error loading invoices");
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchInvoices();
   }, []);
 
@@ -90,131 +90,298 @@ const Invoice = () => {
     setSelectedInvoice(invoice);
   };
 
-  const closeInvoiceView = () => {
+  const handleCloseInvoiceView = () => {
     setSelectedInvoice(null);
   };
+  
+  const handlePayInvoice = async (invoice) => {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/invoices/${invoice.invoiceId}/pay`,
+        {},
+        {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        // Update the invoice in the local state
+        const updatedInvoices = invoices.map(inv => 
+          inv.invoiceId === invoice.invoiceId ? { ...inv, status: "Paid" } : inv
+        );
+        setInvoices(updatedInvoices);
+        
+        // Recalculate statistics
+        const paid = updatedInvoices.filter(inv => inv.status === "Paid");
+        const unpaid = updatedInvoices.filter(inv => inv.status === "Unpaid");
+        
+        setStatistics(prev => ({
+          ...prev,
+          totalInvoices: { 
+            ...prev.totalInvoices, 
+            processed: paid.length 
+          },
+          paidAmount: { 
+            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0),
+            customers: paid.length 
+          },
+          unpaidAmount: { 
+            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0), 
+            pending: unpaid.length 
+          }
+        }));
+        
+        // Show success message
+        alert("Invoice paid successfully");
+      } else {
+        alert(response.data.message || "Failed to pay invoice");
+      }
+    } catch (error) {
+      console.error("Error paying invoice:", error);
+      alert("Error paying invoice");
+    }
+  };
+  
+  const handleReturnInvoice = async (invoice) => {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/invoices/${invoice.invoiceId}/return`,
+        {},
+        {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        // Update the invoice in the local state
+        const updatedInvoices = invoices.map(inv => 
+          inv.invoiceId === invoice.invoiceId ? { ...inv, status: "Returned" } : inv
+        );
+        setInvoices(updatedInvoices);
+        
+        // Recalculate statistics (same as above but considering returned status)
+        const paid = updatedInvoices.filter(inv => inv.status === "Paid");
+        const unpaid = updatedInvoices.filter(inv => inv.status === "Unpaid");
+        
+        setStatistics(prev => ({
+          ...prev,
+          totalInvoices: { 
+            ...prev.totalInvoices,
+            processed: paid.length 
+          },
+          paidAmount: { 
+            amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0),
+            customers: paid.length 
+          },
+          unpaidAmount: { 
+            amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0), 
+            pending: unpaid.length 
+          }
+        }));
+        
+        // Show success message
+        alert("Invoice returned/cancelled successfully");
+      } else {
+        alert(response.data.message || "Failed to return/cancel invoice");
+      }
+    } catch (error) {
+      console.error("Error returning invoice:", error);
+      alert("Error returning/cancelling invoice");
+    }
+  };
+  
+  const handleDeleteInvoice = async (invoice) => {
+    // Confirm before deleting
+    if (!window.confirm("Are you sure you want to delete this invoice?")) {
+      return;
+    }
+    
+    try {
+      // For now were just removing it from UI since delete endpoint isnt implemented
+      // In production, you would make a DELETE API call here
+      const updatedInvoices = invoices.filter(inv => inv.invoiceId !== invoice.invoiceId);
+      setInvoices(updatedInvoices);
+      
+      // Recalculate statistics
+      const paid = updatedInvoices.filter(inv => inv.status === "Paid");
+      const unpaid = updatedInvoices.filter(inv => inv.status === "Unpaid");
+      
+      setStatistics({
+        ...statistics,
+        totalInvoices: { 
+          total: updatedInvoices.length,
+          processed: paid.length 
+        },
+        paidAmount: { 
+          amount: paid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0),
+          customers: paid.length 
+        },
+        unpaidAmount: { 
+          amount: unpaid.reduce((sum, inv) => sum + Number(inv.totalAmount), 0), 
+          pending: unpaid.length 
+        }
+      });
+      
+      alert("Invoice deleted successfully");
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      alert("Error deleting invoice");
+    }
+  };
+
+  if (loading) {
+    return <div className={styles.loading}>Loading invoices...</div>;
+  }
+
+  if (error) {
+    return <div className={styles.error}>{error}</div>;
+  }
 
   return (
     <div className={styles.invoiceContainer}>
+      {/* Header with search */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Invoice</h1>
         <div className={styles.searchContainer}>
-          <input type="text" placeholder="Search here..." className={styles.searchInput} />
-          <button className={styles.searchButton}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-            </svg>
-          </button>
+          <input type="text" className={styles.searchInput} placeholder="Search..." />
+          <button className={styles.searchButton}>���</button>
         </div>
       </div>
-
+      
+      {/* Invoice Statistics Dashboard */}
       <div className={styles.dashboard}>
-        <h2 className={styles.dashboardTitle}>Overall Invoice</h2>
-        
-        <div className={styles.statsContainer}>
-          <div className={styles.statCard}>
-            <h3>Recent Transactions</h3>
-            <div className={styles.statValue}>{statistics.recentTransactions}</div>
-            <div className={styles.statSubtext}>Last 7 days</div>
+        <h2 className={styles.dashboardTitle}>Recent Transactions</h2>
+        <div className={styles.statsRow}>
+          <div className={styles.statBox}>
+            <div className={styles.statTitle}>Total Invoices</div>
+            <div className={styles.statValue}>{statistics.totalInvoices.total}</div>
+            <div className={styles.statSubText}>Last 7 days</div>
+            <div className={styles.statProcessed}>{statistics.totalInvoices.processed} Processed</div>
           </div>
           
-          <div className={styles.statCard}>
-            <h3>Total Invoices</h3>
-            <div className={styles.dualStat}>
-              <div className={styles.statValue}>{statistics.totalInvoices.total}</div>
-              <div className={styles.statSecondary}>{statistics.totalInvoices.processed}</div>
-            </div>
-            <div className={styles.dualStatLabel}>
-              <span>Last 7 days</span>
-              <span>Processed</span>
+          <div className={styles.statBox}>
+            <div className={styles.statTitle}>Paid Amount</div>
+            <div className={styles.statValue}>{formatCurrency(statistics.paidAmount.amount)}</div>
+            <div className={styles.statSubText}>Last 7 days</div>
+            <div className={styles.statContent}>
+              <span className={styles.statProcessed}>{statistics.paidAmount.customers} Customers</span>
             </div>
           </div>
           
-          <div className={styles.statCard}>
-            <h3>Paid Amount</h3>
-            <div className={styles.dualStat}>
-              <div className={styles.statValue}>{formatCurrency(statistics.paidAmount.amount)}</div>
-              <div className={styles.statSecondary}>{statistics.paidAmount.customers}</div>
-            </div>
-            <div className={styles.dualStatLabel}>
-              <span>Last 7 days</span>
-              <span>customers</span>
-            </div>
-          </div>
-          
-          <div className={styles.statCard}>
-            <h3>Unpaid Amount</h3>
-            <div className={styles.dualStat}>
-              <div className={styles.statValue}>{formatCurrency(statistics.unpaidAmount.amount)}</div>
-              <div className={styles.statSecondary}>{statistics.unpaidAmount.pending}</div>
-            </div>
-            <div className={styles.dualStatLabel}>
-              <span>Ordered</span>
-              <span>Pending Payment</span>
+          <div className={styles.statBox}>
+            <div className={styles.statTitle}>Unpaid Amount</div>
+            <div className={styles.statValue}>{formatCurrency(statistics.unpaidAmount.amount)}</div>
+            <div className={styles.statSubText}>Last 7 days</div>
+            <div className={styles.statContent}>
+              <span className={styles.statProcessed}>{statistics.unpaidAmount.pending} Pending</span>
             </div>
           </div>
         </div>
       </div>
-
+      
+      {/* Invoice List */}
       <div className={styles.invoiceListContainer}>
-        <h2 className={styles.listTitle}>Invoices List</h2>
-        
-        {loading ? (
-          <div className={styles.loading}>Loading invoices...</div>
-        ) : error ? (
-          <div className={styles.error}>{error}</div>
-        ) : (
-          <div className={styles.tableContainer}>
-            <table className={styles.invoiceTable}>
-              <thead>
-                <tr>
-                  <th>Invoice ID</th>
-                  <th>Reference Number</th>
-                  <th>Amount (₹)</th>
-                  <th>Status</th>
-                  <th>Due Date</th>
-                  <th></th>
+        <h2 className={styles.listTitle}>Invoices</h2>
+        <div className={styles.tableContainer}>
+          <table className={styles.invoiceTable}>
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map((invoice) => (
+                <tr key={invoice._id}>
+                  <td>{invoice.invoiceId}</td>
+                  <td>{formatDate(invoice.createdAt)}</td>
+                  <td>{invoice.customerInfo?.name || "N/A"}</td>
+                  <td>₹ {Number(invoice.totalAmount).toLocaleString()}</td>
+                  <td>
+                    <span className={`${styles.status} ${styles[invoice.status.toLowerCase()]}`}>
+                      {invoice.status}
+                    </span>
+                  </td>
+                  <td>{formatDate(invoice.dueDate)}</td>
+                  <td>
+                    <div className={styles.actionDropdown}>
+                      <button className={styles.actionButton}>⋮</button>
+                      <div className={styles.dropdownContent}>
+                        {/* Only show View Invoice button for Paid and Returned invoices */}
+                        {(invoice.status === "Paid" || invoice.status === "Returned") && (
+                          <button 
+                            className={styles.viewButton}
+                            onClick={() => handleViewInvoice(invoice)}
+                          >
+                            <span className={styles.viewIcon}>���️</span> View Invoice
+                          </button>
+                        )}
+                        
+                        {/* Different actions based on invoice status */}
+                        {invoice.status === "Unpaid" && (
+                          <>
+                            <button 
+                              className={styles.payButton}
+                              onClick={() => handlePayInvoice(invoice)}
+                            >
+                              <span className={styles.payIcon}>���</span> Pay
+                            </button>
+                            <button 
+                              className={styles.returnButton}
+                              onClick={() => handleReturnInvoice(invoice)}
+                            >
+                              <span className={styles.returnIcon}>↩️</span> Return/Cancel
+                            </button>
+                          </>
+                        )}
+                        
+                        {/* Only show delete option for paid invoices */}
+                        {invoice.status === "Paid" && (
+                          <button 
+                            className={styles.deleteButton}
+                            onClick={() => handleDeleteInvoice(invoice)}
+                          >
+                            <span className={styles.deleteIcon}>���️</span> Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {invoices.map((invoice) => (
-                  <tr key={invoice._id}>
-                    <td>{invoice.invoiceId}</td>
-                    <td>{invoice.referenceNumber}</td>
-                    <td>{formatCurrency(invoice.totalAmount)}</td>
-                    <td>
-                      <span className={`${styles.status} ${styles[invoice.status.toLowerCase()]}`}>
-                        {invoice.status}
-                      </span>
-                    </td>
-                    <td>{formatDate(invoice.dueDate)}</td>
-                    <td>
-                      <button 
-                        className={styles.actionButton}
-                        onClick={() => handleViewInvoice(invoice)}
-                      >
-                        ⋮
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+              {invoices.length === 0 && (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+                    No invoices found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         
+        {/* Pagination */}
         <div className={styles.pagination}>
           <button className={styles.paginationButton}>Previous</button>
-          <div className={styles.pageInfo}>Page 1 of 10</div>
+          <span className={styles.pageInfo}>Page 1 of 1</span>
           <button className={styles.paginationButton}>Next</button>
         </div>
       </div>
       
+      {/* Invoice View Modal */}
       {selectedInvoice && (
-        <InvoiceView 
-          invoice={selectedInvoice} 
-          onClose={closeInvoiceView} 
-        />
+        <InvoiceView invoice={selectedInvoice} onClose={handleCloseInvoiceView} />
       )}
     </div>
   );
