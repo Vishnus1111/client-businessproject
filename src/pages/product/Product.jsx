@@ -29,7 +29,7 @@ const Product = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchInputFocused, setSearchInputFocused] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const searchInputRef = useRef(null);
 
   const fetchProducts = useCallback(async (searchTerm = '') => {
@@ -40,11 +40,9 @@ const Product = () => {
       setIsSearching(!!searchTerm);
       const token = localStorage.getItem('token');
       
-      let url = `${API_BASE_URL}/api/products/all`;
-      if (searchTerm.trim()) {
-        url = `${API_BASE_URL}/api/products/search?query=${encodeURIComponent(searchTerm)}&page=${currentPage}&limit=10`;
-      }
-
+      // Always fetch all products first
+      const url = `${API_BASE_URL}/api/products/all`;
+      
       console.log("🌐 Making API request to:", url);
       const response = await fetch(url, {
         headers: {
@@ -57,14 +55,36 @@ const Product = () => {
         const data = await response.json();
         console.log("✅ API response received:", data);
         
+        const allProducts = data.products || [];
+        
+        // If search term is provided, filter products locally for better UX
         if (searchTerm.trim()) {
-          setProducts(data.results?.products || []);
-          setTotalPages(data.results?.pagination?.totalPages || 1);
-          console.log("📊 Updated products (search mode):", data.results?.products?.length || 0);
+          const term = searchTerm.toLowerCase();
+          
+          // Filter products based on multiple criteria
+          const filteredProducts = allProducts.filter(product => {
+            // Check all searchable fields
+            return (
+              (product.name && product.name.toLowerCase().includes(term)) ||
+              (product.productId && product.productId.toLowerCase().includes(term)) ||
+              (product.category && product.category.toLowerCase().includes(term)) ||
+              (product.sellingPrice && product.sellingPrice.toString().includes(term)) ||
+              (product.costPrice && product.costPrice.toString().includes(term)) ||
+              (product.stockQuantity && product.stockQuantity.toString().includes(term)) ||
+              (product.expiryDate && formatDate(product.expiryDate).toLowerCase().includes(term)) ||
+              (product.createdAt && formatDate(product.createdAt).toLowerCase().includes(term)) ||
+              (product.availability && product.availability.toLowerCase().includes(term))
+            );
+          });
+          
+          setProducts(filteredProducts);
+          setTotalPages(Math.ceil(filteredProducts.length / 10));
+          console.log("📊 Filtered products:", filteredProducts.length);
         } else {
-          setProducts(data.products || []);
-          setTotalPages(Math.ceil((data.products?.length || 0) / 10));
-          console.log("📊 Updated products (all mode):", data.products?.length || 0);
+          // No search term, show all products
+          setProducts(allProducts);
+          setTotalPages(Math.ceil(allProducts.length / 10));
+          console.log("📊 All products loaded:", allProducts.length);
         }
         
       } else {
@@ -79,7 +99,7 @@ const Product = () => {
       setIsSearching(false);
       console.log("🏁 fetchProducts completed");
     }
-  }, [currentPage]);
+  }, []);
 
   const fetchInventoryStats = useCallback(async () => {
     try {
@@ -149,16 +169,27 @@ const Product = () => {
     const value = e.target.value;
     setSearchQuery(value);
     setCurrentPage(1);
+    
+    if (!value.trim() && !isSearchActive) {
+      // If clearing search and search is not active, do nothing
+      return;
+    }
+    
+    // Local filtering is done in the fetchProducts function
+    // that gets triggered by the useEffect dependent on searchQuery
   };
 
-  // Prevent blur on search input during search operations
+  // Handle search field blur
   const handleSearchBlur = (e) => {
-    setSearchInputFocused(false);
+    // Only deactivate search if the field is empty
+    if (!e.target.value) {
+      setIsSearchActive(false);
+    }
   };
 
-  // Handle search input focus
+  // Handle search field focus
   const handleSearchFocus = () => {
-    setSearchInputFocused(true);
+    setIsSearchActive(true);
   };
 
   const getStatusColor = (availability) => {
@@ -267,18 +298,18 @@ const Product = () => {
   // Paginate products for display
   const startIndex = (currentPage - 1) * 10;
   const endIndex = startIndex + 10;
-  const displayedProducts = searchQuery.trim() ? products : products.slice(startIndex, endIndex);
+  const displayedProducts = products.slice(startIndex, endIndex);
 
   return (
     <div className={styles.productContainer}>
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Product</h1>
-        <div className={styles.searchContainer}>
+        <div className={`${styles.searchContainer} ${isSearchActive ? styles.activeSearch : ''}`}>
           <input 
             ref={searchInputRef}
             type="text" 
-            placeholder="Search products by name, ID, category, price, quantity, expiry date..." 
+            placeholder="Search products..." 
             className={styles.searchInput}
             value={searchQuery}
             onChange={handleSearch}
@@ -286,6 +317,11 @@ const Product = () => {
             onFocus={handleSearchFocus}
             autoComplete="off"
           />
+          <button className={styles.searchButton} type="button" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          </button>
           {isSearching && (
             <div className={styles.searchIndicator}>
               Searching...

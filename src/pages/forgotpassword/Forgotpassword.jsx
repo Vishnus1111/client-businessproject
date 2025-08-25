@@ -1,27 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "./ForgotPassword.module.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from '../config';
-import viewIcon from '../../assets/auth/view.png';
-import hideIcon from '../../assets/auth/hide.png';
-import forgotPswdImg from "../../assets/auth/forgotpswdmail.png";
-import otpImg from "../../assets/auth/otp.png";
-import loginlogo from "../../assets/auth/loginlogo.png";
 
 function ForgotPassword() {
-  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [showOtp, setShowOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Debug step changes
-  useEffect(() => {
-    console.log("📍 Step changed to:", step);
-  }, [step]);
 
   // Email validation
   const validateEmail = (email) => {
@@ -29,7 +16,7 @@ function ForgotPassword() {
     return emailRegex.test(email);
   };
 
-  // ✅ Send OTP
+  // Handle Send Mail
   const handleSendMail = async () => {
     if (loading) return;
     
@@ -59,8 +46,8 @@ function ForgotPassword() {
 
       if (res.ok) {
         toast.success("OTP sent successfully");
-        localStorage.setItem("resetEmail", email); // ✅ Store email for reset password page
-        setStep(2);
+        localStorage.setItem("resetEmail", email); 
+        navigate("/verify-otp");
       } else {
         // Check if the error is related to email not being registered
         if (res.status === 400 && (data.error && data.error.toLowerCase().includes('not found'))) {
@@ -75,182 +62,40 @@ function ForgotPassword() {
     }
   };
 
-  // ✅ Verify OTP
-  const handleVerifyOtp = async () => {
-    if (!otp) {
-      toast.error("Please enter the OTP");
-      return;
-    }
-
-    if (otp.length !== 6) {
-      toast.error("OTP must be 6 digits");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      console.log("🔍 Verifying OTP:", { email, otp }); // Debug log
-      
-      const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
-
-      const data = await res.json();
-      console.log("📥 OTP verification response:", { status: res.status, data }); // Debug log
-      setLoading(false);
-
-      if (res.ok) {
-        toast.success("OTP verified successfully!");
-        console.log("✅ OTP verification successful, navigating to reset password with email:", email);
-        
-        // Store email in localStorage as backup
-        localStorage.setItem('resetEmail', email);
-        
-        setTimeout(() => {
-          console.log("🔄 About to navigate to reset-password with state:", { email });
-          try {
-            navigate("/reset-password", { state: { email } }); // ✅ Pass email to reset page
-            console.log("🎯 React Router navigation command executed");
-          } catch (error) {
-            console.error("❌ React Router navigation failed:", error);
-            // Fallback to window location
-            console.log("🔄 Using window location fallback");
-            window.location.href = `/reset-password?email=${encodeURIComponent(email)}`;
-          }
-        }, 500); // Reduced timeout for faster testing
-      } else {
-        console.log("❌ OTP verification failed:", data.error); // Debug log
-        toast.error(data.error || "Invalid or expired OTP");
-        // Don't go back to email step, stay on OTP step
-      }
-    } catch (err) {
-      console.error("❌ OTP verification error:", err); // Debug log
-      setLoading(false);
-      toast.error("Server error. Please try again.");
-    }
-  };
-
-  // ✅ Go back to email step
-  const handleGoBack = () => {
-    console.log("🔙 Going back to email step"); // Debug log
-    setStep(1);
-    setOtp("");
-    setShowOtp(false);
-  };
-
   return (
     <div className={styles.container}>
-      {/* Left Panel - Forgot Password Form */}
-      <div className={styles.leftPanel}>
-        <div className={styles.loginCard}>
-          {step === 1 ? (
-            <>
-              <h2 className={styles.title}>Zipkart</h2>
-              <p className={styles.subtitle}>
-                Please enter your registered email ID to receive an OTP
-              </p>
+      <div className={styles.loginCard}>
+        <h1 className={styles.title}>Zipkart</h1>
+        <p className={styles.subtitle}>
+          Please enter your registered email ID to receive an OTP
+        </p>
 
-              <form className={styles.form}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Email</label>
-                  <input
-                    type="email"
-                    placeholder="Enter your registered email"
-                    className={styles.input}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.signInButton}
-                  onClick={handleSendMail}
-                  disabled={loading}
-                >
-                  {loading ? "Sending..." : "Send Mail"}
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <div className={styles.backButton} onClick={handleGoBack}>
-                ← Back to Email
-              </div>
-              
-              <h2 className={styles.title}>Enter Your OTP</h2>
-              <p className={styles.subtitle}>
-                We've sent a 6-digit OTP to your registered mail.<br />
-                Please enter it below to sign in.
-              </p>
-
-              <form className={styles.form}>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>OTP</label>
-                  <div className={styles.passwordWrapper}>
-                    <input
-                      type={showOtp ? "text" : "password"}
-                      placeholder="xxxxxx"
-                      className={styles.input}
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      maxLength={6}
-                    />
-                    <span
-                      className={styles.eyeIcon}
-                      onClick={() => setShowOtp(!showOtp)}
-                    >
-                      <img 
-                        src={showOtp ? hideIcon : viewIcon} 
-                        alt={showOtp ? 'Hide OTP' : 'Show OTP'} 
-                        style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                      />
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.signInButton}
-                  onClick={handleVerifyOtp}
-                  disabled={loading}
-                >
-                  {loading ? "Verifying..." : "Confirm"}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Right Panel - Welcome Section */}
-      <div className={styles.rightPanel}>
-        <div className={styles.logoSection}>
-          <div className={styles.logoPlaceholder}>
-            <img src={loginlogo} alt="Company Logo" />
-            <div className={styles.chartIcon}></div>
+        <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Email</label>
+            <input
+              type="email"
+              placeholder="Enter your registered email"
+              className={styles.input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
-        </div>
 
-        <div className={styles.welcomeContent}>
-          
-          <div className={styles.illustrationContainer}>
-            <div className={styles.illustrationPlaceholder}>
-              <img 
-                src={step === 1 ? forgotPswdImg : otpImg} 
-                alt={step === 1 ? 'Forgot Password Illustration' : 'OTP Illustration'} 
-              />
-            </div>
-          </div>
-        </div>
+          <button
+            className={styles.sendButton}
+            onClick={handleSendMail}
+            disabled={loading}
+          >
+            {loading ? "Sending..." : "Send Mail"}
+          </button>
+        </form>
       </div>
-
-      <ToastContainer position="top-right" autoClose={2000} />
+      
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
 
 export default ForgotPassword;
-

@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/login/Login';
 import Signup from './pages/signup/Signup';
 import Forgotpassword from './pages/forgotpassword/Forgotpassword';
+import VerifyOTP from './pages/forgotpassword/VerifyOTP';
 import Resetpassword from './pages/forgotpassword/Resetpassword';
 import DashboardLayout from './pages/dashboard/DashboardLayout';
 import Home from './pages/dashboard/Home';
@@ -27,6 +28,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<Forgotpassword />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/reset-password" element={<Resetpassword />} />
           
           {/* Protected Dashboard routes */}
