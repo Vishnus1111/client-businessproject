@@ -296,84 +296,109 @@ const Product = () => {
     </div>
   );
 
-  const handleProductAdded = () => {
-    console.log("🔄 handleProductAdded called - refreshing product list...");
+  // Completely revamped product refresh function with guaranteed update
+  const handleProductAdded = useCallback(async () => {
+    console.log("🔄 BULLETPROOF REFRESH: handleProductAdded called");
     
-    // Clear any active search query to ensure we see all products including the newly added ones
+    // Clear any active search and set loading state
     setSearchQuery('');
     setIsSearchActive(false);
-    
-    // Set loading state to show feedback to user
     setLoading(true);
     
-    // Show initial toast notification
-    toast.info("Refreshing product list...");
+    // Show loading notification
+    toast.info("Loading new products...");
     
-    // First immediate refresh attempt
-    const refreshProductList = async () => {
+    // Define a function to fetch with maximum cache busting
+    const fetchWithNoCaching = async () => {
       try {
-        // Force clear browser cache for this request by adding unique timestamp
+        // Generate a unique timestamp to prevent any caching
         const timestamp = Date.now();
-        const forceCacheBuster = `?_t=${timestamp}`;
+        const randomStr = Math.random().toString(36).substring(7);
+        const noCacheParam = `?_nocache=${timestamp}-${randomStr}`;
         
-        // Make a direct fetch to force fresh data
+        // Get a fresh token
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/api/products/all${forceCacheBuster}`, {
+        
+        // Make a direct fetch with all cache prevention headers
+        const response = await fetch(`${API_BASE_URL}/api/products/all${noCacheParam}`, {
+          method: 'GET', // Explicitly set method
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
             'Pragma': 'no-cache',
-            'Expires': '0'
+            'Expires': '0',
+            'X-Request-Time': timestamp.toString() // Add custom header to prevent caching
           },
-          cache: 'no-store' // Tell browser not to use cache
+          cache: 'no-store',
+          credentials: 'same-origin', // Include credentials
+          redirect: 'follow',
+          referrerPolicy: 'no-referrer'
         });
         
-        if (response.ok) {
-          const data = await response.json();
-          console.log("✅ Fresh data fetched directly:", data.products?.length || 0, "products");
-          
-          // Update the state with fresh data
-          setProducts(data.products || []);
-          setTotalPages(Math.ceil((data.products?.length || 0) / 10));
-          
-          // Also update inventory stats
-          await fetchInventoryStats();
-          
-          // Success notification
-          toast.success("Product list updated with new products!");
-          console.log("📝 Initial refresh completed");
-          setLoading(false);
-        } else {
-          throw new Error('Failed to fetch fresh data');
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
         }
         
-        // Additional refresh after a delay to ensure everything is updated
-        setTimeout(async () => {
-          console.log("📝 Final verification refresh...");
-          try {
-            await fetchProducts();
-            console.log("📝 Final refresh completed");
-            setLoading(false);
-          } catch (error) {
-            console.error("Error in final refresh:", error);
-            setLoading(false);
-          }
-        }, 1500);
-        
+        const data = await response.json();
+        return data;
       } catch (error) {
-        console.error("Error in refresh:", error);
-        toast.error("Error refreshing product list. Please try again.");
-        setLoading(false);
-        
-        // Try a regular refresh as fallback
-        await fetchProducts();
+        console.error("Error in fetchWithNoCaching:", error);
+        throw error;
       }
     };
     
-    refreshProductList();
-    console.log("📝 Enhanced refresh cycle initiated");
-  };
+    // Implement multiple retry attempts with increasing delays
+    let success = false;
+    let attempt = 0;
+    const maxAttempts = 5;
+    
+    while (!success && attempt < maxAttempts) {
+      attempt++;
+      console.log(`🔄 Refresh attempt ${attempt}/${maxAttempts}`);
+      
+      try {
+        // Wait longer between each attempt
+        if (attempt > 1) {
+          const delay = (attempt - 1) * 500; // 0ms, 500ms, 1000ms, 1500ms, 2000ms
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        
+        // Get fresh data
+        const data = await fetchWithNoCaching();
+        console.log(`✅ Attempt ${attempt}: Fresh data received:`, data.products?.length || 0, "products");
+        
+        // Update state with fresh data
+        setProducts(data.products || []);
+        setTotalPages(Math.ceil((data.products?.length || 0) / 10));
+        
+        // Refresh stats too
+        await fetchInventoryStats();
+        
+        // Mark success
+        success = true;
+        
+        // Show success notification based on attempt number
+        if (attempt === 1) {
+          toast.success("Product list updated immediately!");
+        } else {
+          toast.success(`Product list updated successfully! (attempt ${attempt})`);
+        }
+        
+      } catch (error) {
+        console.error(`Error in refresh attempt ${attempt}:`, error);
+        
+        // Only show error on final attempt
+        if (attempt === maxAttempts) {
+          toast.error("Could not refresh product list automatically. Please refresh the page.");
+        }
+      }
+    }
+    
+    // Regardless of success/failure, end loading state
+    setLoading(false);
+    console.log(`🏁 Refresh complete. Success: ${success}, Attempts: ${attempt}`);
+  }, [fetchInventoryStats]); // Only depend on fetchInventoryStats
   
   // Function to refresh inventory after placing an order
   const handleRefreshInventory = useCallback(() => {

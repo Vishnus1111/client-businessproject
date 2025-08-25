@@ -71,10 +71,84 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       await uploadCSV();
     }
   };
+import { toast } from 'react-toastify';
+import API_BASE_URL from '../config';
+import styles from './CSVUploadModal.module.css';
+import uploadIcon from "../../assets/dashboard/upload.png"
+
+const CSVUploadModal = ({ onClose, onProductsAdded }) => {
+  const [csvFile, setCsvFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [validationStep, setValidationStep] = useState('upload'); // 'upload', 'validated', 'uploading'
+  const [validationData, setValidationData] = useState(null);
+
+  const handleFileSelect = (file) => {
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['text/csv', 'application/vnd.ms-excel'];
+    if (!allowedTypes.includes(file.type) && !file.name.endsWith('.csv')) {
+      toast.error('Please select a valid CSV file');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('File size should be less than 5MB');
+      return;
+    }
+
+    setCsvFile(file);
+    toast.success(`File "${file.name}" selected successfully`);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    handleFileSelect(file);
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    handleFileSelect(file);
+  };
+
+  const handleUpload = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file first');
+      return;
+    }
+
+    // Step 1: If in upload step, validate first
+    if (validationStep === 'upload') {
+      await validateCSV();
+      return;
+    }
+
+    // Step 2: If validated, proceed with actual upload
+    if (validationStep === 'validated') {
+      await uploadCSV();
+    }
+  };
 
   const validateCSV = async () => {
     console.log("Starting CSV validation...");
     console.log("File:", csvFile);
+    console.log("API Base URL:", API_BASE_URL);
     
     // Basic client-side file validation
     const allowedTypes = ['text/csv', 'application/vnd.ms-excel'];
@@ -95,11 +169,12 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
 
     try {
       const token = localStorage.getItem('token');
+      console.log("Token:", token ? "Present" : "Missing");
       
       const formData = new FormData();
       formData.append('csvFile', csvFile);
 
-      console.log("Making request to validate CSV...");
+      console.log("Making request to:", `${API_BASE_URL}/api/products/validate-csv`);
       
       // Use the validate-csv endpoint for validation only
       const response = await fetch(`${API_BASE_URL}/api/products/validate-csv`, {
@@ -109,6 +184,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
 
       console.log("Response status:", response.status);
       console.log("Response ok:", response.ok);
+      console.log("Response headers:", response.headers);
 
       if (response.ok) {
         const data = await response.json();
@@ -304,17 +380,23 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
         
         console.log("🔄 Will refresh product list NOW and close modal");
         
-        // First refresh the product list
-        if (typeof onProductsAdded === 'function') {
-          console.log("📋 Calling parent's onProductsAdded callback");
-          onProductsAdded();
+        // Let the parent component know that products were added
+        try {
+          // First refresh the product list
+          if (typeof onProductsAdded === 'function') {
+            console.log("📋 Calling parent's onProductsAdded callback");
+            onProductsAdded();
+          }
+          
+          // Then close the modal after a brief delay
+          setTimeout(() => {
+            console.log("🚪 Closing modal");
+            onClose();
+          }, 500);
+        } catch (error) {
+          console.error("Error during refresh callback:", error);
+          toast.error("Error refreshing the product list. Please refresh the page manually.");
         }
-        
-        // Then close the modal after a brief delay to allow refresh to start
-        setTimeout(() => {
-          console.log("🚪 Closing modal");
-          onClose();
-        }, 300);
       } else if (totalProcessed > 0) {
         // Products were processed but none succeeded
         toast.error('No products were added. Please check the CSV data format.');
@@ -326,6 +408,81 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       toast.error(`Error uploading CSV file: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+        } else if (totalProcessed > 0) {
+          // Products were processed but none succeeded
+          toast.error('No products were added. Please check the CSV data format.');
+          
+          // Show error details if available
+          if (data.results?.failed && data.results.failed.length > 0) {
+            const failLimit = Math.min(data.results.failed.length, 3);
+            for (let i = 0; i < failLimit; i++) {
+              const failed = data.results.failed[i];
+              if (failed.row && failed.reason) {
+                toast.error(`Row ${failed.row}: ${failed.reason}`);
+              }
+            }
+          }
+        } else {
+          toast.error('No products were processed. Please check the CSV file.');
+        }
+      } else {
+        console.log("❌ Upload failed - Response not ok");
+        console.log("📋 Error response data:", data);
+        toast.error(data.message || 'Failed to upload CSV');
+      }
+    } catch (error) {
+      console.error('❌ Upload error caught:', error);
+      toast.error('Error uploading CSV file: ' + error.message);
+    } finally {
+      console.log("🏁 Upload process completed");
+      setLoading(false);
+    }
+  };
+
+  const downloadCSVFormat = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // First get the format information from the backend
+      const formatResponse = await fetch(`${API_BASE_URL}/api/products/csv-format`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (formatResponse.ok) {
+        await formatResponse.json(); // Just to consume the response
+        
+        // Create CSV content with headers and example data
+        const headers = ['productName', 'category', 'costPrice', 'sellingPrice', 'quantity', 'unit', 'expiryDate', 'thresholdValue'];
+        const exampleData = [
+          ['Laptop Pro', 'Electronics', '800', '1200', '15', 'piece', '31/12/26', '5'],
+          ['Gaming Mouse', 'Electronics', '40', '75', '50', 'piece', '30/06/27', '10'],
+          ['Office Chair', 'Furniture', '200', '350', '25', 'piece', '15/03/28', '3']
+        ];
+        
+        let csvContent = headers.join(',') + '\n';
+        csvContent += exampleData.map(row => row.join(',')).join('\n');
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'product_template.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('CSV template downloaded successfully');
+      } else {
+        toast.error('Failed to download CSV template');
+      }
+    } catch (error) {
+      console.error('Error downloading CSV template:', error);
+      toast.error('Error downloading CSV template');
     }
   };
 
@@ -403,26 +560,30 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
                 </div>
               ) : (
                 <>
-                  <div className={styles.uploadIcon}>
-                    <img src={require("../../assets/dashboard/upload.png")} alt="Upload" />
-                  </div>
-                  <div className={styles.uploadText}>
-                    <p>Drag & drop a CSV file here</p>
-                    <p>or</p>
-                    <label className={styles.uploadButton}>
-                      <span>Browse Files</span>
-                      <input
-                        type="file"
-                        accept=".csv,text/csv,application/vnd.ms-excel"
-                        onChange={handleFileInputChange}
-                        className={styles.fileInput}
-                      />
-                    </label>
-                  </div>
+                  <div className={styles.uploadIcon}><img src={uploadIcon} alt="Upload Icon" /></div>
+                  <p className={styles.uploadText}>
+                    Drag your file(s) to start uploading
+                  </p>
+                  <p className={styles.uploadOr}>OR</p>
+                  <button
+                    className={styles.browseButton}
+                    onClick={() => document.getElementById('csvFileInput').click()}
+                    type="button"
+                  >
+                    Browse files
+                  </button>
                 </>
               )}
             </div>
           </div>
+
+          <input
+            id="csvFileInput"
+            type="file"
+            accept=".csv"
+            onChange={handleFileInputChange}
+            style={{ display: 'none' }}
+          />
 
           {/* Validation Results */}
           {validationStep === 'validated' && validationData && (
@@ -486,19 +647,19 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
           {/* Action Buttons */}
           <div className={styles.actionButtons}>
             <button 
-              className={styles.cancelButton} 
+              className={styles.cancelButton}
               onClick={onClose}
-              disabled={loading}
+              type="button"
             >
               Cancel
             </button>
             <button 
-              className={`${styles.uploadButton} ${loading ? styles.loading : ''}`} 
+              className={styles.nextButton}
               onClick={handleButtonClick}
-              disabled={loading || !csvFile}
+              disabled={!csvFile || loading}
+              type="button"
             >
               {getButtonText()}
-              {loading && <span className={styles.spinner}></span>}
             </button>
           </div>
         </div>
