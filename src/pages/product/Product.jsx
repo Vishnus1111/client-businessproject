@@ -63,15 +63,47 @@ const Product = () => {
           
           // Filter products based on multiple criteria (excluding productId)
           const filteredProducts = allProducts.filter(product => {
-            // Check all searchable fields except productId
+            // Use only the selling price for product page (without tax and shipping)
+            const sellingPrice = product.sellingPrice;
+            const sellingPriceString = sellingPrice.toString();
+            const sellingPriceFixed = sellingPrice.toFixed(0); // No decimal places
+            
+            // Price with currency symbol as shown in the UI
+            const formattedPrice = formatCurrency(sellingPrice);
+            // Price without currency symbol for searching
+            const priceWithoutSymbol = formattedPrice.replace('₹', '');
+            
+            // Format quantity with unit as it appears in the UI
+            const quantityWithUnit = `${product.quantity} ${product.unit || 'Packets'}`;
+            const quantityString = product.quantity.toString();
+            
+            // Format threshold value with unit as it appears in the UI
+            const thresholdWithUnit = `${product.thresholdValue} ${product.unit || 'Packets'}`;
+            const thresholdString = product.thresholdValue.toString();
+            
+            // Check only the fields visible in the table
             return (
+              // Product Name (visible in the table)
               (product.productName && product.productName.toLowerCase().includes(term)) ||
-              (product.category && product.category.toLowerCase().includes(term)) ||
-              (product.sellingPrice && product.sellingPrice.toString().includes(term)) ||
-              (product.costPrice && product.costPrice.toString().includes(term)) ||
-              (product.quantity && product.quantity.toString().includes(term)) ||
+              
+              // Price matching - multiple formats for maximum searchability
+              (term.startsWith('₹') && priceWithoutSymbol.includes(term.substring(1))) || // If search includes ₹ symbol
+              (sellingPriceString.includes(term)) ||
+              (sellingPriceFixed.includes(term)) ||
+              (priceWithoutSymbol.includes(term)) ||
+              
+              // Quantity matching - both raw number and with unit
+              (quantityString.includes(term)) ||
+              (quantityWithUnit.toLowerCase().includes(term)) ||
+              
+              // Threshold Value matching - both raw number and with unit
+              (thresholdString.includes(term)) ||
+              (thresholdWithUnit.toLowerCase().includes(term)) ||
+              
+              // Expiry Date (visible in the table)
               (product.expiryDate && formatDate(product.expiryDate).toLowerCase().includes(term)) ||
-              (product.createdAt && formatDate(product.createdAt).toLowerCase().includes(term)) ||
+              
+              // Availability status (visible in the table)
               (product.availability && product.availability.toLowerCase().includes(term))
             );
           });
@@ -407,7 +439,7 @@ const Product = () => {
                   className={styles.productRow}
                 >
                   <td className={styles.productCell}>{product.productName}</td>
-                  <td>{formatCurrency(calculateTotalWithTaxAndShipping(product.sellingPrice))}</td>
+                  <td>{formatCurrency(product.sellingPrice)}</td>
                   <td>{product.quantity} {product.unit || 'Packets'}</td>
                   <td>{product.thresholdValue} {product.unit || 'Packets'}</td>
                   <td>{formatDate(product.expiryDate)}</td>
