@@ -1,0 +1,23 @@
+.helpButton {
+  background: #4b5563;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  margin-right: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.helpButton:hover {
+  background: #6b7280;
+}
+
+@media (max-width: 640px) {
+  .helpButton {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}

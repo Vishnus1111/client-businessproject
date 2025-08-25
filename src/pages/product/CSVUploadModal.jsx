@@ -91,6 +91,8 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       return;
     }
 
+    // Reset validation data before new validation
+    setValidationData(null);
     setLoading(true);
 
     try {
@@ -115,16 +117,71 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       if (response.ok) {
         const data = await response.json();
         console.log("Validation response data:", data);
-        setValidationData(data);
-        setValidationStep('validated');
         
-        if (data.validProducts > 0) {
-          toast.success(`CSV validated successfully! Found ${data.validProducts} valid products.`);
-          if (data.errors && data.errors.length > 0) {
-            toast.warning(`${data.errors.length} rows have issues and will be skipped.`);
+        // Ensure we have a valid data structure
+        if (!data.errors) data.errors = [];
+        
+        // Create a structured validation result for display
+        const formattedData = {
+          ...data,
+          validProducts: data.validProducts || 0,
+          totalRows: data.totalRows || 0,
+          errors: data.errors.map(error => ({
+            ...error,
+            // Format the message for better display
+            formattedMessage: `Row ${error.row}: ${error.message}`
+          }))
+        };
+        
+        // Update the validation data
+        setValidationData(formattedData);
+        
+        // Only proceed to validation step if there are valid products
+        if (formattedData.validProducts > 0) {
+          setValidationStep('validated');
+          toast.success(`Found ${formattedData.validProducts} valid product(s) ready to upload.`);
+          
+          // Show specific errors for each row with issues
+          if (formattedData.errors.length > 0) {
+            // Display a summary toast first
+            toast.warning(`${formattedData.errors.length} row(s) have issues and will be excluded.`);
+            
+            // Group errors by type for clearer messaging
+            const expiryErrors = formattedData.errors.filter(e => e.message.includes('Expiry date'));
+            const columnErrors = formattedData.errors.filter(e => e.message.includes('columns'));
+            const otherErrors = formattedData.errors.filter(e => 
+              !e.message.includes('Expiry date') && !e.message.includes('columns'));
+            
+            // Show expiry date errors
+            if (expiryErrors.length > 0) {
+              toast.error(`${expiryErrors.length} product(s) have invalid expiry dates and will be excluded.`);
+            }
+            
+            // Show column format errors
+            if (columnErrors.length > 0) {
+              toast.error(`${columnErrors.length} row(s) have incorrect number of columns.`);
+            }
+            
+            // Show other errors
+            if (otherErrors.length > 0) {
+              const errorLimit = Math.min(otherErrors.length, 3);
+              for (let i = 0; i < errorLimit; i++) {
+                toast.error(otherErrors[i].formattedMessage);
+              }
+            }
           }
         } else {
+          // Reset to upload step if no valid products
+          setValidationStep('upload');
           toast.error(`No valid products found. Please fix the errors and try again.`);
+          
+          // Show the errors
+          if (formattedData.errors.length > 0) {
+            const errorLimit = Math.min(formattedData.errors.length, 5);
+            for (let i = 0; i < errorLimit; i++) {
+              toast.error(formattedData.errors[i].formattedMessage);
+            }
+          }
         }
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
@@ -166,6 +223,13 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
   const uploadCSV = async () => {
     console.log("🚀 Starting CSV upload...");
     setLoading(true);
+    
+    // Check if we have validation data and there are valid products
+    if (!validationData || validationData.validProducts <= 0) {
+      toast.error('No valid products to upload. Please validate the file first.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -173,8 +237,15 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       
       const formData = new FormData();
       formData.append('csv', csvFile); // Changed from 'csvFile' to 'csv' to match backend expectation
+      
+      // Add validation info to help the backend filter out invalid rows
+      if (validationData && validationData.errors && validationData.errors.length > 0) {
+        // Convert errors to a simple format
+        const invalidRows = validationData.errors.map(error => error.row);
+        formData.append('invalidRows', JSON.stringify(invalidRows));
+      }
+      
       console.log("📁 FormData prepared with file:", csvFile?.name);
-
       console.log("🌐 Making request to:", `${API_BASE_URL}/api/products/add-multiple`);
 
       // Use the add-multiple endpoint for actual upload
@@ -202,18 +273,50 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
         if (successCount > 0) {
           console.log("✅ Upload successful! Calling onProductsAdded and onClose");
           toast.success(`Successfully added ${successCount} products to your inventory!`);
+          
+          // Show detailed information about failed items
           if (failedCount > 0) {
             toast.warning(`${failedCount} products had issues and were skipped.`);
+            
+            // Show specific failed items if available
+            if (data.results?.failed && data.results.failed.length > 0) {
+              const failLimit = Math.min(data.results.failed.length, 3);
+              for (let i = 0; i < failLimit; i++) {
+                const failed = data.results.failed[i];
+                if (failed.row && failed.reason) {
+                  toast.error(`Row ${failed.row}: ${failed.reason}`);
+                }
+              }
+            }
           }
           
           console.log("🔄 Calling onProductsAdded to refresh product list...");
-          onProductsAdded(); // Refresh the product list
           
-          console.log("🚪 Calling onClose to close modal...");
-          onClose(); // Close the modal
+          // Call onProductsAdded with a slight delay to ensure backend processing is complete
+          setTimeout(() => {
+            // Refresh the product list
+            onProductsAdded();
+            
+            // Wait a moment before closing the modal to ensure refresh is triggered
+            setTimeout(() => {
+              console.log("🚪 Calling onClose to close modal...");
+              onClose(); // Close the modal
+            }, 500);
+          }, 500);
         } else if (totalProcessed > 0) {
           // Products were processed but none succeeded
           toast.error('No products were added. Please check the CSV data format.');
+          
+          // Show error details if available
+          if (data.results?.failed && data.results.failed.length > 0) {
+            const failLimit = Math.min(data.results.failed.length, 3);
+            for (let i = 0; i < failLimit; i++) {
+              const failed = data.results.failed[i];
+              if (failed.row && failed.reason) {
+                toast.error(`Row ${failed.row}: ${failed.reason}`);
+              }
+            }
+          }
         } else {
           toast.error('No products were processed. Please check the CSV file.');
         }
@@ -343,7 +446,9 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
                   {validationStep === 'validated' && validationData && (
                     <div className={styles.validationStatus}>
                       <span className={styles.validIcon}>✅</span>
-                      <span className={styles.validText}>Validated</span>
+                      <span className={styles.validText}>
+                        Validated - {validationData.validProducts} valid product(s)
+                      </span>
                     </div>
                   )}
                 </div>
@@ -399,23 +504,35 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
                   <p className={styles.errorsTitle}>Issues Found:</p>
                   <div className={styles.errorsContainer}>
                     <ul className={styles.errorsItems}>
-                      {validationData.errors.slice(0, 10).map((error, index) => (
-                        <li key={index} className={styles.errorItem}>
-                          <strong>Row {error.row}:</strong> {error.message}
-                        </li>
-                      ))}
-                      {validationData.errors.length > 10 && (
-                        <li className={styles.errorItem}>
-                          <em>... and {validationData.errors.length - 10} more issues</em>
-                        </li>
-                      )}
+                      {(() => {
+                        // Group errors by message for cleaner display
+                        const errorsByType = {};
+                        validationData.errors.forEach(error => {
+                          const key = error.message || 'Unknown error';
+                          if (!errorsByType[key]) {
+                            errorsByType[key] = [];
+                          }
+                          errorsByType[key].push(error.row);
+                        });
+                        
+                        // Display grouped errors
+                        return Object.entries(errorsByType).map(([message, rows], idx) => (
+                          <li key={idx} className={styles.errorItem}>
+                            <strong>{message}:</strong> {
+                              rows.length <= 3 
+                                ? `Row${rows.length > 1 ? 's' : ''} ${rows.join(', ')}`
+                                : `${rows.length} rows (${rows.slice(0, 3).join(', ')}...)`
+                            }
+                          </li>
+                        ));
+                      })()}
                     </ul>
                   </div>
                 </div>
               )}
               {validationData.validProducts > 0 && (
                 <div className={styles.successMessage}>
-                  ✅ {validationData.validProducts} products have been successfully added to your inventory!
+                  ✅ {validationData.validProducts} valid product{validationData.validProducts > 1 ? 's' : ''} ready to upload
                 </div>
               )}
             </div>

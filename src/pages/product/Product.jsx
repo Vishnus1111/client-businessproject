@@ -40,15 +40,19 @@ const Product = () => {
       setIsSearching(!!searchTerm);
       const token = localStorage.getItem('token');
       
-      // Always fetch all products first
-      const url = `${API_BASE_URL}/api/products/all`;
+      // Add timestamp parameter to prevent caching issues after CSV upload
+      // This ensures we always get the latest data from the server
+      const timestamp = Date.now();
+      const url = `${API_BASE_URL}/api/products/all?_t=${timestamp}`;
       
       console.log("🌐 Making API request to:", url);
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        // Ensure no caching
+        cache: 'no-store'
       });
 
       if (response.ok) {
@@ -294,13 +298,81 @@ const Product = () => {
 
   const handleProductAdded = () => {
     console.log("🔄 handleProductAdded called - refreshing product list...");
-    if (searchQuery.trim()) {
-      fetchProducts(searchQuery);
-    } else {
-      fetchProducts();
-    }
-    fetchInventoryStats();
-    console.log("📝 Refresh functions called: fetchProducts() and fetchInventoryStats()");
+    
+    // Clear any active search query to ensure we see all products including the newly added ones
+    setSearchQuery('');
+    setIsSearchActive(false);
+    
+    // Set loading state to show feedback to user
+    setLoading(true);
+    
+    // Show initial toast notification
+    toast.info("Refreshing product list...");
+    
+    // First immediate refresh attempt
+    const refreshProductList = async () => {
+      try {
+        // Force clear browser cache for this request by adding unique timestamp
+        const timestamp = Date.now();
+        const forceCacheBuster = `?_t=${timestamp}`;
+        
+        // Make a direct fetch to force fresh data
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/products/all${forceCacheBuster}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store' // Tell browser not to use cache
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("✅ Fresh data fetched directly:", data.products?.length || 0, "products");
+          
+          // Update the state with fresh data
+          setProducts(data.products || []);
+          setTotalPages(Math.ceil((data.products?.length || 0) / 10));
+          
+          // Also update inventory stats
+          await fetchInventoryStats();
+          
+          // Success notification
+          toast.success("Product list updated with new products!");
+          console.log("📝 Initial refresh completed");
+          setLoading(false);
+        } else {
+          throw new Error('Failed to fetch fresh data');
+        }
+        
+        // Additional refresh after a delay to ensure everything is updated
+        setTimeout(async () => {
+          console.log("📝 Final verification refresh...");
+          try {
+            await fetchProducts();
+            console.log("📝 Final refresh completed");
+            setLoading(false);
+          } catch (error) {
+            console.error("Error in final refresh:", error);
+            setLoading(false);
+          }
+        }, 1500);
+        
+      } catch (error) {
+        console.error("Error in refresh:", error);
+        toast.error("Error refreshing product list. Please try again.");
+        setLoading(false);
+        
+        // Try a regular refresh as fallback
+        await fetchProducts();
+      }
+    };
+    
+    refreshProductList();
+    console.log("📝 Enhanced refresh cycle initiated");
   };
   
   // Function to refresh inventory after placing an order
