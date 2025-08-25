@@ -22,10 +22,15 @@
 @media (max-width: 768px) {
   .mainContent {
     margin-left: 0;
+    padding-bottom: 60px; /* Add space for bottom navigation */
   }
   
   .contentWrapper {
     padding: 1rem;
+  }
+  
+  .dashboardContainer {
+    flex-direction: column;
   }
 }
 

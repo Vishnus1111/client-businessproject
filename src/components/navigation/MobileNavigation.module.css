@@ -1,0 +1,49 @@
+.mobileNavigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #1a1a1a;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.2);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  padding: 8px 0;
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.navItem:hover {
+  color: white;
+}
+
+.navItem.active {
+  color: white;
+}
+
+.navIcon {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.navLabel {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+  .mobileNavigation {
+    display: none;
+  }
+}

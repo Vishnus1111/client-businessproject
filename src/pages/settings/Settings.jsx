@@ -5,6 +5,7 @@ import API_BASE_URL from '../config';
 
 const Settings = () => {
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -12,6 +13,18 @@ const Settings = () => {
     password: '',
     confirmPassword: '',
   });
+  
+  // Handle window resize for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Track which fields are in edit mode
   const [editableFields, setEditableFields] = useState({
@@ -163,10 +176,10 @@ const Settings = () => {
   return (
     <div className={styles.settingsContainer}>
       <div className={styles.header}>
-        <h1 className={styles.pageTitle}>Home</h1>
+        <h1 className={styles.pageTitle}>Settings</h1>
       </div>
       
-      <div className={styles.content}>
+      <div className={`${styles.content} ${isMobile ? styles.mobileContent : ''}`}>
         <div className={styles.tabsContainer}>
           <button 
             className={`${styles.tabButton} ${styles.activeTab}`}

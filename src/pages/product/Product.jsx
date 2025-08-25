@@ -61,16 +61,15 @@ const Product = () => {
         if (searchTerm.trim()) {
           const term = searchTerm.toLowerCase();
           
-          // Filter products based on multiple criteria
+          // Filter products based on multiple criteria (excluding productId)
           const filteredProducts = allProducts.filter(product => {
-            // Check all searchable fields
+            // Check all searchable fields except productId
             return (
-              (product.name && product.name.toLowerCase().includes(term)) ||
-              (product.productId && product.productId.toLowerCase().includes(term)) ||
+              (product.productName && product.productName.toLowerCase().includes(term)) ||
               (product.category && product.category.toLowerCase().includes(term)) ||
               (product.sellingPrice && product.sellingPrice.toString().includes(term)) ||
               (product.costPrice && product.costPrice.toString().includes(term)) ||
-              (product.stockQuantity && product.stockQuantity.toString().includes(term)) ||
+              (product.quantity && product.quantity.toString().includes(term)) ||
               (product.expiryDate && formatDate(product.expiryDate).toLowerCase().includes(term)) ||
               (product.createdAt && formatDate(product.createdAt).toLowerCase().includes(term)) ||
               (product.availability && product.availability.toLowerCase().includes(term))
@@ -136,10 +135,10 @@ const Product = () => {
     loadInitialData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounced search effect with better focus management
+  // Debounced search effect with improved focus management
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      // Store current focus state and cursor position
+      // Always store current focus state and cursor position
       const wasSearchFocused = document.activeElement === searchInputRef.current;
       const cursorPosition = searchInputRef.current?.selectionStart || 0;
       
@@ -150,11 +149,13 @@ const Product = () => {
           await fetchProducts();
         }
         
-        // Restore focus and cursor position after search completes
+        // Always restore focus and cursor position after search completes
+        // This ensures the search stays focused until user explicitly clicks away
         if (wasSearchFocused && searchInputRef.current) {
           requestAnimationFrame(() => {
             searchInputRef.current?.focus();
             searchInputRef.current?.setSelectionRange(cursorPosition, cursorPosition);
+            setIsSearchActive(true); // Keep search active
           });
         }
       };
@@ -170,10 +171,8 @@ const Product = () => {
     setSearchQuery(value);
     setCurrentPage(1);
     
-    if (!value.trim() && !isSearchActive) {
-      // If clearing search and search is not active, do nothing
-      return;
-    }
+    // Always keep search active when typing
+    setIsSearchActive(true);
     
     // Local filtering is done in the fetchProducts function
     // that gets triggered by the useEffect dependent on searchQuery
@@ -181,10 +180,8 @@ const Product = () => {
 
   // Handle search field blur
   const handleSearchBlur = (e) => {
-    // Only deactivate search if the field is empty
-    if (!e.target.value) {
-      setIsSearchActive(false);
-    }
+    // Keep search active regardless of content
+    // Only deactivate if user clicks elsewhere
   };
 
   // Handle search field focus
@@ -316,6 +313,7 @@ const Product = () => {
             onBlur={handleSearchBlur}
             onFocus={handleSearchFocus}
             autoComplete="off"
+            autoFocus={isSearchActive}
           />
           <button className={styles.searchButton} type="button" aria-label="Search">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
