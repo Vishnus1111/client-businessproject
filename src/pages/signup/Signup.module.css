@@ -231,51 +231,50 @@
         flex-direction: column;
     }
     
-    .leftPanel, .rightPanel {
-        flex: none;
-        min-height: 50vh;
+    .rightPanel {
+        display: none; /* Hide right panel completely on mobile */
     }
     
     .leftPanel {
-        order: 2;
-        padding: 1rem;
-    }
-    
-    .rightPanel {
-        order: 1;
-        padding: 1rem;
+        min-height: 100vh;
+        width: 100%;
+        padding: 1.5rem;
     }
     
     .signupCard {
         padding: 2rem;
-        max-width: none;
+        max-width: 100%;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     }
     
-    .welcomeTitle {
-        font-size: 2rem;
-        margin-bottom: 2rem;
+    .title {
+        font-size: 1.8rem;
     }
     
-    .logoSection {
-        position: static;
-        margin-bottom: 1rem;
+    .subtitle {
+        font-size: 0.9rem;
     }
 }
 
 @media (max-width: 480px) {
+    .leftPanel {
+        padding: 1rem;
+    }
+    
     .signupCard {
         padding: 1.5rem;
+        border-radius: 15px;
     }
     
     .title {
         font-size: 1.5rem;
     }
     
-    .welcomeTitle {
-        font-size: 1.5rem;
+    .input {
+        padding: 0.65rem;
     }
     
-    .illustrationContainer {
-        height: 200px;
+    .signUpButton {
+        padding: 0.75rem;
     }
 }
