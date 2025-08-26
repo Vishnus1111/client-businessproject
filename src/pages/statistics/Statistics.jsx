@@ -11,6 +11,7 @@ Chart.register(...registerables);
 const Statistics = () => {
   const [period, setPeriod] = useState('weekly');
   const [chartData, setChartData] = useState(null);
+  const [topProducts, setTopProducts] = useState([]);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     productsSold: 0,
@@ -25,6 +26,23 @@ const Statistics = () => {
   };
 
   // Fetch chart data based on selected period
+  // Fetch top rated products
+  const fetchTopProducts = async () => {
+    try {
+      console.log('Fetching top products data...');
+      const response = await axios.get(`${API_BASE_URL}/api/top-products/top-products`);
+      
+      if (response.data && response.data.success) {
+        console.log('Top products response:', response.data);
+        setTopProducts(response.data.products || []);
+      } else {
+        console.error('Top products error:', response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching top products:', err);
+    }
+  };
+
   useEffect(() => {
     // Prepare data for Chart.js - moved inside useEffect to avoid dependency issues
     const prepareChartData = (data) => {
@@ -87,6 +105,9 @@ const Statistics = () => {
           console.error('Chart data error:', chartResponse.data);
           setError('Failed to load chart data');
         }
+
+        // Fetch top products
+        await fetchTopProducts();
 
         // Fetch stats data for overview cards
         try {
@@ -231,16 +252,23 @@ const Statistics = () => {
           <div className={styles.topProducts}>
             <h2>Top Products</h2>
             <div className={styles.topProductsList}>
-              {/* This would be dynamically populated from the API */}
-              {['Redbull', 'Kit kat', 'Coca cola', 'Milo', 'Ariel', 'Bru'].map((product, index) => (
-                <div key={index} className={styles.topProductItem}>
-                  <div className={styles.productName}>{product}</div>
-                  <div className={styles.productRating}>
-                    {'★'.repeat(5 - Math.floor(index/2))}
-                    {'☆'.repeat(Math.floor(index/2))}
+              {topProducts.length > 0 ? (
+                topProducts.map((product) => (
+                  <div key={product._id} className={styles.topProductItem}>
+                    <div className={styles.productName}>{product.productName}</div>
+                    <div className={styles.productDetails}>
+                      <div className={styles.productRating}>
+                        {product.ratingStars || ('★'.repeat(Math.round(product.averageRating)) + '☆'.repeat(5 - Math.round(product.averageRating)))}
+                      </div>
+                      <div className={styles.ratingValue}>
+                        {product.averageRating.toFixed(1)} / 5 ({product.totalRatings} ratings)
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className={styles.noProducts}>No rated products available</div>
+              )}
             </div>
           </div>
         </>
