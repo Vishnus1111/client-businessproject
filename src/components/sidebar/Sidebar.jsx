@@ -87,7 +87,7 @@ const Sidebar = () => {
           {!isCollapsed && (
             <div className={styles.userDetails}>
               <div className={styles.userName}>
-                {JSON.parse(localStorage.getItem('user') || '{}').email?.split('@')[0] || 'User'}
+                {JSON.parse(localStorage.getItem('user') || '{}').name || 'User'}
               </div>
             </div>
           )}
