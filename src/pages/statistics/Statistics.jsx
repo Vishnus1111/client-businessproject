@@ -146,15 +146,6 @@ const Statistics = () => {
     <div className={styles.statisticsContainer}>
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Statistics & Analytics</h1>
-        <select 
-          className={styles.periodSelect}
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-        >
-          <option value="weekly">Weekly (Sunday-Saturday)</option>
-          <option value="monthly">Monthly (All 12 Months)</option>
-          <option value="yearly">Yearly (Current Year)</option>
-        </select>
       </div>
       
       {loading ? (
@@ -186,26 +177,17 @@ const Statistics = () => {
           </div>
           
           <div className={styles.chartContainer}>
-            <h2>Sales & Purchase</h2>
-            <div className={styles.periodSelector}>
-              <button 
-                className={period === 'weekly' ? styles.active : ''} 
-                onClick={() => setPeriod('weekly')}
+            <div className={styles.chartHeader}>
+              <h2>Sales & Purchase</h2>
+              <select 
+                className={styles.periodSelect}
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
               >
-                Weekly
-              </button>
-              <button 
-                className={period === 'monthly' ? styles.active : ''} 
-                onClick={() => setPeriod('monthly')}
-              >
-                Monthly
-              </button>
-              <button 
-                className={period === 'yearly' ? styles.active : ''} 
-                onClick={() => setPeriod('yearly')}
-              >
-                Yearly
-              </button>
+                <option value="weekly">Weekly (Sunday-Saturday)</option>
+                <option value="monthly">Monthly (All 12 Months)</option>
+                <option value="yearly">Yearly (Current Year)</option>
+              </select>
             </div>
             
             {chartData ? (
