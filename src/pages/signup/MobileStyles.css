@@ -1,0 +1,51 @@
+/* Mobile styles for signup form */
+@media (max-width: 480px) {
+  input, button {
+    height: 52px !important;
+    font-size: 16px !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  label {
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  form {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 0 auto !important;
+  }
+  
+  .passwordWrapper {
+    width: 100% !important;
+  }
+  
+  /* Title and subtitle specific styles - left aligned and larger */
+  h2[class*='title'], h2.title, .title, .loginCard h2 {
+    font-size: 2.5rem !important;
+    text-align: left !important;
+    margin-bottom: 0.8rem !important;
+    font-weight: 600 !important;
+    width: 100% !important;
+    align-self: flex-start !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    display: block !important;
+  }
+  
+  p[class*='subtitle'], p.subtitle, .subtitle, .loginCard p {
+    font-size: 1.3rem !important;
+    text-align: left !important;
+    margin-bottom: 2rem !important;
+    line-height: 1.5 !important;
+    width: 100% !important;
+    align-self: flex-start !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    display: block !important;
+  }
+}

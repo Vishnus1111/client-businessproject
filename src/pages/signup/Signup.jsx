@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import styles from "./Signup.module.css";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './MobileStyles.css'; // Import mobile-specific styles
+import titleStyles from './titleStyles'; // Import direct title styling
 import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../config';
 import viewIcon from '../../assets/auth/view.png';
@@ -138,13 +140,13 @@ function Signup() {
         <div className={styles.container}>
             {/* Left Panel - Signup Form */}
             <div className={styles.leftPanel}>
-                <div className={styles.signupCard}>
-                    <h2 className={styles.title}>Create an account</h2>
-                    <p className={styles.subtitle}>
+                <div className={styles.loginCard} style={{ width: '100%', maxWidth: '95%', alignItems: 'flex-start' }}>
+                    <h2 className={styles.title} style={titleStyles.title}>Create an account</h2>
+                    <p className={styles.subtitle} style={titleStyles.subtitle}>
                         Start inventory management.
                     </p>
 
-                    <form className={styles.form} onSubmit={handleSubmit}>
+                    <form className={styles.form} onSubmit={handleSubmit} style={{ width: '95%', maxWidth: '95%' }}>
                         <div className={styles.inputGroup}>
                             <label className={styles.label}>Name</label>
                             <input
@@ -152,6 +154,7 @@ function Signup() {
                                 name="name"
                                 placeholder="Name"
                                 className={styles.input}
+                                style={{ height: '52px', fontSize: '16px', padding: '0.75rem 1rem', borderRadius: '6px' }}
                                 required
                                 value={formData.name}
                                 onChange={handleInputChange}
@@ -165,6 +168,7 @@ function Signup() {
                                 name="email"
                                 placeholder="Example@email.com"
                                 className={styles.input}
+                                style={{ height: '52px', fontSize: '16px', padding: '0.75rem 1rem', borderRadius: '6px' }}
                                 required
                                 value={formData.email}
                                 onChange={handleInputChange}
@@ -179,6 +183,7 @@ function Signup() {
                                     name="password"
                                     placeholder="atleast 8 characters"
                                     className={styles.input}
+                                    style={{ height: '52px', fontSize: '16px', padding: '0.75rem 1rem', borderRadius: '6px' }}
                                     required
                                     value={formData.password}
                                     onChange={handleInputChange}
@@ -208,6 +213,7 @@ function Signup() {
                                     name="confirmPassword"
                                     placeholder="confirm your password"
                                     className={styles.input}
+                                    style={{ height: '52px', fontSize: '16px', padding: '0.75rem 1rem', borderRadius: '6px' }}
                                     required
                                     value={formData.confirmPassword}
                                     onChange={handleInputChange}
@@ -229,7 +235,12 @@ function Signup() {
                             </div>
                         </div>
 
-                        <button type="submit" className={styles.signUpButton} disabled={loading}>
+                        <button 
+                            type="submit" 
+                            className={styles.signUpButton} 
+                            disabled={loading}
+                            style={{ height: '52px', fontSize: '16px', padding: '0.75rem', borderRadius: '6px' }}
+                        >
                             {loading ? "Creating account..." : "Sign up"}
                         </button>
                     </form>
