@@ -7,7 +7,7 @@
   position: relative;
 }
 
-/* ================== LEFT PANEL (Form Area) ================== */
+/* ================== LEFT PANEL (OTP Form Area) ================== */
 .leftPanel {
   flex: 0.55;
   background-color: #e0e0e2;
@@ -18,6 +18,7 @@
   border-top-right-radius: 0;
 }
 
+/* Form card container */
 .formCard {
   background: transparent;
   padding: 0;
@@ -29,17 +30,17 @@
 
 /* Title Styles */
 .title {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
   text-align: left;
 }
 
 .subtitle {
   color: #313957;
   margin-bottom: 2rem;
-  font-size: 0.9rem;
+  font-size: 1.3rem;
   line-height: 1.5;
   text-align: left;
 }
@@ -85,14 +86,16 @@
 
 .input::placeholder {
   color: #999;
+  letter-spacing: 0;
 }
 
-.sendButton {
+/* Button Styles */
+.confirmButton {
   background-color: #1a1a1a;
   color: white;
   border: none;
-  padding: 1rem;
-  border-radius: 6px;
+  padding: 1.2rem;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -100,11 +103,11 @@
   width: 340px;
 }
 
-.sendButton:hover:not(:disabled) {
+.confirmButton:hover:not(:disabled) {
   background-color: #000000;
 }
 
-.sendButton:disabled {
+.confirmButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -121,33 +124,16 @@
   align-items: center;
 }
 
-/* Logo Container */
-.logoSection {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-}
-
-.logoPlaceholder {
-  background: none;
-  margin-right: 100px;
-  margin-top: 40px;
-}
-
-/* Illustration Container */
 .illustrationContainer {
   display: flex;
   justify-content: center;
   align-items: center;
+  transform: scale(1.2);
 }
 
-.illustrationPlaceholder {
-  background: none;
-  border: none;
-  border-radius: 0;
-  width: auto;
-  transform: scaleY(0.9);
-  margin-right: 80px;
+.rocketImage {
+  max-width: 80%;
+  height: auto;
 }
 
 /* Curved divider between panels */
@@ -166,7 +152,6 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
-    padding: 1rem;
     flex-direction: column;
   }
   
@@ -185,7 +170,7 @@
 }
 
 @media (max-width: 480px) {
-  .loginCard {
+  .formCard {
     padding: 1.5rem;
   }
   

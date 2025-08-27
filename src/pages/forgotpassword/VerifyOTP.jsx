@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import styles from "./Resetpassword.module.css";
+import styles from "./VerifyOTP.module.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from '../config';
+import rocketImg from "../../assets/auth/otp.png";
 
 function VerifyOTP() {
   const [otp, setOtp] = useState("");
@@ -61,35 +62,45 @@ function VerifyOTP() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.loginCard}>
-        <h1 className={styles.title}>Enter Your OTP</h1>
-        <p className={styles.subtitle}>
-          We've sent a 6-digit OTP to your registered mail.
-          <br />Please enter it below to sign in.
-        </p>
+      {/* Left Panel - OTP Form */}
+      <div className={styles.leftPanel}>
+        <div className={styles.formCard}>
+          <h2 className={styles.title}>Enter Your OTP</h2>
+          <p className={styles.subtitle}>
+            We've sent a 6-digit OTP to your <br></br> registered mail.
+            <br />Please enter it below to sign in.
+          </p>
 
-        <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>OTP</label>
-            <input
-              type="text"
-              placeholder="xxxxxx"
-              className={styles.input}
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              required
-              maxLength={6}
-            />
+          <div className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>OTP</label>
+              <input
+                type="text"
+                placeholder="xxxxxx"
+                className={styles.input}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                required
+                maxLength={6}
+              />
+            </div>
+
+            <button
+              className={styles.confirmButton}
+              onClick={handleVerifyOtp}
+              disabled={loading}
+            >
+              {loading ? "Verifying..." : "Confirm"}
+            </button>
           </div>
-
-          <button
-            className={styles.confirmButton}
-            onClick={handleVerifyOtp}
-            disabled={loading}
-          >
-            {loading ? "Verifying..." : "Confirm"}
-          </button>
-        </form>
+        </div>
+      </div>
+      
+      {/* Right Panel - Illustration */}
+      <div className={styles.rightPanel}>
+        <div className={styles.illustrationContainer}>
+          <img src={rocketImg} alt="Rocket illustration" className={styles.rocketImage} />
+        </div>
       </div>
       
       <ToastContainer position="top-right" autoClose={3000} />

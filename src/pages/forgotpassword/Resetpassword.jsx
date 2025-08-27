@@ -130,7 +130,7 @@ function Resetpassword() {
               <div className={styles.passwordWrapper}>
                 <input
                   type={showNewPassword ? "text" : "password"}
-                  placeholder="8+ chars, A-Z, a-z, special char"
+                  placeholder="at least 8 characters"
                   className={styles.input}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -154,7 +154,7 @@ function Resetpassword() {
               <div className={styles.passwordWrapper}>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="confirm your new password"
+                  placeholder="at least 8 characters"
                   className={styles.input}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -192,10 +192,6 @@ function Resetpassword() {
       {/* Right Panel - Welcome Section */}
       <div className={styles.rightPanel}>
         <div className={styles.welcomeContent}>
-          <h1 className={styles.welcomeTitle}>
-            Create New<br />
-            Password
-          </h1>
           
           <div className={styles.illustrationContainer}>
             <div className={styles.illustrationPlaceholder}>

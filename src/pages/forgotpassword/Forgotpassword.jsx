@@ -4,6 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from '../config';
+import loginimg from "../../assets/auth/forgotpswdmail.png";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -64,33 +65,46 @@ function ForgotPassword() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.loginCard}>
-        <h1 className={styles.title}>Zipkart</h1>
-        <p className={styles.subtitle}>
-          Please enter your registered email ID to receive an OTP
-        </p>
+      {/* Left Panel - Forgot Password Form */}
+      <div className={styles.leftPanel}>
+        <div className={styles.formCard}>
+          <h1 className={styles.title}>Zipkart</h1>
+          <p className={styles.subtitle}>
+            <span className="1stline">Please enter your registered email ID to</span> <br />
+            <span className="2ndline">receive an OTP</span>
+          </p>
 
-        <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              placeholder="Enter your registered email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+          <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>E-mail</label>
+              <input
+                type="email"
+                placeholder="Enter your registered email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <button
+              className={styles.sendButton}
+              onClick={handleSendMail}
+              disabled={loading}
+            >
+              {loading ? "Sending..." : "Send Mail"}
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      {/* Right Panel - Image Section */}
+      <div className={styles.rightPanel}>
+        <div className={styles.illustrationContainer}>
+          <div className={styles.illustrationPlaceholder}>
+            <img src={loginimg} alt="Forgot Password Illustration" />
           </div>
-
-          <button
-            className={styles.sendButton}
-            onClick={handleSendMail}
-            disabled={loading}
-          >
-            {loading ? "Sending..." : "Send Mail"}
-          </button>
-        </form>
+        </div>
       </div>
       
       <ToastContainer position="top-right" autoClose={3000} />

@@ -1,280 +1,231 @@
+/* ================== LOGIN PAGE CONTAINER ================== */
+/* This is the overall flex container for left (form) + right (image/info) panels */
 .container {
-    display: flex;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex; /* places left and right panels side by side */
+  min-height: 100vh; /* makes full screen height */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  overflow: hidden; /* ensures curved edges aren't cut off */
+  position: relative; /* required for absolute positioning of pseudo-elements */
 }
 
+/* ================== LEFT PANEL (Login Form Area) ================== */
+/* Controls the left side background and login form alignment */
 .leftPanel {
-    flex: 1;
-    background-color: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
+  flex: 0.55; /* takes half the screen width */
+  background-color: #e0e0e2; /* light grey background */
+  display: flex;
+  align-items: center; /* vertically centers login form */
+  justify-content: center; /* horizontally centers login form */
+  padding: 2rem; /* space around the form */
+  border-top-right-radius: 0; /* no curved edge */
 }
 
-.signupCard {
-    background: white;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
+/* Main login card/form container */
+.loginCard {
+  background: transparent; /* no background box */
+  padding: 0; /* no extra spacing inside */
+  border-radius: 0; /* no rounded corners */
+  box-shadow: none; /* no shadow */
+  width: 100%;
+  max-width: 380px; /* maximum width of the form box */
 }
 
+/* Title above login form */
 .title {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 0.5rem;
-    text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem; /* space below title */
+  text-align: left;
 }
 
+/* Subtitle text below title */
 .subtitle {
-    color: #718096;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 2rem; /* spacing before form starts */
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: left;
 }
 
+/* ================== FORM INPUT STYLES ================== */
+/* The entire form structure */
 .form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* vertical space between inputs */
+  width: 340px; /* Set fixed width to match inputs and button */
 }
 
+/* Wrapper for each input + label */
 .inputGroup {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* spacing between label and input */
+  width: 340px; /* Set fixed width to match inputs and button */
+  align-items: flex-start; /* align items to the start */
 }
 
+/* Label text for input */
 .label {
-    font-weight: 500;
-    color: #2d3748;
-    font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
 }
 
+/* Input box styles */
 .input {
-    padding: 0.75rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-    outline: none;
+  padding: 0.875rem 1rem; /* height/width padding inside input */
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px; /* rounded corners */
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+  background-color: #fafafa;
+  width: 340px; /* Set fixed width to match button */
+  box-sizing: border-box; /* Include padding and border in width */
 }
 
+/* Input on focus (clicked state) */
 .input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  outline: none;
+  border-color: #007aff; /* blue border */
+  background-color: white;
 }
 
+/* Placeholder text color */
+.input::placeholder {
+  color: #999;
+}
+
+/* Password input wrapper to position eye icon inside input */
 .passwordWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+  position: relative;
+  width: 340px; /* Match input width */
 }
 
+/* Eye icon (password toggle) */
 .eyeIcon {
-    position: absolute;
-    right: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  position: absolute;
+  right: 1rem; /* pushes it inside the input at right */
+  top: 50%;
+  transform: translateY(-50%); /* vertically centers inside input */
+  cursor: pointer;
 }
 
-.eyeIcon:hover {
-    background-color: #f7fafc;
+/* ================== FORGOT PASSWORD LINK ================== */
+.forgotPassword {
+  display: flex;
+  justify-content: flex-end; /* aligns link to right side */
+  margin-top: -0.5rem; /* pulls link closer to input */
 }
 
+.forgotPasswordLink {
+  color: #1645e8;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ================== SIGN IN BUTTON ================== */
 .signUpButton {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 0.875rem;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 1rem;
+  background-color: #1a1a1a; /* dark background */
+  color: white;
+  border: none;
+  padding: 1rem; /* button size (height) */
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  width: 340px;
 }
 
-.signUpButton:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+.signInButton:hover:not(:disabled) {
+  background-color: #000000; /* darker shade on hover */
 }
 
-.signUpButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
+/* ================== FOOTER TEXT ================== */
 .footerText {
-    text-align: center;
-    color: #718096;
-    margin-top: 1.5rem;
-    font-size: 0.9rem;
+  text-align: center;
+  color: black;
+  font-size: 1rem;
+  margin-top: 60px; /* spacing above footer */
 }
 
 .signInLink {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 500;
+  color: #1645e8;
+  text-decoration: none;
+  font-weight: 500;
 }
 
-.signInLink:hover {
-    text-decoration: underline;
-}
-
+/* ================== RIGHT PANEL (Illustration / Info Area) ================== */
+/* Controls right side background and content alignment */
 .rightPanel {
-    flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    color: white;
-    position: relative;
+  flex: 1; /* takes other half of screen */
+  background-color: #242531; /* updated dark background color */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  justify-content: center; /* center content vertically */
+  align-items: center; /* center content horizontally */
 }
 
+/* Top-right logo container */
 .logoSection {
-    position: absolute;
-    top: 2rem;
-    right: 2rem;
+  position: absolute;
+  top: 2rem; /* distance from top */
+  right: 2rem; /* distance from right */
 }
 
+/* Placeholder for logo */
 .logoPlaceholder {
-    width: 60px;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
+  background: none; /* no blur or background */
+  margin-right: 100px;
+  margin-top: 40px;
 }
 
-.chartIcon {
-    width: 30px;
-    height: 30px;
-    background: linear-gradient(45deg, #48bb78, #38b2ac);
-    border-radius: 50%;
-    position: relative;
-    background: conic-gradient(
-        from 0deg,
-        #4ade80 0deg 120deg,
-        #3b82f6 120deg 240deg,
-        #8b5cf6 240deg 360deg
-    );
-}
-
+/* Text + heading content in right panel */
 .welcomeContent {
-    text-align: center;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    padding-top: 2rem;
+  text-align: center;
 }
 
+/* Large welcome title */
 .welcomeTitle {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    line-height: 1.2;
+  font-size: 3.5rem;
+  font-weight: 600;
+  text-align: left;
+  margin-bottom: 2rem; /* space below title */
+  color: white; /* white text */
+  margin-left: 80px;
 }
 
+/* Container for illustration/image */
 .illustrationContainer {
-    width: 100%;
-    max-width: 600px;
-    height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+/* Placeholder for illustration (image) */
 .illustrationPlaceholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
+  background: none; /* no background */
+  border: none;
+  border-radius: 0;
+  width: auto;
+  transform: scaleY(0.9); /* decreases height by 10% */
+  margin-right: 80px;
 }
 
-.illustrationPlaceholder img {
-    width: 100%;
-    height: auto;
-    max-width: 500px;
-    object-fit: contain;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-    
-    .rightPanel {
-        display: none; /* Hide right panel completely on mobile */
-    }
-    
-    .leftPanel {
-        min-height: 100vh;
-        width: 100%;
-        padding: 1.5rem;
-    }
-    
-    .signupCard {
-        padding: 2rem;
-        max-width: 100%;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    }
-    
-    .title {
-        font-size: 1.8rem;
-    }
-    
-    .subtitle {
-        font-size: 0.9rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .leftPanel {
-        padding: 1rem;
-    }
-    
-    .signupCard {
-        padding: 1.5rem;
-        border-radius: 15px;
-    }
-    
-    .title {
-        font-size: 1.5rem;
-    }
-    
-    .input {
-        padding: 0.65rem;
-    }
-    
-    .signUpButton {
-        padding: 0.75rem;
-    }
+/* Custom curved divider between panels */
+.container::after {
+  content: '';
+  position: absolute;
+  top: -30px;
+  left: 45%; /* position near the middle where panels meet */
+  width: 60px;
+  height: 60px;
+  background-color: #242531; /* match right panel color */
+  border-radius: 0 0 30px 0; /* curve at bottom right */
+  z-index: 10;
 }
