@@ -233,7 +233,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="none"/><circle cx="100" cy="100" r="20" fill="%238b5cf6" opacity="0.3"/><circle cx="300" cy="80" r="15" fill="%2306b6d4" opacity="0.4"/><rect x="150" y="120" width="100" height="60" rx="10" fill="%23ffffff" opacity="0.1"/><text x="200" y="155" text-anchor="middle" fill="%23ffffff" opacity="0.6" font-family="Arial" font-size="12">Business Illustration</text></svg>') center/contain no-repeat;
 }
 
 /* Responsive Design */
