@@ -14,31 +14,31 @@ const Sidebar = () => {
       id: 'home',
       label: 'Home',
       path: '/dashboard',
-      icon: '🏠'
+      icon: <img src={require("../../assets/mobile/desktophome.png")} alt="Home" />
     },
     {
       id: 'product',
       label: 'Product',
       path: '/dashboard/product',
-      icon: '📦'
+      icon: <img src={require("../../assets/mobile/desktopproducts.png")} alt="Product" />
     },
     {
       id: 'invoice',
       label: 'Invoice',
       path: '/dashboard/invoice',
-      icon: '📄'
+      icon: <img src={require("../../assets/mobile/desktopinvoice.png")} alt="Invoice" />
     },
     {
       id: 'statistics',
       label: 'Statistics',
       path: '/dashboard/statistics',
-      icon: '📊'
+      icon: <img src={require("../../assets/mobile/desktopstatistics.png")} alt="Statistics" />
     },
     {
       id: 'settings',
       label: 'Setting',
       path: '/dashboard/settings',
-      icon: '⚙️'
+      icon: <img src={require("../../assets/mobile/Setting.png")} alt="Settings" />
     }
   ];
 
@@ -83,7 +83,7 @@ const Sidebar = () => {
       {/* User Section */}
       <div className={styles.userSection}>
         <div className={styles.userInfo}>
-          <div className={styles.avatar}>👤</div>
+          <div className={styles.avatar}></div>
           {!isCollapsed && (
             <div className={styles.userDetails}>
               <div className={styles.userName}>
