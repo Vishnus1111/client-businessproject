@@ -68,7 +68,7 @@ function VerifyOTP() {
           <h2 className={styles.title}>Enter Your OTP</h2>
           <p className={styles.subtitle}>
             We've sent a 6-digit OTP to your <br></br> registered mail.
-            <br />Please enter it below to sign in.
+            <br></br>Please enter it below to sign in.
           </p>
 
           <div className={styles.form}>

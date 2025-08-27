@@ -70,8 +70,7 @@ function ForgotPassword() {
         <div className={styles.formCard}>
           <h1 className={styles.title}>Zipkart</h1>
           <p className={styles.subtitle}>
-            <span className="1stline">Please enter your registered email ID to</span> <br />
-            <span className="2ndline">receive an OTP</span>
+            Please enter your registered email ID <br></br> to receive an OTP
           </p>
 
           <form className={styles.form} onSubmit={(e) => e.preventDefault()}>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from "./Signup.module.css";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -20,6 +20,17 @@ function Signup() {
         confirmPassword: ''
     });
     const [loading, setLoading] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+
+    // Handle responsive design
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 480);
+        };
+        
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const navigate = useNavigate();
     
@@ -166,7 +177,7 @@ function Signup() {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     name="password"
-                                    placeholder="8+ chars, A-Z, a-z, special char"
+                                    placeholder="atleast 8 characters"
                                     className={styles.input}
                                     required
                                     value={formData.password}
@@ -179,7 +190,11 @@ function Signup() {
                                     <img 
                                         src={showPassword ? hideIcon : viewIcon} 
                                         alt={showPassword ? 'Hide password' : 'Show password'} 
-                                        style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                        style={{ 
+                                            width: isMobile ? '24px' : '20px', 
+                                            height: isMobile ? '24px' : '20px', 
+                                            cursor: 'pointer' 
+                                        }}
                                     />
                                 </span>
                             </div>
@@ -204,7 +219,11 @@ function Signup() {
                                     <img 
                                         src={showConfirmPassword ? hideIcon : viewIcon} 
                                         alt={showConfirmPassword ? 'Hide password' : 'Show password'} 
-                                        style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                        style={{ 
+                                            width: isMobile ? '24px' : '20px', 
+                                            height: isMobile ? '24px' : '20px', 
+                                            cursor: 'pointer' 
+                                        }}
                                     />
                                 </span>
                             </div>

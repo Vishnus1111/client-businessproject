@@ -104,15 +104,16 @@
 }
 
 /* Eye icon (password toggle) */
-.eyeIcon {
-  position: absolute;
-  right: 1rem; /* pushes it inside the input at right */
-  top: 50%;
-  transform: translateY(-50%); /* vertically centers inside input */
-  cursor: pointer;
-}
-
-/* ================== FORGOT PASSWORD LINK ================== */
+  .eyeIcon {
+    position: absolute;
+    right: 1rem; /* pushes it inside the input at right */
+    top: 50%;
+    transform: translateY(-50%); /* vertically centers inside input */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }/* ================== FORGOT PASSWORD LINK ================== */
 .forgotPassword {
   display: flex;
   justify-content: flex-end; /* aligns link to right side */
@@ -228,4 +229,142 @@
   background-color: #242531; /* match right panel color */
   border-radius: 0 0 30px 0; /* curve at bottom right */
   z-index: 10;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  
+  .leftPanel, .rightPanel {
+    flex: none;
+    width: 100%;
+  }
+  
+  .rightPanel {
+    display: none;
+  }
+  
+  .container::after {
+    display: none; /* Hide the curved divider in mobile view */
+  }
+  
+  .leftPanel {
+    background-color: #e0e0e2;
+    min-height: 100vh;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .loginCard {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1.5rem;
+    margin-top: -2rem; /* Push content up a bit */
+  }
+  
+  .title, .subtitle {
+    text-align: center;
+    width: 100%;
+  }
+  
+  .form {
+    width: 100%;
+    max-width: 90%;
+    margin: 0 auto;
+  }
+  
+  .inputGroup {
+    width: 100%;
+    margin-bottom: 0.8rem;
+  }
+  
+  .input, .passwordWrapper {
+    width: 100%;
+    height: 3.2rem; /* Fixed height */
+  }
+  
+  .signUpButton {
+    width: 100%;
+    padding: 1.2rem;
+    height: 3.4rem; /* Fixed height */
+  }
+  
+  .footerText {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2.4rem; /* Significantly increased */
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+  }
+  
+  .subtitle {
+    font-size: 1.3rem; /* Significantly increased */
+    margin-bottom: 2.5rem;
+    line-height: 1.5;
+  }
+
+  .label {
+    font-size: 1.2rem; /* Significantly increased */
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+  }
+
+  .input {
+    font-size: 1.2rem; /* Significantly increased */
+    padding: 1.1rem 1.2rem; /* Increased padding */
+    height: 3.4rem; /* Fixed height */
+  }
+
+  .signUpButton {
+    font-size: 1.3rem; /* Significantly increased */
+    margin-top: 1rem;
+    padding: 1.2rem;
+    height: 3.6rem; /* Fixed height */
+  }
+
+  /* Container sizing for better fit */
+  .form {
+    max-width: 90%; /* Use percentage width */
+    width: 90%;
+  }
+
+  .input, .passwordWrapper {
+    max-width: 100%; /* Full width of parent */
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Eye icon positioning adjustment */
+  .eyeIcon {
+    right: 1.2rem;
+    width: 24px;
+    height: 24px;
+  }
+  
+  /* Increase spacing between input groups */
+  .inputGroup {
+    margin-bottom: 1rem;
+  }
+  
+  /* Make the footer text larger */
+  .footerText {
+    font-size: 1.2rem;
+    margin-top: 2rem;
+  }
+  
+  .signInLink {
+    font-size: 1.2rem;
+  }
 }
