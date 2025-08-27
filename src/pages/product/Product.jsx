@@ -432,6 +432,11 @@ const Product = () => {
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Product</h1>
         <div className={`${styles.searchContainer} ${isSearchActive ? styles.activeSearch : ''}`}>
+          <button className={styles.searchButton} type="button" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          </button>
           <input 
             ref={searchInputRef}
             type="text" 
@@ -444,11 +449,7 @@ const Product = () => {
             autoComplete="off"
             autoFocus={isSearchActive}
           />
-          <button className={styles.searchButton} type="button" aria-label="Search">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-            </svg>
-          </button>
+
           {isSearching && (
             <div className={styles.searchIndicator}>
               Searching...
@@ -459,14 +460,18 @@ const Product = () => {
 
       {/* Overall Inventory Stats */}
       <div className={styles.inventoryOverview}>
-        <h2>Overall Inventory</h2>
+        <h1>Overall Inventory</h1>
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
               <span className={styles.statTitle}>Categories</span>
             </div>
             <div className={styles.statValue}>{inventoryStats.categories}</div>
-            <div className={styles.statSubtext}>Last 7 days</div>
+            <div className={styles.statInfoContainer}>
+              <div className={styles.statLeftColumn}>
+                <span className={styles.statSubtext}>Last 7 days</span>
+              </div>
+            </div>
           </div>
 
           <div className={styles.statCard}>
@@ -474,9 +479,14 @@ const Product = () => {
               <span className={styles.statTitle}>Total Products</span>
             </div>
             <div className={styles.statValue}>{inventoryStats.totalProducts}</div>
-            <div className={styles.statSubtext}>Last 7 days</div>
-            <div className={styles.statRevenue}>
-              {formatCurrency(inventoryStats.totalRevenue)} Revenue
+            <div className={styles.statInfoContainer}>
+              <div className={styles.statLeftColumn}>
+                <span className={styles.statSubtext}>Last 7 days</span>
+              </div>
+              <div className={styles.statRightColumn}>
+                <span className={styles.statRevenueValue}>₹{inventoryStats.totalRevenue}</span>
+                <span className={styles.statRevenueLabel}>Revenue</span>
+              </div>
             </div>
           </div>
 
@@ -485,9 +495,14 @@ const Product = () => {
               <span className={styles.statTitle}>Top Selling</span>
             </div>
             <div className={styles.statValue}>{inventoryStats.topSelling}</div>
-            <div className={styles.statSubtext}>Last 7 days</div>
-            <div className={styles.statCost}>
-              {formatCurrency(inventoryStats.totalCost)} Cost
+            <div className={styles.statInfoContainer}>
+              <div className={styles.statLeftColumn}>
+                <span className={styles.statSubtext}>Last 7 days</span>
+              </div>
+              <div className={styles.statRightColumn}>
+                <span className={styles.statCostValue}>₹{inventoryStats.totalCost}</span>
+                <span className={styles.statCostLabel}>Cost</span>
+              </div>
             </div>
           </div>
 
@@ -496,9 +511,14 @@ const Product = () => {
               <span className={styles.statTitle}>Low Stocks</span>
             </div>
             <div className={styles.statValue}>{inventoryStats.lowStocks.ordered}</div>
-            <div className={styles.statSubtext}>Ordered</div>
-            <div className={styles.statNotInStock}>
-              {inventoryStats.lowStocks.notInStock} Not in stock
+            <div className={styles.statInfoContainer}>
+              <div className={styles.statLeftColumn}>
+                <span className={styles.statSubtext}>Ordered</span>
+              </div>
+              <div className={styles.statRightColumn}>
+                <span className={styles.statNotInStockValue}>{inventoryStats.lowStocks.notInStock}</span>
+                <span className={styles.statNotInStockLabel}>Not in stock</span>
+              </div>
             </div>
           </div>
         </div>
@@ -560,25 +580,31 @@ const Product = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className={styles.pagination}>
-            <button 
-              className={styles.pageButton}
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Previous
-            </button>
+            <div className={styles.paginationLeft}>
+              <button 
+                className={styles.pageButton}
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Previous
+              </button>
+            </div>
             
-            <span className={styles.pageInfo}>
-              Page {currentPage} of {totalPages}
-            </span>
+            <div className={styles.paginationCenter}>
+              <span className={styles.pageInfo}>
+                Page {currentPage} of {totalPages}
+              </span>
+            </div>
             
-            <button 
-              className={styles.pageButton}
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Next
-            </button>
+            <div className={styles.paginationRight}>
+              <button 
+                className={styles.pageButton}
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

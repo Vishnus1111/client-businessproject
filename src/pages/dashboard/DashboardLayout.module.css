@@ -2,7 +2,7 @@
 .dashboardContainer {
   display: flex;
   min-height: 100vh;
-  background: #f8f9fa;
+  background: #424457; /* Updated to match the specified color */
 }
 
 .mainContent {
@@ -13,7 +13,7 @@
 }
 
 .contentWrapper {
-  padding: 2rem;
+  padding: 0; /* Remove padding to allow product page to control its own spacing */
   max-width: 100%;
   overflow-x: hidden;
 }
