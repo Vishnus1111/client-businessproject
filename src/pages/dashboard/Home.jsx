@@ -5,11 +5,15 @@ import styles from './Home.module.css';
 
 const Home = () => {
   const [dashboardData, setDashboardData] = useState(null);
+  const [chartData, setChartData] = useState(null);
+  const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState('Weekly');
+  const [selectedPeriod, setSelectedPeriod] = useState('weekly');
 
   useEffect(() => {
     fetchDashboardData();
+    fetchChartData();
+    fetchTopProducts();
   }, [selectedPeriod]);
 
   const fetchDashboardData = async () => {
@@ -37,6 +41,56 @@ const Home = () => {
       toast.error('Error loading dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchChartData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch sales and purchase data for charts
+      const response = await fetch(`${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setChartData(data);
+        console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
+      } else {
+        toast.error('Failed to load chart data');
+      }
+    } catch (error) {
+      console.error('Chart data fetch error:', error);
+      toast.error('Error loading chart data');
+    }
+  };
+  
+  const fetchTopProducts = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch top products
+      const response = await fetch(`${API_BASE_URL}/api/top-products/top-products`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setTopProducts(data.products || []);
+        console.log('Top products loaded:', data.products);
+      } else {
+        toast.error('Failed to load top products');
+      }
+    } catch (error) {
+      console.error('Top products fetch error:', error);
+      toast.error('Error loading top products');
     }
   };
 
@@ -82,25 +136,25 @@ const Home = () => {
         <div className={styles.statsGrid}>
           <StatCard
             title="Sales"
-            value="₹ 832"
+            value={`₹ ${dashboardData?.salesOverview?.totalOrders || 0}`}
             color="blue"
             icon="💰"
           />
           <StatCard
             title="Revenue"
-            value="₹ 18,300"
+            value={`₹ ${dashboardData?.salesOverview?.totalRevenue?.toLocaleString() || 0}`}
             color="orange"
             icon="💳"
           />
           <StatCard
             title="Profit"
-            value="₹ 868"
+            value={`₹ ${dashboardData?.profitMetrics?.totalProfit?.toLocaleString() || 0}`}
             color="green"
             icon="📊"
           />
           <StatCard
             title="Cost"
-            value="₹ 17,432"
+            value={`₹ ${dashboardData?.inventoryCost?.totalCost?.toLocaleString() || 0}`}
             color="purple"
             icon="💸"
           />
@@ -115,25 +169,25 @@ const Home = () => {
         <div className={styles.statsGrid}>
           <StatCard
             title="Purchase"
-            value="82"
+            value={dashboardData?.purchaseOverview?.totalPurchases || 0}
             color="blue"
             icon="🛒"
           />
           <StatCard
             title="Cost"
-            value="₹ 13,573"
+            value={`₹ ${dashboardData?.purchaseOverview?.totalCost?.toLocaleString() || 0}`}
             color="orange"
             icon="💰"
           />
           <StatCard
             title="Cancel"
-            value="5"
+            value={dashboardData?.orderMetrics?.cancelledOrders || 0}
             color="green"
             icon="❌"
           />
           <StatCard
             title="Return"
-            value="₹ 17,432"
+            value={`₹ ${dashboardData?.orderMetrics?.returnAmount?.toLocaleString() || 0}`}
             color="purple"
             icon="🔄"
           />
@@ -152,27 +206,57 @@ const Home = () => {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className={styles.periodSelect}
               >
-                <option>Weekly</option>
-                <option>Monthly</option>
-                <option>Yearly</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
               </select>
             </div>
           </div>
           <div className={styles.chartContainer}>
             <div className={styles.chartPlaceholder}>
               <div className={styles.chartBars}>
-                {[...Array(12)].map((_, index) => (
-                  <div key={index} className={styles.chartBar}>
-                    <div 
-                      className={styles.barPurchase} 
-                      style={{height: `${Math.random() * 80 + 20}%`}}
-                    ></div>
-                    <div 
-                      className={styles.barSales} 
-                      style={{height: `${Math.random() * 60 + 20}%`}}
-                    ></div>
+                {chartData && chartData.data && chartData.data.dailyBreakdown ? (
+                  Object.keys(chartData.data.dailyBreakdown).map((day, index) => {
+                    const dayData = chartData.data.dailyBreakdown[day];
+                    const maxValue = Math.max(
+                      ...Object.values(chartData.data.dailyBreakdown).map(d => Math.max(d.purchases || 0, d.sales || 0))
+                    );
+                    const purchaseHeight = maxValue ? ((dayData.purchases || 0) / maxValue) * 80 : 0;
+                    const salesHeight = maxValue ? ((dayData.sales || 0) / maxValue) * 80 : 0;
+                    
+                    return (
+                      <div key={index} className={styles.chartBar}>
+                        <div className={styles.barLabel}>{day.substring(0, 3)}</div>
+                        <div 
+                          className={styles.barPurchase} 
+                          style={{height: `${purchaseHeight}%`}}
+                          title={`Purchases: ₹${(dayData.purchases || 0).toLocaleString()}`}
+                        ></div>
+                        <div 
+                          className={styles.barSales} 
+                          style={{height: `${salesHeight}%`}}
+                          title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`}
+                        ></div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  [...Array(7)].map((_, index) => (
+                    <div key={index} className={styles.chartBar}>
+                      <div className={styles.barPurchase} style={{height: `${Math.random() * 80 + 10}%`}}></div>
+                      <div className={styles.barSales} style={{height: `${Math.random() * 60 + 20}%`}}></div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className={styles.chartSummary}>
+                {chartData && chartData.data && chartData.data.summary && (
+                  <div className={styles.chartTotals}>
+                    <div>Total Sales: ₹{(chartData.data.summary.totalSales || 0).toLocaleString()}</div>
+                    <div>Total Purchases: ₹{(chartData.data.summary.totalPurchases || 0).toLocaleString()}</div>
+                    <div>Profit: ₹{(chartData.data.summary.profit || 0).toLocaleString()}</div>
                   </div>
-                ))}
+                )}
               </div>
               <div className={styles.chartLegend}>
                 <div className={styles.legendItem}>
@@ -198,14 +282,18 @@ const Home = () => {
                 <div className={styles.inventoryIcon}>📦</div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>Quantity in Hand</span>
-                  <span className={styles.inventoryValue}>868</span>
+                  <span className={styles.inventoryValue}>
+                    {dashboardData?.inventoryMetrics?.totalQuantity || 0}
+                  </span>
                 </div>
               </div>
               <div className={styles.inventoryItem}>
                 <div className={styles.inventoryIcon}>📥</div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>To be received</span>
-                  <span className={styles.inventoryValue}>200</span>
+                  <span className={styles.inventoryValue}>
+                    {dashboardData?.inventoryMetrics?.expectedStock || 0}
+                  </span>
                 </div>
               </div>
             </div>
@@ -219,14 +307,18 @@ const Home = () => {
                 <div className={styles.inventoryIcon}>🏪</div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>Number of Suppliers</span>
-                  <span className={styles.inventoryValue}>31</span>
+                  <span className={styles.inventoryValue}>
+                    {dashboardData?.productMetrics?.suppliersCount || 0}
+                  </span>
                 </div>
               </div>
               <div className={styles.inventoryItem}>
                 <div className={styles.inventoryIcon}>📋</div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>Number of Categories</span>
-                  <span className={styles.inventoryValue}>21</span>
+                  <span className={styles.inventoryValue}>
+                    {dashboardData?.productMetrics?.categoriesCount || 0}
+                  </span>
                 </div>
               </div>
             </div>
@@ -236,14 +328,30 @@ const Home = () => {
           <div className={styles.summaryCard}>
             <h3>Top Products</h3>
             <div className={styles.topProductsList}>
-              {['Redbull', 'Kit kat', 'Coca cola', 'Milo', 'Ariel', 'Bru'].map((product, index) => (
-                <div key={index} className={styles.topProductItem}>
-                  <span className={styles.productName}>{product}</span>
-                  <div className={styles.productRating}>
-                    {'⭐'.repeat(4)}
+              {topProducts.length > 0 ? (
+                topProducts.map((product, index) => (
+                  <div key={product._id || index} className={styles.topProductItem}>
+                    {product.imageUrl && (
+                      <div className={styles.productImage}>
+                        <img 
+                          src={product.imageUrl}
+                          alt={product.productName}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = '/placeholder-image.png';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <span className={styles.productName}>{product.productName}</span>
+                    <div className={styles.productRating}>
+                      {product.ratingStars || '★'.repeat(Math.round(product.averageRating || 0))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className={styles.noProducts}>No top-rated products found</div>
+              )}
             </div>
           </div>
         </div>
