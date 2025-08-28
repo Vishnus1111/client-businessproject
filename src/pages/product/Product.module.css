@@ -1,8 +1,10 @@
 .productContainer {
-  padding: 0;
+  padding: 0 15px;
   background-color: #424457; /* Updated to match your specified color */
   min-height: 100vh;
   position: relative;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Top horizontal line that aligns with sidebar top line */
@@ -21,12 +23,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 10px 0;
   border-bottom: none; /* Remove this border as we're adding it with ::before */
 }
 
 .pageTitle {
-  font-size: 20px; /* Reduced font size */
+  font-size: 18px; /* Reduced font size */
   font-weight: 500; /* Slightly less bold */
   color: #ffffff; /* White text on dark background */
   margin: 0;
@@ -38,7 +40,7 @@
   background-color: white; /* White background */
   border-radius: 8px; /* Less rounded corners */
   padding: 0;
-  width: 350px;
+  width: 230px;
   transition: all 0.3s ease;
   position: relative;
   border: 1px solid #ced4da;
@@ -48,13 +50,13 @@
 .searchInput {
   border: none;
   background: transparent;
-  padding: 12px 15px;
+  padding: 8px 10px;
   width: 100%;
-  height: 44px;
+  height: 36px;
   outline: none;
   color: #333;
-  font-size: 15px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 13px;
+  box-shadow: none;
 }
 
 .searchInput::placeholder {
@@ -71,8 +73,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  width: 44px;
+  height: 36px;
+  width: 36px;
   transition: all 0.2s;
 }
 
@@ -97,17 +99,17 @@
 /* Overall Inventory Section */
 .inventoryOverview {
   background: white;
-  padding: 20px;
-  margin: 0 0 20px 0;
+  padding: 15px;
+  margin: 10px 0 15px 0;
   border-radius: 8px;
   border: 1px solid #e9ecef;
 }
 
 .inventoryOverview h1 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: black;
-  margin: 0 0 15px 0;
+  margin: 0 0 10px 0;
   padding: 0;
   text-align: left;
 }
@@ -120,7 +122,7 @@
 /* Add borders between stat cards */
 .statCard {
   background: white; /* Same as container background */
-  padding: 10px 20px 15px;
+  padding: 6px 12px 8px;
   border-right: 1px solid #e9ecef;
   text-align: left;
   width: 25%;
@@ -151,10 +153,10 @@
 }
 
 .statValue {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: #333;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   line-height: 1.2;
   width: 100%;
 }
@@ -231,23 +233,23 @@
 
 /* Products Section */
 .productsSection {
-  background: white;
-  padding: 20px;
+  background: transparent;
+  padding: 0;
   box-shadow: none;
-  border-radius: 8px;
-  border: 1px solid white;
+  border-radius: 0;
+  border: none;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
 }
 
 .sectionHeader h2 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: #b6b9cf; /* Updated color as requested */
   margin: 0;
@@ -257,13 +259,13 @@
   background: #2196F3; /* Nice blue color */
   color: white;
   border: none;
-  padding: 10px 16px;
-  border-radius: 5px;
-  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .addButton:hover {
@@ -276,9 +278,9 @@
 .tableContainer {
   overflow-x: auto;
   background: white; /* White background for table */
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #e9ecef;
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 .productsTable {
