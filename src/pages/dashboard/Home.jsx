@@ -58,6 +58,36 @@ const Home = () => {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // For monthly/yearly views, fetch additional data
+        if (selectedPeriod === 'monthly' && !data.data.monthlyBreakdown) {
+          // Fetch monthly data if not provided
+          const monthlyResponse = await fetch(`${API_BASE_URL}/api/statistics/monthly-data`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (monthlyResponse.ok) {
+            const monthlyData = await monthlyResponse.json();
+            data.data = monthlyData;
+          }
+        } else if (selectedPeriod === 'yearly' && !data.data.yearlyData) {
+          // Fetch yearly data if not provided
+          const yearlyResponse = await fetch(`${API_BASE_URL}/api/statistics/yearly-data`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (yearlyResponse.ok) {
+            const yearlyData = await yearlyResponse.json();
+            data.data = yearlyData;
+          }
+        }
+        
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
       } else {
@@ -128,69 +158,72 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Sales Overview */}
-      <div className={styles.overviewSection}>
-        <div className={styles.sectionHeader}>
-          <h2>Sales Overview</h2>
+      {/* Overviews Section - Side by Side */}
+      <div className={styles.overviewsContainer}>
+        {/* Sales Overview */}
+        <div className={styles.overviewSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Sales Overview</h2>
+          </div>
+          <div className={styles.statsGrid}>
+            <StatCard
+              title="Sales"
+              value={`₹ ${dashboardData?.salesOverview?.totalOrders || 0}`}
+              color="blue"
+              icon="💰"
+            />
+            <StatCard
+              title="Revenue"
+              value={`₹ ${dashboardData?.salesOverview?.totalRevenue?.toLocaleString() || 0}`}
+              color="orange"
+              icon="💳"
+            />
+            <StatCard
+              title="Profit"
+              value={`₹ ${dashboardData?.profitMetrics?.totalProfit?.toLocaleString() || 0}`}
+              color="green"
+              icon="📊"
+            />
+            <StatCard
+              title="Cost"
+              value={`₹ ${dashboardData?.inventoryCost?.totalCost?.toLocaleString() || 0}`}
+              color="purple"
+              icon="💸"
+            />
+          </div>
         </div>
-        <div className={styles.statsGrid}>
-          <StatCard
-            title="Sales"
-            value={`₹ ${dashboardData?.salesOverview?.totalOrders || 0}`}
-            color="blue"
-            icon="💰"
-          />
-          <StatCard
-            title="Revenue"
-            value={`₹ ${dashboardData?.salesOverview?.totalRevenue?.toLocaleString() || 0}`}
-            color="orange"
-            icon="💳"
-          />
-          <StatCard
-            title="Profit"
-            value={`₹ ${dashboardData?.profitMetrics?.totalProfit?.toLocaleString() || 0}`}
-            color="green"
-            icon="📊"
-          />
-          <StatCard
-            title="Cost"
-            value={`₹ ${dashboardData?.inventoryCost?.totalCost?.toLocaleString() || 0}`}
-            color="purple"
-            icon="💸"
-          />
-        </div>
-      </div>
 
-      {/* Purchase Overview */}
-      <div className={styles.overviewSection}>
-        <div className={styles.sectionHeader}>
-          <h2>Purchase Overview</h2>
-        </div>
-        <div className={styles.statsGrid}>
-          <StatCard
-            title="Purchase"
-            value={dashboardData?.purchaseOverview?.totalPurchases || 0}
-            color="blue"
-            icon="🛒"
-          />
-          <StatCard
-            title="Cost"
-            value={`₹ ${dashboardData?.purchaseOverview?.totalCost?.toLocaleString() || 0}`}
-            color="orange"
-            icon="💰"
-          />
-          <StatCard
-            title="Cancel"
-            value={dashboardData?.orderMetrics?.cancelledOrders || 0}
-            color="green"
-            icon="❌"
-          />
-          <StatCard
-            title="Return"
-            value={`₹ ${dashboardData?.orderMetrics?.returnAmount?.toLocaleString() || 0}`}
-            color="purple"
-            icon="🔄"
-          />
+        {/* Purchase Overview */}
+        <div className={styles.overviewSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Purchase Overview</h2>
+          </div>
+          <div className={styles.statsGrid}>
+            <StatCard
+              title="Purchase"
+              value={dashboardData?.purchaseOverview?.totalPurchases || 0}
+              color="blue"
+              icon="🛒"
+            />
+            <StatCard
+              title="Cost"
+              value={`₹ ${dashboardData?.purchaseOverview?.totalCost?.toLocaleString() || 0}`}
+              color="orange"
+              icon="💰"
+            />
+            <StatCard
+              title="Cancel"
+              value={dashboardData?.orderMetrics?.cancelledOrders || 0}
+              color="green"
+              icon="❌"
+            />
+            <StatCard
+              title="Return"
+              value={`₹ ${dashboardData?.orderMetrics?.returnAmount?.toLocaleString() || 0}`}
+              color="purple"
+              icon="🔄"
+            />
+          </div>
         </div>
       </div>
 
@@ -214,41 +247,128 @@ const Home = () => {
           </div>
           <div className={styles.chartContainer}>
             <div className={styles.chartPlaceholder}>
-              <div className={styles.chartBars}>
-                {chartData && chartData.data && chartData.data.dailyBreakdown ? (
-                  Object.keys(chartData.data.dailyBreakdown).map((day, index) => {
-                    const dayData = chartData.data.dailyBreakdown[day];
-                    const maxValue = Math.max(
-                      ...Object.values(chartData.data.dailyBreakdown).map(d => Math.max(d.purchases || 0, d.sales || 0))
-                    );
-                    const purchaseHeight = maxValue ? ((dayData.purchases || 0) / maxValue) * 80 : 0;
-                    const salesHeight = maxValue ? ((dayData.sales || 0) / maxValue) * 80 : 0;
-                    
-                    return (
-                      <div key={index} className={styles.chartBar}>
-                        <div className={styles.barLabel}>{day.substring(0, 3)}</div>
+              <div className={styles.yAxis}>
+                {[60000, 50000, 40000, 30000, 20000, 10000, 0].map((value, index) => (
+                  <div key={index} className={styles.yAxisLabel}>
+                    {value.toLocaleString()}
+                  </div>
+                ))}
+              </div>
+              
+              <div className={styles.chartContent}>
+                <div className={styles.chartGrid}>
+                  {[60000, 50000, 40000, 30000, 20000, 10000, 0].map((value, index) => (
+                    <div key={index} className={styles.gridLine}></div>
+                  ))}
+                </div>
+                
+                <div className={styles.chartBars}>
+                  {selectedPeriod === 'weekly' && chartData?.data?.dailyBreakdown && (
+                    chartData.data.dailyBreakdown.map((dayData, index) => {
+                      const maxValue = 60000; // Fixed y-axis max for consistent scale
+                      const purchaseHeight = maxValue ? ((dayData.purchases || 0) / maxValue) * 100 : 0;
+                      const salesHeight = maxValue ? ((dayData.sales || 0) / maxValue) * 100 : 0;
+                      
+                      return (
+                        <div key={index} className={styles.chartBar}>
+                          <div className={styles.barContainer}>
+                            <div 
+                              className={styles.barPurchase} 
+                              style={{height: `${purchaseHeight}%`}}
+                              title={`Purchases: ₹${(dayData.purchases || 0).toLocaleString()}`}
+                            ></div>
+                            <div 
+                              className={styles.barSales} 
+                              style={{height: `${salesHeight}%`}}
+                              title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`}
+                            ></div>
+                          </div>
+                          <div className={styles.barLabel}>{dayData.day.substring(0, 3)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                  
+                  {selectedPeriod === 'monthly' && chartData?.data?.monthlyBreakdown && (
+                    chartData.data.monthlyBreakdown.map((monthData, index) => {
+                      const maxValue = 60000; // Fixed y-axis max for consistent scale
+                      const purchaseHeight = maxValue ? ((monthData.purchases || 0) / maxValue) * 100 : 0;
+                      const salesHeight = maxValue ? ((monthData.sales || 0) / maxValue) * 100 : 0;
+                      
+                      return (
+                        <div key={index} className={styles.chartBar}>
+                          <div className={styles.barContainer}>
+                            <div 
+                              className={styles.barPurchase} 
+                              style={{height: `${purchaseHeight}%`}}
+                              title={`Purchases: ₹${(monthData.purchases || 0).toLocaleString()}`}
+                            ></div>
+                            <div 
+                              className={styles.barSales} 
+                              style={{height: `${salesHeight}%`}}
+                              title={`Sales: ₹${(monthData.sales || 0).toLocaleString()}`}
+                            ></div>
+                          </div>
+                          <div className={styles.barLabel}>{monthData.month.substring(0, 3)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                  
+                  {selectedPeriod === 'yearly' && chartData?.data?.yearlyData && (
+                    <div className={styles.chartBar}>
+                      <div className={styles.barContainer}>
                         <div 
                           className={styles.barPurchase} 
-                          style={{height: `${purchaseHeight}%`}}
-                          title={`Purchases: ₹${(dayData.purchases || 0).toLocaleString()}`}
+                          style={{height: `${(chartData.data.yearlyData.purchases / 60000) * 100}%`}}
+                          title={`Purchases: ₹${(chartData.data.yearlyData.purchases || 0).toLocaleString()}`}
                         ></div>
                         <div 
                           className={styles.barSales} 
-                          style={{height: `${salesHeight}%`}}
-                          title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`}
+                          style={{height: `${(chartData.data.yearlyData.sales / 60000) * 100}%`}}
+                          title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`}
                         ></div>
                       </div>
-                    );
-                  })
-                ) : (
-                  [...Array(7)].map((_, index) => (
-                    <div key={index} className={styles.chartBar}>
-                      <div className={styles.barPurchase} style={{height: `${Math.random() * 80 + 10}%`}}></div>
-                      <div className={styles.barSales} style={{height: `${Math.random() * 60 + 20}%`}}></div>
+                      <div className={styles.barLabel}>{chartData.data.year}</div>
                     </div>
-                  ))
-                )}
+                  )}
+                  
+                  {(!chartData?.data?.dailyBreakdown && selectedPeriod === 'weekly') && (
+                    [...Array(7)].map((_, index) => (
+                      <div key={index} className={styles.chartBar}>
+                        <div className={styles.barContainer}>
+                          <div className={styles.barPurchase} style={{height: `${Math.random() * 40 + 10}%`}}></div>
+                          <div className={styles.barSales} style={{height: `${Math.random() * 35 + 20}%`}}></div>
+                        </div>
+                        <div className={styles.barLabel}>{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index]}</div>
+                      </div>
+                    ))
+                  )}
+                  
+                  {(!chartData?.data?.monthlyBreakdown && selectedPeriod === 'monthly') && (
+                    [...Array(12)].map((_, index) => (
+                      <div key={index} className={styles.chartBar}>
+                        <div className={styles.barContainer}>
+                          <div className={styles.barPurchase} style={{height: `${Math.random() * 40 + 10}%`}}></div>
+                          <div className={styles.barSales} style={{height: `${Math.random() * 35 + 20}%`}}></div>
+                        </div>
+                        <div className={styles.barLabel}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][index]}</div>
+                      </div>
+                    ))
+                  )}
+                  
+                  {(!chartData?.data?.yearlyData && selectedPeriod === 'yearly') && (
+                    <div className={styles.chartBar}>
+                      <div className={styles.barContainer}>
+                        <div className={styles.barPurchase} style={{height: '40%'}}></div>
+                        <div className={styles.barSales} style={{height: '60%'}}></div>
+                      </div>
+                      <div className={styles.barLabel}>{new Date().getFullYear()}</div>
+                    </div>
+                  )}
+                </div>
               </div>
+              
               <div className={styles.chartSummary}>
                 {chartData && chartData.data && chartData.data.summary && (
                   <div className={styles.chartTotals}>
@@ -258,6 +378,7 @@ const Home = () => {
                   </div>
                 )}
               </div>
+              
               <div className={styles.chartLegend}>
                 <div className={styles.legendItem}>
                   <div className={styles.legendColor} style={{background: '#3498db'}}></div>
