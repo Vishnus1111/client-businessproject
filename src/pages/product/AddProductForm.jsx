@@ -257,17 +257,7 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                 {imagePreview ? (
                   <img src={imagePreview} alt="Product preview" className={styles.imagePreview} />
                 ) : (
-                  <div className={styles.uploadPlaceholder}>
-                    <p>Drag image here</p>
-                    <p>or</p>
-                    <button 
-                      type="button" 
-                      className={styles.browseButton}
-                      onClick={() => document.getElementById('imageInput').click()}
-                    >
-                      Browse image
-                    </button>
-                  </div>
+                  <div></div>
                 )}
                 <input
                   id="imageInput"
@@ -276,6 +266,17 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                   onChange={handleImageChange}
                   style={{ display: 'none' }}
                 />
+              </div>
+              <div className={styles.uploadInstructions}>
+                <p>Drag image here</p>
+                <p>or</p>
+                <button 
+                  type="button" 
+                  className={styles.browseButton}
+                  onClick={() => document.getElementById('imageInput').click()}
+                >
+                  Browse image
+                </button>
               </div>
             </div>
 
@@ -358,39 +359,37 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                 />
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Quantity</label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    placeholder="Enter product quantity"
-                    className={styles.input}
-                    min="0"
-                    required
-                  />
-                </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Quantity</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleInputChange}
+                  placeholder="Enter product quantity"
+                  className={styles.input}
+                  min="0"
+                  required
+                />
+              </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Unit</label>
-                  <select
-                    name="unit"
-                    value={formData.unit}
-                    onChange={handleInputChange}
-                    className={styles.select}
-                  >
-                    <option value="piece">Piece</option>
-                    <option value="kg">Kilogram</option>
-                    <option value="gram">Gram</option>
-                    <option value="liter">Liter</option>
-                    <option value="ml">Milliliter</option>
-                    <option value="pack">Pack</option>
-                    <option value="box">Box</option>
-                    <option value="bottle">Bottle</option>
-                  </select>
-                </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Unit</label>
+                <select
+                  name="unit"
+                  value={formData.unit}
+                  onChange={handleInputChange}
+                  className={styles.select}
+                >
+                  <option value="piece">Piece</option>
+                  <option value="kg">Kilogram</option>
+                  <option value="gram">Gram</option>
+                  <option value="liter">Liter</option>
+                  <option value="ml">Milliliter</option>
+                  <option value="pack">Pack</option>
+                  <option value="box">Box</option>
+                  <option value="bottle">Bottle</option>
+                </select>
               </div>
 
               <div className={styles.formGroup}>

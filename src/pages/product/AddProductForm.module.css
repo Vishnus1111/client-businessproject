@@ -74,8 +74,9 @@
 .formTitle {
   font-size: 20px;
   font-weight: 500;
+  color: #333;
   margin: 0;
-  padding: 20px;
+  padding: 15px 20px;
   text-align: left;
 }
 
@@ -87,15 +88,18 @@
 
 /* Image Upload Section */
 .imageSection {
-  align-self: left;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   margin-bottom: 20px;
+  gap: 20px;
 }
 
 .imageUpload {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   border: 1px dashed #d1d5db;
-  border-radius: 12px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,6 +108,13 @@
   position: relative;
   overflow: hidden;
   background-color: #fff;
+}
+
+.uploadInstructions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 130px;
 }
 
 .imageUpload:hover {
@@ -118,24 +129,25 @@
 
 .uploadIcon {
   font-size: 32px;
-  margin-bottom: 12px;
+  color: #6b7280;
 }
 
-.uploadPlaceholder p {
+.uploadInstructions p {
   color: #6b7280;
   font-size: 14px;
   margin: 4px 0;
 }
 
 .browseButton {
-  background: #0d6efd;
-  color: white;
+  background: transparent;
+  color: #0d6efd;
   border: none;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-top: 4px;
 }
 
 .browseButton:hover {
@@ -154,25 +166,30 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 4px;
 }
 
 .formGroup {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .formRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 10px;
 }
 
 .label {
   font-size: 14px;
   font-weight: 500;
   color: #333;
-  margin-bottom: 6px;
+  width: 120px;
+  text-align: left;
+  margin-right: 10px;
 }
 
 .input,
@@ -184,8 +201,9 @@
   font-size: 14px;
   transition: all 0.2s;
   background: white;
-  height: 28px;
+  height: 34px;
   width: 45%;
+  flex-grow: 0.1;
 }
 
 .input:focus,
@@ -236,21 +254,23 @@
 .formActions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   margin-top: 20px;
-  padding: 15px 20px;
+  padding: 10px 15px;
   background-color: transparent;
+  border-top: 1px solid #e9ecef;
 }
 
 .discardButton {
   color: #6c757d;
-  border: 0px  transparent;
-  padding: 8px 16px;
+  border: 0px transparent;
+  padding: 6px 12px;
   border-radius: 4px;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
+  background: transparent;
 }
 
 .discardButton:hover {
@@ -262,10 +282,10 @@
   background: #242531;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 4px;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
 }
