@@ -24,7 +24,17 @@ const ProductOrderHandler = ({ productId, onClose, onOrderPlaced, refreshInvento
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.product) {
-              setSelectedProduct(data.product);
+              // Make sure image URL is properly formatted
+              const product = {
+                ...data.product,
+                imageUrl: data.product.imageUrl ? 
+                  (data.product.imageUrl.startsWith('http') ? 
+                    data.product.imageUrl : 
+                    `${API_BASE_URL}/${data.product.imageUrl.replace(/^\//, '')}`) 
+                  : null
+              };
+              console.log("Product with processed image URL:", product);
+              setSelectedProduct(product);
             } else {
               toast.error(data.message || 'Failed to load product details');
             }

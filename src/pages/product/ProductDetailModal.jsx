@@ -71,9 +71,14 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
           <div className={styles.productImage}>
             {product.imageUrl ? (
               <img 
-                src={`${product.imageUrl.startsWith('http') ? '' : '/'}${product.imageUrl}`} 
+                src={product.imageUrl} 
                 alt={product.productName}
                 className={styles.productImg} 
+                onError={(e) => {
+                  console.error("Image failed to load:", e);
+                  e.target.onerror = null;
+                  e.target.src = '/placeholder-image.png';
+                }}
               />
             ) : (
               <div className={styles.placeholder}>No Image Available</div>
