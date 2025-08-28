@@ -31,6 +31,7 @@ const Product = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const searchInputRef = useRef(null);
 
   const fetchProducts = useCallback(async (searchTerm = '') => {
@@ -41,16 +42,19 @@ const Product = () => {
       setIsSearching(!!searchTerm);
       const token = localStorage.getItem('token');
       
-      // Add timestamp parameter to prevent caching issues after CSV upload
-      // This ensures we always get the latest data from the server
+      // Enhanced cache-busting to ensure we always get the latest data from the server
       const timestamp = Date.now();
-      const url = `${API_BASE_URL}/api/products/all?_t=${timestamp}`;
+      const randomStr = Math.random().toString(36).substring(7);
+      const url = `${API_BASE_URL}/api/products/all?_t=${timestamp}-${randomStr}`;
       
       console.log("🌐 Making API request to:", url);
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         // Ensure no caching
         cache: 'no-store'
@@ -285,17 +289,18 @@ const Product = () => {
     </div>
   );
 
-  // Completely revamped product refresh function with guaranteed update
-  const handleProductAdded = useCallback(async () => {
-    console.log("🔄 BULLETPROOF REFRESH: handleProductAdded called");
+  // Enhanced product refresh function with improved CSV handling
+  const handleProductAdded = useCallback(async (isCsvUpload = false) => {
+    console.log("🔄 ENHANCED REFRESH: handleProductAdded called", isCsvUpload ? "(CSV UPLOAD)" : "");
     
     // Clear any active search and set loading state
     setSearchQuery('');
     setIsSearchActive(false);
     setLoading(true);
     
-    // Show loading notification
-    toast.info("Loading new products...");
+    // Show loading notification and update loading message
+    toast.info(isCsvUpload ? "Processing CSV upload..." : "Adding new product...");
+    setLoadingMessage(isCsvUpload ? "Processing CSV upload. This may take a moment..." : "Refreshing product list...");
     
     // Define a function to fetch with maximum cache busting
     const fetchWithNoCaching = async () => {
@@ -340,16 +345,23 @@ const Product = () => {
     // Implement multiple retry attempts with increasing delays
     let success = false;
     let attempt = 0;
-    const maxAttempts = 5;
+    const maxAttempts = isCsvUpload ? 8 : 5; // More retries for CSV uploads
     
     while (!success && attempt < maxAttempts) {
       attempt++;
       console.log(`🔄 Refresh attempt ${attempt}/${maxAttempts}`);
       
       try {
+        // For CSV uploads, add an initial delay to allow server processing
+        if (isCsvUpload && attempt === 1) {
+          console.log("📊 CSV Upload detected - Adding initial delay for server processing");
+          setLoadingMessage("Processing CSV upload. Please wait...");
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second initial delay for CSV
+        }
         // Wait longer between each attempt
-        if (attempt > 1) {
-          const delay = (attempt - 1) * 500; // 0ms, 500ms, 1000ms, 1500ms, 2000ms
+        else if (attempt > 1) {
+          const delay = (attempt - 1) * (isCsvUpload ? 800 : 500); // Longer delays for CSV uploads
+          setLoadingMessage(`Refreshing product list (Attempt ${attempt}/${maxAttempts})...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
         
@@ -369,10 +381,13 @@ const Product = () => {
         
         // Show success notification based on attempt number
         if (attempt === 1) {
-          toast.success("Product list updated immediately!");
+          toast.success(isCsvUpload ? "CSV products loaded successfully!" : "Product list updated immediately!");
         } else {
           toast.success(`Product list updated successfully! (attempt ${attempt})`);
         }
+        
+        // Clear loading message on success
+        setLoadingMessage("");
         
       } catch (error) {
         console.error(`Error in refresh attempt ${attempt}:`, error);
@@ -380,11 +395,18 @@ const Product = () => {
         // Only show error on final attempt
         if (attempt === maxAttempts) {
           toast.error("Could not refresh product list automatically. Please refresh the page.");
+          setLoadingMessage("Failed to refresh products. Please reload the page manually.");
+        } else {
+          // Update loading message with retry information
+          setLoadingMessage(`Retry attempt ${attempt + 1}/${maxAttempts} in progress...`);
         }
       }
     }
     
     // Regardless of success/failure, end loading state
+    if (success) {
+      setLoadingMessage("");
+    }
     setLoading(false);
     console.log(`🏁 Refresh complete. Success: ${success}, Attempts: ${attempt}`);
   }, [fetchInventoryStats]); // Only depend on fetchInventoryStats
@@ -405,7 +427,7 @@ const Product = () => {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
-        <p>Loading products...</p>
+        <p>{loadingMessage || "Loading products..."}</p>
       </div>
     );
   }
@@ -616,7 +638,7 @@ const Product = () => {
       {showCSVUpload && (
         <CSVUploadModal
           onClose={() => setShowCSVUpload(false)}
-          onProductsAdded={handleProductAdded}
+          onProductsAdded={(isCsvUpload) => handleProductAdded(isCsvUpload)}
         />
       )}
 

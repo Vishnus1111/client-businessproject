@@ -98,12 +98,21 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       
       const formData = new FormData();
       formData.append('csvFile', csvFile);
+      // Add a timestamp to ensure no caching
+      formData.append('_t', Date.now().toString());
+      // Add check for duplicates flag
+      formData.append('checkDuplicates', 'true');
 
-      console.log("Making request to validate CSV...");
+      console.log("Making request to validate CSV with duplicate checking...");
       
       // Use the validate-csv endpoint for validation only
-      const response = await fetch(`${API_BASE_URL}/api/products/validate-csv`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/validate-csv?checkDuplicates=true&_t=${Date.now()}`, {
         method: 'POST',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
         body: formData
       });
 
@@ -251,10 +260,17 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
       
-      const response = await fetch(`${API_BASE_URL}/api/products/add-multiple`, {
+      // Generate cache busting query parameter
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(7);
+      
+      const response = await fetch(`${API_BASE_URL}/api/products/add-multiple?_t=${timestamp}-${randomStr}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: formData,
         signal: controller.signal
@@ -304,17 +320,26 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
         
         console.log("🔄 Will refresh product list NOW and close modal");
         
-        // First refresh the product list
+        // First notify parent that CSV products were added with enhanced waiting
         if (typeof onProductsAdded === 'function') {
-          console.log("📋 Calling parent's onProductsAdded callback");
-          onProductsAdded();
+          console.log("📋 Calling parent's onProductsAdded callback with CSV flag");
+          try {
+            // Call the callback function
+            onProductsAdded(true); // Pass true to indicate this is a CSV upload
+            
+            // Show a toast to inform the user the process is ongoing
+            toast.info("Refreshing product list with new data... Please wait.");
+          } catch (error) {
+            console.error("Error in onProductsAdded callback:", error);
+          }
         }
         
         // Then close the modal after a brief delay to allow refresh to start
+        // Using a longer delay to ensure the parent component has time to start the refresh
         setTimeout(() => {
           console.log("🚪 Closing modal");
           onClose();
-        }, 300);
+        }, 800); // Increased delay to ensure callback starts
       } else if (totalProcessed > 0) {
         // Products were processed but none succeeded
         toast.error('No products were added. Please check the CSV data format.');
@@ -354,7 +379,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       return 'Uploading...';
     }
     if (validationStep === 'validated') return 'Upload';
-    return 'Next →';
+    return 'Next   >';
   };
 
   return (
@@ -408,9 +433,8 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
                   </div>
                   <div className={styles.uploadText}>
                     <p>Drag & drop a CSV file here</p>
-                    <p>or</p>
+                    <p>OR</p>
                     <label className={styles.uploadButton}>
-                      <span>Browse Files</span>
                       <input
                         type="file"
                         accept=".csv,text/csv,application/vnd.ms-excel"
@@ -493,7 +517,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
               Cancel
             </button>
             <button 
-              className={`${styles.uploadButton} ${loading ? styles.loading : ''}`} 
+              className={`${styles.uploadButton2} ${loading ? styles.loading : ''}`} 
               onClick={handleButtonClick}
               disabled={loading || !csvFile}
             >

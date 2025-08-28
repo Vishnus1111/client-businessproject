@@ -2,10 +2,11 @@
 .modalOverlay {
   position: fixed;
   top: 0;
-  left: 0;
+  left: 280px;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,7 +18,7 @@
   background: white;
   border-radius: 12px;
   width: 100%;
-  max-width: 640px;
+  max-width: 540px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   overflow: hidden;
 }
@@ -26,9 +27,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
+  padding: 10px 14px;
+  background: white;
 }
 
 .modalTitle {
@@ -69,13 +69,15 @@
   font-size: 14px;
   color: #6b7280;
   margin: 0 0 20px 0;
+  margin-top: -25px;
+  text-align: left !important;
 }
 
 /* Format Section */
 .formatSection {
   margin-bottom: 20px;
   padding: 16px;
-  background: #f8fafc;
+  background: white;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
@@ -84,7 +86,7 @@
   font-size: 13px;
   color: #64748b;
   margin: 0 0 12px 0;
-  line-height: 1.4;
+  line-height: 0.4;
 }
 
 .downloadFormatButton {
@@ -111,9 +113,9 @@
 .uploadArea {
   border: 2px dashed #cbd5e1;
   border-radius: 8px;
-  padding: 32px 20px;
+  padding: 1px 1px;
   text-align: center;
-  background: #f8fafc;
+  background: white;
   transition: all 0.3s ease;
   margin-bottom: 20px;
   position: relative;
@@ -390,10 +392,18 @@
 /* Action Buttons */
 .actionButtons {
   display: flex;
-  justify-content: space-between;
+  justify-content: right;
   gap: 12px;
   padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+}
+
+.uploadButton{
+  margin-left: 90px;
+}
+
+.uploadButton2{
+  color: white;
+  background-color: black;
 }
 
 .cancelButton {
