@@ -48,8 +48,25 @@ const Home = () => {
     try {
       const token = localStorage.getItem('token');
       
-      // Fetch sales and purchase data for charts
-      const response = await fetch(`${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}`, {
+      let endpoint = '';
+      
+      // Select the appropriate endpoint based on the period
+      switch (selectedPeriod) {
+        case 'weekly':
+          endpoint = `${API_BASE_URL}/api/statistics/chart-data-fixed?period=weekly`;
+          break;
+        case 'monthly':
+          endpoint = `${API_BASE_URL}/api/statistics/monthly-data`;
+          break;
+        case 'yearly':
+          endpoint = `${API_BASE_URL}/api/statistics/yearly-data`;
+          break;
+        default:
+          endpoint = `${API_BASE_URL}/api/statistics/chart-data-fixed?period=weekly`;
+      }
+      
+      // Fetch data from the selected endpoint
+      const response = await fetch(endpoint, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -57,41 +74,44 @@ const Home = () => {
       });
       
       if (response.ok) {
-        const data = await response.json();
+        let data = await response.json();
         
-        // For monthly/yearly views, fetch additional data
-        if (selectedPeriod === 'monthly' && !data.data.monthlyBreakdown) {
-          // Fetch monthly data if not provided
-          const monthlyResponse = await fetch(`${API_BASE_URL}/api/statistics/monthly-data`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+        // Format data consistently for all period types
+        if (selectedPeriod === 'monthly' && !data.data) {
+          data = {
+            data: {
+              summary: data.summary || { totalPurchases: 0, totalSales: 0, profit: 0 },
+              monthlyBreakdown: data.monthlyBreakdown || []
             }
-          });
-          
-          if (monthlyResponse.ok) {
-            const monthlyData = await monthlyResponse.json();
-            data.data = monthlyData;
-          }
-        } else if (selectedPeriod === 'yearly' && !data.data.yearlyData) {
-          // Fetch yearly data if not provided
-          const yearlyResponse = await fetch(`${API_BASE_URL}/api/statistics/yearly-data`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+          };
+        } else if (selectedPeriod === 'yearly' && !data.data) {
+          data = {
+            data: {
+              summary: data.summary || { totalPurchases: 0, totalSales: 0, profit: 0 },
+              yearlyData: data.yearlyData || { purchases: 0, sales: 0, profit: 0 },
+              year: data.year || new Date().getFullYear()
             }
-          });
-          
-          if (yearlyResponse.ok) {
-            const yearlyData = await yearlyResponse.json();
-            data.data = yearlyData;
-          }
+          };
         }
         
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
       } else {
-        toast.error('Failed to load chart data');
+        // If the primary endpoint fails, try the chart-data-fixed endpoint as fallback
+        const fallbackResponse = await fetch(`${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          setChartData(fallbackData);
+          console.log(`Fallback chart data for ${selectedPeriod} period loaded:`, fallbackData);
+        } else {
+          toast.error('Failed to load chart data');
+        }
       }
     } catch (error) {
       console.error('Chart data fetch error:', error);
@@ -248,26 +268,89 @@ const Home = () => {
           <div className={styles.chartContainer}>
             <div className={styles.chartPlaceholder}>
               <div className={styles.yAxis}>
-                {[60000, 50000, 40000, 30000, 20000, 10000, 0].map((value, index) => (
-                  <div key={index} className={styles.yAxisLabel}>
-                    {value.toLocaleString()}
-                  </div>
-                ))}
+                {(() => {
+                  // Dynamic y-axis based on max value
+                  const maxValue = chartData && chartData.data ? (() => {
+                    if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
+                      return Math.max(...chartData.data.dailyBreakdown.map(d => 
+                        Math.max(d.purchases || 0, d.sales || 0)
+                      ));
+                    }
+                    if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
+                      return Math.max(...chartData.data.monthlyBreakdown.map(d => 
+                        Math.max(d.purchases || 0, d.sales || 0)
+                      ));
+                    }
+                    if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
+                      return Math.max(chartData.data.yearlyData.purchases || 0, chartData.data.yearlyData.sales || 0);
+                    }
+                    return 60000;
+                  })() : 60000;
+                  
+                  // Round to next nice number (multiple of 10000)
+                  const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                  const yAxisValues = [];
+                  const step = roundedMax / 6;
+                  
+                  for (let i = 6; i >= 0; i--) {
+                    yAxisValues.push(Math.round(step * i));
+                  }
+                  
+                  return yAxisValues.map((value, index) => (
+                    <div key={index} className={styles.yAxisLabel}>
+                      {value.toLocaleString()}
+                    </div>
+                  ));
+                })()}
               </div>
               
               <div className={styles.chartContent}>
                 <div className={styles.chartGrid}>
-                  {[60000, 50000, 40000, 30000, 20000, 10000, 0].map((value, index) => (
-                    <div key={index} className={styles.gridLine}></div>
-                  ))}
+                  {(() => {
+                    // Use same values as y-axis
+                    const maxValue = chartData && chartData.data ? (() => {
+                      if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
+                        return Math.max(...chartData.data.dailyBreakdown.map(d => 
+                          Math.max(d.purchases || 0, d.sales || 0)
+                        ));
+                      }
+                      if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
+                        return Math.max(...chartData.data.monthlyBreakdown.map(d => 
+                          Math.max(d.purchases || 0, d.sales || 0)
+                        ));
+                      }
+                      if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
+                        return Math.max(chartData.data.yearlyData.purchases || 0, chartData.data.yearlyData.sales || 0);
+                      }
+                      return 60000;
+                    })() : 60000;
+                    
+                    const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    const yAxisValues = [];
+                    const step = roundedMax / 6;
+                    
+                    for (let i = 6; i >= 0; i--) {
+                      yAxisValues.push(Math.round(step * i));
+                    }
+                    
+                    return yAxisValues.map((value, index) => (
+                      <div key={index} className={styles.gridLine}></div>
+                    ));
+                  })()}
                 </div>
                 
                 <div className={styles.chartBars}>
                   {selectedPeriod === 'weekly' && chartData?.data?.dailyBreakdown && (
                     chartData.data.dailyBreakdown.map((dayData, index) => {
-                      const maxValue = 60000; // Fixed y-axis max for consistent scale
-                      const purchaseHeight = maxValue ? ((dayData.purchases || 0) / maxValue) * 100 : 0;
-                      const salesHeight = maxValue ? ((dayData.sales || 0) / maxValue) * 100 : 0;
+                      // Calculate max value from all data for proper scaling
+                      const maxValue = Math.max(...chartData.data.dailyBreakdown.map(d => 
+                        Math.max(d.purchases || 0, d.sales || 0)
+                      ));
+                      // Round to next nice number
+                      const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                      
+                      const purchaseHeight = roundedMax ? ((dayData.purchases || 0) / roundedMax) * 100 : 0;
+                      const salesHeight = roundedMax ? ((dayData.sales || 0) / roundedMax) * 100 : 0;
                       
                       return (
                         <div key={index} className={styles.chartBar}>
@@ -291,9 +374,15 @@ const Home = () => {
                   
                   {selectedPeriod === 'monthly' && chartData?.data?.monthlyBreakdown && (
                     chartData.data.monthlyBreakdown.map((monthData, index) => {
-                      const maxValue = 60000; // Fixed y-axis max for consistent scale
-                      const purchaseHeight = maxValue ? ((monthData.purchases || 0) / maxValue) * 100 : 0;
-                      const salesHeight = maxValue ? ((monthData.sales || 0) / maxValue) * 100 : 0;
+                      // Calculate max value from all data for proper scaling
+                      const maxValue = Math.max(...chartData.data.monthlyBreakdown.map(d => 
+                        Math.max(d.purchases || 0, d.sales || 0)
+                      ));
+                      // Round to next nice number
+                      const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                      
+                      const purchaseHeight = roundedMax ? ((monthData.purchases || 0) / roundedMax) * 100 : 0;
+                      const salesHeight = roundedMax ? ((monthData.sales || 0) / roundedMax) * 100 : 0;
                       
                       return (
                         <div key={index} className={styles.chartBar}>
@@ -318,16 +407,32 @@ const Home = () => {
                   {selectedPeriod === 'yearly' && chartData?.data?.yearlyData && (
                     <div className={styles.chartBar}>
                       <div className={styles.barContainer}>
-                        <div 
-                          className={styles.barPurchase} 
-                          style={{height: `${(chartData.data.yearlyData.purchases / 60000) * 100}%`}}
-                          title={`Purchases: ₹${(chartData.data.yearlyData.purchases || 0).toLocaleString()}`}
-                        ></div>
-                        <div 
-                          className={styles.barSales} 
-                          style={{height: `${(chartData.data.yearlyData.sales / 60000) * 100}%`}}
-                          title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`}
-                        ></div>
+                        {/* Calculate max value for proper scaling */}
+                        {(() => {
+                          const maxValue = Math.max(
+                            chartData.data.yearlyData.purchases || 0,
+                            chartData.data.yearlyData.sales || 0
+                          );
+                          const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                          
+                          const purchaseHeight = roundedMax ? ((chartData.data.yearlyData.purchases || 0) / roundedMax) * 100 : 0;
+                          const salesHeight = roundedMax ? ((chartData.data.yearlyData.sales || 0) / roundedMax) * 100 : 0;
+                          
+                          return (
+                            <>
+                              <div 
+                                className={styles.barPurchase} 
+                                style={{height: `${purchaseHeight}%`}}
+                                title={`Purchases: ₹${(chartData.data.yearlyData.purchases || 0).toLocaleString()}`}
+                              ></div>
+                              <div 
+                                className={styles.barSales} 
+                                style={{height: `${salesHeight}%`}}
+                                title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`}
+                              ></div>
+                            </>
+                          );
+                        })()}
                       </div>
                       <div className={styles.barLabel}>{chartData.data.year}</div>
                     </div>
@@ -452,18 +557,17 @@ const Home = () => {
               {topProducts.length > 0 ? (
                 topProducts.map((product, index) => (
                   <div key={product._id || index} className={styles.topProductItem}>
-                    {product.imageUrl && (
-                      <div className={styles.productImage}>
-                        <img 
-                          src={product.imageUrl}
-                          alt={product.productName}
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = '/placeholder-image.png';
-                          }}
-                        />
-                      </div>
-                    )}
+                    <div className={styles.productImage}>
+                    <img 
+                      src={product.imageUrl || '/placeholder-image.png'}
+                      alt={product.productName}
+                      loading="eager"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/placeholder-image.png';
+                      }}
+                    />
+                  </div>
                     <span className={styles.productName}>{product.productName}</span>
                     <div className={styles.productRating}>
                       {product.ratingStars || '★'.repeat(Math.round(product.averageRating || 0))}
