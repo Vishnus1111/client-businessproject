@@ -23,7 +23,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 15px 0;
+  margin-bottom: 5px;
   border-bottom: none; /* Remove this border as we're adding it with ::before */
 }
 
@@ -232,54 +233,58 @@
 
 /* Products Section */
 .productsSection {
-  background: transparent;
+  background: white;
   padding: 0;
-  box-shadow: none;
-  border-radius: 0;
-  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 5px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
 }
 
 .sectionHeader h2 {
   font-size: 14px;
   font-weight: 500;
-  color: #b6b9cf; /* Updated color as requested */
+  color: #48505e; /* Darker color for better contrast */
   margin: 0;
 }
 
 .addButton {
-  background: #242531; /* Nice blue color */
+  background: #242531; /* Blue color */
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
 }
 
 .addButton:hover {
-  background: #0d8bf2; /* Slightly darker blue on hover */
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  background: #1c68d3; /* Slightly darker blue on hover */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 /* Table Styles */
 .tableContainer {
   overflow-x: auto;
   background: white; /* White background for table */
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-  margin-top: 10px;
+  border-radius: 0;
+  border: none;
+  margin-top: 0;
 }
 
 .productsTable {
@@ -294,7 +299,7 @@
   padding: 12px 15px;
   text-align: left;
   font-weight: 500;
-  color: black;
+  color: #48505e;
   border-bottom: 1px solid #dee2e6;
   border-right: 1px solid #dee2e6;
   font-size: 13px;
@@ -319,6 +324,10 @@
 .productRow {
   cursor: pointer;
   transition: background-color 0.2s ease;
+}
+
+.productsTable tbody tr:last-child td {
+  border-bottom: none; /* Remove border from last row */
 }
 
 .productsTable tbody tr:hover {
@@ -369,14 +378,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 0;
   padding: 15px 20px;
   background: white;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border-radius: 0 0 4px 4px;
+  border-top: 1px solid #e9ecef;
   position: relative;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: none;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .pageButton {
