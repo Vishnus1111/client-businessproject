@@ -187,6 +187,50 @@
   color: #28a745;
 }
 
+/* Rating System */
+.ratingContainer {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #dee2e6;
+}
+
+.ratingLabel {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #6c757d;
+}
+
+.ratingStars {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ratingStar {
+  font-size: 2rem;
+  cursor: pointer;
+  color: #e0e0e0;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.ratingStarHovered {
+  color: #FFC107;
+  transform: scale(1.1);
+}
+
+.ratingStarActive {
+  color: #FFC107;
+}
+
+.ratingText {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #28a745;
+  font-weight: 500;
+}
+
 .orderButton {
   width: 100%;
   padding: 0.75rem;

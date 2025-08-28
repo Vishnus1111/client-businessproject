@@ -1,0 +1,28 @@
+/* Additional styling to ensure the sidebar is always visible */
+.modalOverlay {
+  background: rgba(66, 68, 87, 0.7) !important; /* Light blur that matches product page background */
+  backdrop-filter: blur(3px) !important;
+}
+
+/* Clear area for sidebar */
+.modalOverlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 225px; /* Width of the sidebar */
+  height: 100%;
+  background-color: transparent;
+  z-index: 1;
+  pointer-events: none; /* Allow clicking through */
+}
+
+/* Override the backdrop filter for the sidebar area */
+@supports ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
+  .modalOverlay::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    mask-image: linear-gradient(to right, black 100%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 100%, transparent 100%);
+  }
+}

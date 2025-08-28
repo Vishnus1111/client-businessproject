@@ -5,6 +5,7 @@ import AddProductForm from './AddProductForm';
 import CSVUploadModal from './CSVUploadModal';
 import ProductOrderHandler from './ProductOrderHandler';
 import styles from './Product.module.css';
+import './SidebarFix.css';
 
 const Product = () => {
   const [products, setProducts] = useState([]);
@@ -255,42 +256,30 @@ const Product = () => {
   };
 
   const AddProductModal = () => (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
+    <div className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.modalContent}>
-          <h3>Add Product</h3>
-          <p>Choose how you want to add products:</p>
-          
-          <div className={styles.productOptions}>
+          <div className={styles.productOptionsVertical}>
             <button 
-              className={styles.optionButton}
+              className={styles.verticalOptionButton}
               onClick={() => {
                 setShowAddModal(false);
                 setShowIndividualForm(true);
               }}
             >
-              <div className={styles.optionIcon}>📦</div>
-              <div className={styles.optionText}>Individual product</div>
+              Individual product
             </button>
             
             <button 
-              className={styles.optionButton}
+              className={styles.verticalOptionButton}
               onClick={() => {
                 setShowAddModal(false);
                 setShowCSVUpload(true);
               }}
             >
-              <div className={styles.optionIcon}>📋</div>
-              <div className={styles.optionText}>Multiple product</div>
+              Multiple product
             </button>
           </div>
-          
-          <button 
-            className={styles.closeButton}
-            onClick={() => setShowAddModal(false)}
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>

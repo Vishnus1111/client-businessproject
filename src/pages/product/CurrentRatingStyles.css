@@ -1,0 +1,11 @@
+.currentRatingStars {
+  color: #FFC107;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+}
+
+.ratingCount {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-left: 0.5rem;
+}
