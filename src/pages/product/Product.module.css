@@ -297,7 +297,7 @@
 .productsTable th {
   background: #b6b9cf; /* Light gray header */
   padding: 12px 15px;
-  text-align: left;
+  text-align: center;
   font-weight: 500;
   color: #48505e;
   border-bottom: 1px solid #dee2e6;

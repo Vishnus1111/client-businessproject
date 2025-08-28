@@ -2,54 +2,55 @@
 .modalOverlay {
   position: fixed;
   top: 0;
-  left: 0;
+  left: 280px; /* Starting after sidebar width */
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: #424457; /* Background color to match product page */
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 1000;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .modal {
-  background: white;
-  border-radius: 12px;
+  background: #424457; /* Match background color */
   width: 100%;
-  max-width: 800px;
-  max-height: 95vh;
+  max-width: 100%;
+  height: 100%;
   overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 0 15px;
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
-  border-radius: 12px 12px 0 0;
+  padding: 15px 0;
+  margin-bottom: 10px;
+  border-bottom: none;
+  background: transparent;
+  color: #ffffff;
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
   font-size: 14px;
-  color: #6b7280;
+  color: #b6b9cf;
 }
 
 .breadcrumbSeparator {
   margin: 0 8px;
-  color: #9ca3af;
+  color: #b6b9cf;
 }
 
 .closeButton {
   background: none;
   border: none;
   font-size: 24px;
-  color: #9ca3af;
+  color: #ffffff;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -57,35 +58,43 @@
 }
 
 .closeButton:hover {
-  color: #6b7280;
-  background: #f3f4f6;
+  color: #e5e7eb;
 }
 
 .modalContent {
-  padding: 30px;
+  padding: 0;
+  background-color: #ebecf4;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .formTitle {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 30px;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  padding: 20px;
+  text-align: left;
 }
 
 .productForm {
   display: flex;
-  gap: 30px;
+  flex-direction: column;
+  padding: 20px;
 }
 
 /* Image Upload Section */
 .imageSection {
-  flex-shrink: 0;
+  align-self: left;
+  margin-bottom: 20px;
 }
 
 .imageUpload {
-  width: 200px;
-  height: 200px;
-  border: 2px dashed #d1d5db;
+  width: 100px;
+  height: 100px;
+  border: 1px dashed #d1d5db;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -94,6 +103,7 @@
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
+  background-color: #fff;
 }
 
 .imageUpload:hover {
@@ -118,18 +128,18 @@
 }
 
 .browseButton {
-  background: #3b82f6;
+  background: #0d6efd;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .browseButton:hover {
-  background: #2563eb;
+  background: #0b5ed7;
 }
 
 .imagePreview {
@@ -141,10 +151,10 @@
 
 /* Form Fields */
 .formFields {
-  flex: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .formGroup {
@@ -161,19 +171,21 @@
 .label {
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: #333;
   margin-bottom: 6px;
 }
 
 .input,
 .select,
 .textarea {
-  padding: 12px 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  padding: 4px 6px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
   font-size: 14px;
   transition: all 0.2s;
   background: white;
+  height: 28px;
+  width: 45%;
 }
 
 .input:focus,
@@ -216,39 +228,44 @@
   cursor: not-allowed;
 }
 
+.select {
+  height: 38px;
+}
+
 /* Form Actions */
 .formActions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+  margin-top: 20px;
+  padding: 15px 20px;
+  background-color: transparent;
 }
 
 .discardButton {
-  background: #f3f4f6;
-  color: #6b7280;
-  border: 1px solid #d1d5db;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
+  color: #6c757d;
+  border: 0px  transparent;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 400;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .discardButton:hover {
-  background: #e5e7eb;
-  color: #4b5563;
+  background: #f8f9fa;
+  color: #495057;
 }
 
 .addButton {
-  background: #1f2937;
+  background: #242531;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 400;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -266,23 +283,23 @@
 @media (max-width: 768px) {
   .modalOverlay {
     padding: 10px;
+    left: 0; /* For mobile, take full width */
   }
   
   .modal {
-    max-height: 98vh;
+    height: 100%;
   }
   
   .modalHeader {
-    padding: 15px 20px;
+    padding: 10px 15px;
   }
   
   .modalContent {
-    padding: 20px;
+    padding: 0;
   }
   
   .productForm {
-    flex-direction: column;
-    gap: 20px;
+    padding: 15px;
   }
   
   .imageSection {
@@ -296,7 +313,7 @@
   
   .formRow {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 15px;
   }
   
   .formActions {

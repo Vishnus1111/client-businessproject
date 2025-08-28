@@ -258,7 +258,6 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                   <img src={imagePreview} alt="Product preview" className={styles.imagePreview} />
                 ) : (
                   <div className={styles.uploadPlaceholder}>
-                    <div className={styles.uploadIcon}>📷</div>
                     <p>Drag image here</p>
                     <p>or</p>
                     <button 
@@ -329,36 +328,34 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                 </select>
               </div>
 
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Cost Price</label>
-                  <input
-                    type="number"
-                    name="costPrice"
-                    value={formData.costPrice}
-                    onChange={handleInputChange}
-                    placeholder="Enter cost price"
-                    className={styles.input}
-                    step="0.01"
-                    min="0"
-                    required
-                  />
-                </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Cost Price</label>
+                <input
+                  type="number"
+                  name="costPrice"
+                  value={formData.costPrice}
+                  onChange={handleInputChange}
+                  placeholder="Enter cost price"
+                  className={styles.input}
+                  step="0.01"
+                  min="0"
+                  required
+                />
+              </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Selling Price</label>
-                  <input
-                    type="number"
-                    name="sellingPrice"
-                    value={formData.sellingPrice}
-                    onChange={handleInputChange}
-                    placeholder="Enter selling price"
-                    className={styles.input}
-                    step="0.01"
-                    min="0"
-                    required
-                  />
-                </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Selling Price</label>
+                <input
+                  type="number"
+                  name="sellingPrice"
+                  value={formData.sellingPrice}
+                  onChange={handleInputChange}
+                  placeholder="Enter selling price"
+                  className={styles.input}
+                  step="0.01"
+                  min="0"
+                  required
+                />
               </div>
 
               <div className={styles.formRow}>
@@ -423,17 +420,7 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                 />
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Description (Optional)</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Enter product description"
-                  className={styles.textarea}
-                  rows="3"
-                />
-              </div>
+              {/* Removing Description field as requested */}
             </div>
 
             {/* Form Actions */}
