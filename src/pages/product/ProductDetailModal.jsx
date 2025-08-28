@@ -6,13 +6,6 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
   
   // Initialize with simpler state to debug rendering issues
   const [quantity, setQuantity] = useState(1);
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState('');
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    email: '',
-    phone: ''
-  });
 
   // Add effect to log whenever modal is opened
   useEffect(() => {
@@ -49,38 +42,13 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
     }
   };
 
-  const handleRatingChange = (newRating) => {
-    console.log(`Rating changed to ${newRating}`);
-    setRating(newRating);
-  };
-
-  const handleReviewChange = (e) => {
-    setReview(e.target.value);
-  };
-
-  const handleCustomerInfoChange = (e) => {
-    const { name, value } = e.target;
-    setCustomerInfo({
-      ...customerInfo,
-      [name]: value
-    });
-  };
-
   const handlePlaceOrder = () => {
     const orderData = {
       productId: product.productId,
-      quantityOrdered: quantity,
-      rating: rating,
-      review: review,
-      customerInfo: customerInfo
+      quantityOrdered: quantity
     };
     
     console.log("Placing order with data:", orderData);
-    
-    if (rating === 0) {
-      alert("Please provide a rating for the product");
-      return;
-    }
     
     if (onPlaceOrder) {
       onPlaceOrder(orderData);
@@ -94,48 +62,49 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{product.productName}</h2>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
-        </div>
+        <button className={styles.closeButton} onClick={onClose}>×</button>
+        
+        <h2 className={styles.modalTitle}>{product.productName}</h2>
         
         <div className={styles.modalBody}>
+          {/* Product Image */}
           <div className={styles.productImage}>
             {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.productName} />
+              <img 
+                src={`${product.imageUrl.startsWith('http') ? '' : '/'}${product.imageUrl}`} 
+                alt={product.productName}
+                className={styles.productImg} 
+              />
             ) : (
               <div className={styles.placeholder}>No Image Available</div>
             )}
           </div>
           
-          <div className={styles.productDetails}>
-            <div className={styles.detailRow}>
-              <span className={styles.label}>ID:</span>
-              <span className={styles.value}>{product.productId}</span>
-            </div>
-            
-            <div className={styles.detailRow}>
-              <span className={styles.label}>Category:</span>
-              <span className={styles.value}>{product.category}</span>
-            </div>
-            
-            <div className={styles.detailRow}>
-              <span className={styles.label}>Price:</span>
-              <span className={styles.value}>₹{product.sellingPrice || product.price}</span>
-            </div>
-            
-            <div className={styles.detailRow}>
-              <span className={styles.label}>Availability:</span>
-              <span className={styles.value}>{product.availability}</span>
-            </div>
-            
-            {product.description && (
-              <div className={styles.description}>
-                <h3>Description</h3>
-                <p>{product.description}</p>
+          {/* Product Details in a clean vertical layout */}
+          <div className={styles.infoContainer}>
+            <div className={styles.productInfoSection}>
+              <div className={styles.detailRow}>
+                <span className={styles.label}>ID:</span>
+                <span className={styles.value}>{product.productId}</span>
               </div>
-            )}
+              
+              <div className={styles.detailRow}>
+                <span className={styles.label}>Category:</span>
+                <span className={styles.value}>{product.category}</span>
+              </div>
+              
+              <div className={styles.detailRow}>
+                <span className={styles.label}>Price:</span>
+                <span className={styles.value}>₹{product.sellingPrice || product.price}</span>
+              </div>
+              
+              <div className={styles.detailRow}>
+                <span className={styles.label}>Availability:</span>
+                <span className={styles.value}>{product.availability}</span>
+              </div>
+            </div>
             
+            {/* Order Section */}
             <div className={styles.orderSection}>
               <div className={styles.quantityControl}>
                 <span className={styles.label}>Quantity:</span>
@@ -161,65 +130,13 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
               <div className={styles.totalPrice}>
                 <span className={styles.totalLabel}>Total:</span>
                 <span className={styles.totalAmount}>
-                  ₹{((product.sellingPrice || 0) * quantity).toFixed(2)}
+                  ₹{((product.sellingPrice || product.price || 0) * quantity).toFixed(2)}
                 </span>
-              </div>
-              
-              <div className={styles.ratingSection}>
-                <span className={styles.label}>Rate this product:</span>
-                <div className={styles.ratingStars}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      className={`${styles.ratingStar} ${rating >= star ? styles.activeRating : ''}`}
-                      onClick={() => handleRatingChange(star)}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              <div className={styles.reviewSection}>
-                <textarea
-                  placeholder="Add your review (optional)"
-                  value={review}
-                  onChange={handleReviewChange}
-                  className={styles.reviewTextarea}
-                />
-              </div>
-              
-              <div className={styles.customerInfo}>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Your Name (optional)"
-                  value={customerInfo.name}
-                  onChange={handleCustomerInfoChange}
-                  className={styles.customerInput}
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Your Email (optional)"
-                  value={customerInfo.email}
-                  onChange={handleCustomerInfoChange}
-                  className={styles.customerInput}
-                />
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Your Phone (optional)"
-                  value={customerInfo.phone}
-                  onChange={handleCustomerInfoChange}
-                  className={styles.customerInput}
-                />
               </div>
               
               <button 
                 className={styles.orderButton}
                 onClick={handlePlaceOrder}
-                disabled={quantity < 1 || rating === 0}
               >
                 Place Order
               </button>
