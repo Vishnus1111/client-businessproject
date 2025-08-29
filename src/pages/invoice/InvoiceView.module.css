@@ -76,23 +76,27 @@
 
 /* Invoice Content Styles */
 .invoiceContainer {
-  padding: 40px;
+  padding: 30px;
   width: 100%;
   background-color: white;
   color: #333;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .invoiceTitle {
-  font-size: 32px;
+  font-size: 28px;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   color: #2c3e50;
+  font-weight: 600;
 }
 
 .addressSection {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
+  clear: both;
 }
 
 .billedTo, 
@@ -103,56 +107,61 @@
 .billedTo h4, 
 .businessAddress h4 {
   color: #7f8c8d;
-  margin-bottom: 10px;
-  font-size: 16px;
-  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .billedTo p, 
 .businessAddress p {
-  margin: 5px 0;
-  font-size: 14px;
+  margin: 3px 0;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
 .invoiceInfo {
+  width: 30%;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 15px;
   margin-bottom: 30px;
+  float: left;
 }
 
 .invoiceInfoColumn {
-  flex: 2;
+  flex: 1;
 }
 
 .referenceColumn {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   justify-content: flex-start;
 }
 
 .detailRow {
   display: flex;
-  margin-bottom: 10px;
-  align-items: center;
+  flex-direction: column;
+  margin-bottom: 5px;
 }
 
 .detailRow h4 {
-  width: 120px;
   color: #7f8c8d;
   font-size: 14px;
-  margin: 0;
-  font-weight: 600;
+  margin: 0 0 5px 0;
+  font-weight: 500;
 }
 
 .detailRow p {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
+  color: #333;
 }
 
 .productTable {
+  width: 70%;
+  float: right;
   margin-bottom: 30px;
 }
 
@@ -163,83 +172,94 @@
 
 .productTable th {
   background-color: #f8f9fa;
-  padding: 12px;
+  padding: 10px;
   text-align: left;
-  font-size: 14px;
+  font-size: 13px;
   color: #555;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .productTable td {
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid #e9ecef;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .summary {
   margin-left: auto;
-  width: 40%;
-  margin-top: 30px;
+  width: 50%;
+  margin-top: 10px;
+  clear: right;
+  float: right;
 }
 
 .summaryDetails {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 5px 0;
 }
 
 .summaryDetails h4 {
   color: #7f8c8d;
-  font-size: 14px;
+  font-size: 13px;
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .summaryDetails p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
+  text-align: right;
 }
 
 .total {
-  border-top: 2px solid #e9ecef;
-  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  padding-top: 10px;
   margin-top: 5px;
 }
 
 .total h4, .total p {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #2c3e50;
 }
 
 .paymentNote {
-  margin: 30px 0;
+  margin: 15px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  clear: both;
 }
 
 .paymentNote input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .paymentNote span {
-  font-size: 14px;
+  font-size: 13px;
   color: #555;
 }
 
 .footer {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   border-top: 1px solid #e9ecef;
-  padding-top: 20px;
-  margin-top: 20px;
+  padding-top: 15px;
+  margin-top: 15px;
+  clear: both;
 }
 
 .footerItem {
-  font-size: 12px;
+  font-size: 11px;
   color: #7f8c8d;
-  text-align: center;
+}
+
+/* Clearfix for floating elements */
+.invoiceContainer:after {
+  content: "";
+  display: table;
+  clear: both;
 }

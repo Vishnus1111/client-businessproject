@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import styles from "./Invoice.module.css";
 import InvoiceView from "./InvoiceView";
 import API_BASE_URL from "../config";
+import viewInvoiceImg from '../../assets/invoice/viewinvoice.png';
+import deleteInvoiceImg from "../../assets/invoice/invoicedelete.png"
 
 const Invoice = () => {
   const [invoices, setInvoices] = useState([]);
@@ -375,15 +377,6 @@ const Invoice = () => {
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Invoice</h1>
         <div className={`${styles.searchContainer} ${isSearchActive ? styles.activeSearch : ''}`}>
-          <input 
-            type="text" 
-            className={styles.searchInput} 
-            placeholder="Search by ID, reference, amount, status, date..." 
-            value={searchTerm}
-            onChange={handleSearch}
-            onFocus={handleSearchFocus}
-            onBlur={handleSearchBlur}
-          />
           <button 
             className={styles.searchButton} 
             onClick={() => {
@@ -396,6 +389,15 @@ const Invoice = () => {
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
             </svg>
           </button>
+          <input 
+            type="text" 
+            className={styles.searchInput} 
+            placeholder="Search by ID, reference, amount, status, date..." 
+            value={searchTerm}
+            onChange={handleSearch}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
+          />
         </div>
       </div>
       
@@ -413,25 +415,24 @@ const Invoice = () => {
             <div className={styles.statTitle}>Total Invoices</div>
             <div className={styles.statValue}>{statistics.totalInvoices.total}</div>
             <div className={styles.statSubText}>Last 7 days</div>
-            <div className={styles.statProcessed}>{statistics.totalInvoices.processed} Processed</div>
+            <div className={styles.statProcessed}>{statistics.totalInvoices.processed}</div>
+            <div className={styles.statfieldname}>Processed</div>
           </div>
           
           <div className={styles.statBox}>
             <div className={styles.statTitle}>Paid Amount</div>
             <div className={styles.statValue}>{formatCurrency(statistics.paidAmount.amount)}</div>
             <div className={styles.statSubText}>Last 7 days</div>
-            <div className={styles.statContent}>
-              <span className={styles.statProcessed}>{statistics.paidAmount.customers} customers</span>
-            </div>
+            <div className={styles.statProcessed}>{statistics.paidAmount.customers}</div>
+            <div className={styles.statfieldname}>customers</div>
           </div>
           
           <div className={styles.statBox}>
             <div className={styles.statTitle}>Unpaid Amount</div>
             <div className={styles.statValue}>{formatCurrency(statistics.unpaidAmount.amount)}</div>
             <div className={styles.statSubText}>Last 7 days</div>
-            <div className={styles.statContent}>
-              <span className={styles.statProcessed}>{statistics.unpaidAmount.pending} Pending Payment</span>
-            </div>
+            <div className={styles.statProcessed}>{statistics.unpaidAmount.pending}</div>
+            <div className={styles.statfieldname}>Pending Payment</div>
           </div>
         </div>
       </div>
@@ -509,7 +510,7 @@ const Invoice = () => {
                                   setOpenDropdownId(null);
                                 }}
                               >
-                                <span className={styles.viewIcon}>👁️</span> View Invoice
+                                <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
                               </button>
                               <button 
                                 className={styles.deleteButton}
@@ -518,7 +519,7 @@ const Invoice = () => {
                                   setOpenDropdownId(null);
                                 }}
                               >
-                                <span className={styles.deleteIcon}>🗑️</span> Delete
+                                <span className={styles.deleteIcon}><img src={deleteInvoiceImg} alt="Delete Invoice" /></span> Delete
                               </button>
                             </>
                           )}
@@ -532,7 +533,7 @@ const Invoice = () => {
                                 setOpenDropdownId(null);
                               }}
                             >
-                              <span className={styles.viewIcon}>�️</span> View Invoice
+                              <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
                             </button>
                           )}
                           
