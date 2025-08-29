@@ -263,17 +263,27 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       // Generate cache busting query parameter
       const timestamp = Date.now();
       const randomStr = Math.random().toString(36).substring(7);
+      const uniqueId = `${timestamp}-${randomStr}`;
       
-      const response = await fetch(`${API_BASE_URL}/api/products/add-multiple?_t=${timestamp}-${randomStr}`, {
+      // Log the upload attempt
+      console.log(`📤 Making CSV upload request with ID: ${uniqueId}`);
+      
+      // Add upload ID to form data to track this specific upload
+      formData.append('uploadId', uniqueId);
+      
+      const response = await fetch(`${API_BASE_URL}/api/products/add-multiple?_t=${uniqueId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'X-Upload-ID': uniqueId,
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
+        credentials: 'same-origin'
       });
       
       clearTimeout(timeoutId); // Clear the timeout if request completes
@@ -322,10 +332,18 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
         
         // First notify parent that CSV products were added with enhanced waiting
         if (typeof onProductsAdded === 'function') {
-          console.log("📋 Calling parent's onProductsAdded callback with CSV flag");
+          console.log("📋 Calling parent's onProductsAdded callback with CSV flag and upload ID");
           try {
-            // Call the callback function
-            onProductsAdded(true); // Pass true to indicate this is a CSV upload
+            // Store upload success info in localStorage for persistent tracking
+            localStorage.setItem('csv_upload_timestamp', Date.now().toString());
+            localStorage.setItem('csv_upload_count', successCount.toString());
+            
+            // Call the callback function with CSV flag AND upload metadata
+            onProductsAdded(true, { 
+              uploadId: uniqueId,
+              count: successCount,
+              timestamp: Date.now()
+            });
             
             // Show a toast to inform the user the process is ongoing
             toast.info("Refreshing product list with new data... Please wait.");
@@ -339,7 +357,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
         setTimeout(() => {
           console.log("🚪 Closing modal");
           onClose();
-        }, 800); // Increased delay to ensure callback starts
+        }, 1000); // Increased delay to ensure callback starts properly
       } else if (totalProcessed > 0) {
         // Products were processed but none succeeded
         toast.error('No products were added. Please check the CSV data format.');

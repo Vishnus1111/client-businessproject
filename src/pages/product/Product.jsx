@@ -49,15 +49,19 @@ const Product = () => {
       
       console.log("🌐 Making API request to:", url);
       const response = await fetch(url, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-Timestamp': timestamp.toString()
         },
         // Ensure no caching
-        cache: 'no-store'
+        cache: 'no-store',
+        credentials: 'same-origin'
       });
 
       if (response.ok) {
@@ -290,31 +294,54 @@ const Product = () => {
   );
 
   // Enhanced product refresh function with improved CSV handling
-  const handleProductAdded = useCallback(async (isCsvUpload = false) => {
+  const handleProductAdded = useCallback(async (isCsvUpload = false, uploadMetadata = null) => {
     console.log("🔄 ENHANCED REFRESH: handleProductAdded called", isCsvUpload ? "(CSV UPLOAD)" : "");
+    if (uploadMetadata) {
+      console.log("📊 Upload metadata:", uploadMetadata);
+    }
     
     // Clear any active search and set loading state
     setSearchQuery('');
     setIsSearchActive(false);
     setLoading(true);
     
-    // Show loading notification and update loading message
-    toast.info(isCsvUpload ? "Processing CSV upload..." : "Adding new product...");
-    setLoadingMessage(isCsvUpload ? "Processing CSV upload. This may take a moment..." : "Refreshing product list...");
+    // Show loading notification with more specific info if available
+    if (isCsvUpload && uploadMetadata?.count) {
+      toast.info(`Processing ${uploadMetadata.count} products from CSV upload...`);
+      setLoadingMessage(`Loading ${uploadMetadata.count} new products. Please wait...`);
+    } else {
+      toast.info(isCsvUpload ? "Processing CSV upload..." : "Adding new product...");
+      setLoadingMessage(isCsvUpload ? "Processing CSV upload. This may take a moment..." : "Refreshing product list...");
+    }
     
     // Define a function to fetch with maximum cache busting
     const fetchWithNoCaching = async () => {
+      // Generate a unique timestamp to prevent any caching
+      const timestamp = Date.now();
+      const randomStr = Math.random().toString(36).substring(7);
+      const uniqueId = uploadMetadata?.uploadId || `${timestamp}-${randomStr}`;
+      let noCacheParam = `?_nocache=${uniqueId}&_t=${timestamp}`;
+      
+      // Add any CSV metadata if available
+      if (uploadMetadata) {
+        noCacheParam += `&csvUpload=true&count=${uploadMetadata.count || 0}`;
+      }
+      
+      // Get a fresh token
+      const token = localStorage.getItem('token');
+      
+      // Log fetch attempt with detailed information
+      console.log(`🔍 Making enhanced no-cache fetch request: attempt=${attempt}, isCsvUpload=${isCsvUpload}, time=${new Date().toISOString()}`);
+      
+      // Make a direct fetch with all cache prevention headers
+      const controller = new AbortController();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 15000);
+      });
+      
       try {
-        // Generate a unique timestamp to prevent any caching
-        const timestamp = Date.now();
-        const randomStr = Math.random().toString(36).substring(7);
-        const noCacheParam = `?_nocache=${timestamp}-${randomStr}`;
-        
-        // Get a fresh token
-        const token = localStorage.getItem('token');
-        
-        // Make a direct fetch with all cache prevention headers
-        const response = await fetch(`${API_BASE_URL}/api/products/all${noCacheParam}`, {
+        // Use Promise.race to implement timeout
+        const fetchPromise = fetch(`${API_BASE_URL}/api/products/all${noCacheParam}`, {
           method: 'GET', // Explicitly set method
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -322,13 +349,19 @@ const Product = () => {
             'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
             'Pragma': 'no-cache',
             'Expires': '0',
-            'X-Request-Time': timestamp.toString() // Add custom header to prevent caching
+            'X-Request-Time': timestamp.toString(),
+            'X-Refresh-Attempt': attempt.toString(),
+            'X-CSV-Upload': isCsvUpload ? 'true' : 'false',
+            'X-Upload-ID': uniqueId
           },
           cache: 'no-store',
           credentials: 'same-origin', // Include credentials
           redirect: 'follow',
-          referrerPolicy: 'no-referrer'
+          referrerPolicy: 'no-referrer',
+          signal: controller.signal
         });
+        
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
         
         if (!response.ok) {
           throw new Error(`Server responded with status: ${response.status}`);
@@ -339,6 +372,8 @@ const Product = () => {
       } catch (error) {
         console.error("Error in fetchWithNoCaching:", error);
         throw error;
+      } finally {
+        controller.abort(); // Clean up
       }
     };
     
@@ -369,6 +404,10 @@ const Product = () => {
         const data = await fetchWithNoCaching();
         console.log(`✅ Attempt ${attempt}: Fresh data received:`, data.products?.length || 0, "products");
         
+        // Verify we have products in the response
+        const hasProducts = Array.isArray(data.products) && data.products.length > 0;
+        console.log(`Received ${data.products?.length || 0} products in response`);
+        
         // Update state with fresh data
         setProducts(data.products || []);
         setTotalPages(Math.ceil((data.products?.length || 0) / 10));
@@ -377,17 +416,29 @@ const Product = () => {
         await fetchInventoryStats();
         
         // Mark success
-        success = true;
+        success = hasProducts;
         
-        // Show success notification based on attempt number
-        if (attempt === 1) {
-          toast.success(isCsvUpload ? "CSV products loaded successfully!" : "Product list updated immediately!");
+        // Show appropriate notification based on result
+        if (hasProducts) {
+          if (attempt === 1) {
+            toast.success(isCsvUpload ? "CSV products loaded successfully!" : "Product list updated immediately!");
+          } else {
+            toast.success(`Product list updated successfully! (attempt ${attempt})`);
+          }
+          setLoadingMessage("");
+        } else if (isCsvUpload) {
+          // No products received but this is a CSV upload
+          // We should try another time to make sure products are loaded
+          console.log("No products found in response yet, will retry...");
+          setLoadingMessage(`Products not loaded yet, retrying... (${attempt}/${maxAttempts})`);
+          
+          // Don't mark success yet, we need to try again
+          success = false;
         } else {
-          toast.success(`Product list updated successfully! (attempt ${attempt})`);
+          // Not a CSV upload, so we can consider this a success even if no products
+          success = true;
+          setLoadingMessage("");
         }
-        
-        // Clear loading message on success
-        setLoadingMessage("");
         
       } catch (error) {
         console.error(`Error in refresh attempt ${attempt}:`, error);
@@ -638,7 +689,7 @@ const Product = () => {
       {showCSVUpload && (
         <CSVUploadModal
           onClose={() => setShowCSVUpload(false)}
-          onProductsAdded={(isCsvUpload) => handleProductAdded(isCsvUpload)}
+          onProductsAdded={(isCsvUpload, metadata) => handleProductAdded(isCsvUpload, metadata)}
         />
       )}
 
