@@ -539,6 +539,7 @@
   .actionDropdown {
     display: flex;
     width: 100%;
+    justify-content: center;
   }
   
   .actionButton {
@@ -577,14 +578,23 @@
   .payButton,
   .returnButton {
     display: inline-flex !important;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     justify-content: center;
     align-items: center;
     position: relative;
     padding: 0;
     background: transparent;
-    margin: 0 3px;
+    margin: 0;
+    border: none;
+  }
+  
+  /* Hide any text content in buttons for mobile */
+  .viewButton > *:not(.viewIcon),
+  .deleteButton > *:not(.deleteIcon),
+  .payButton > *:not(.payIcon),
+  .returnButton > *:not(.returnIcon) {
+    display: none;
   }
   
   /* Improve the dropdown for mobile */
@@ -598,6 +608,11 @@
     align-items: center;
     flex-wrap: nowrap;
     padding: 0;
+  }
+  
+  /* Set exact 7px gap between action buttons */
+  .actionDropdown .dropdownContent button + button {
+    margin-left: 7px;
   }
   
   /* Specific styles for the Pay button $ icon */
@@ -629,17 +644,24 @@
   /* Style button icons */
   .viewButton img,
   .deleteButton img {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
+    display: block;
   }
   
   .payButton .payIcon {
-    font-size: 24px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .returnButton .returnIcon {
-    font-size: 24px;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   /* Fix overlapping by adding specific spacing for action buttons */
@@ -666,28 +688,19 @@
     color: #0ea432;
   }
   
-  /* Add text to View Invoice button */
-  .viewButton::after {
-    content: "View";
-    font-size: 12px;
-    margin-left: 3px;
-    white-space: nowrap;
-    color: #0084d6;
+  /* Remove text from buttons in mobile */
+  .viewButton::after,
+  .deleteButton::after,
+  .payButton::after,
+  .returnButton::after {
+    content: none;
   }
   
-  /* Add text to Delete button */
-  .deleteButton::after {
-    content: "Delete";
-    font-size: 12px;
-    margin-left: 3px;
-    color: #e44d26;
-  }
-  
-  /* Hide original text spans */
-  .viewButton span + span,
-  .deleteButton span + span,
-  .payButton span + span,
-  .returnButton span + span {
+  /* Hide all text content next to icons */
+  .viewButton > :not(.viewIcon),
+  .deleteButton > :not(.deleteIcon),
+  .payButton > :not(.payIcon),
+  .returnButton > :not(.returnIcon) {
     display: none;
   }
   
