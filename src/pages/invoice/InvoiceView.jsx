@@ -1,6 +1,9 @@
 import React from 'react';
 import styles from './InvoiceView.module.css';
 import doublequote from "../../assets/invoice/doublequotes.png"
+import downloadbtn from "../../assets/invoice/download.png"
+import closebtn from "../../assets/invoice/close.png"
+import printbtn from "../../assets/invoice/print.png"
 
 const InvoiceView = ({ invoice, onClose }) => {
   // Format currency with Indian Rupee symbol
@@ -59,12 +62,12 @@ const InvoiceView = ({ invoice, onClose }) => {
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
         <div className={styles.actionButtonsColumn}>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
+          <button className={styles.closeButton} onClick={onClose}><img src={closebtn} alt="Close" /></button>
           <button className={styles.downloadButton} onClick={handleDownload} title="Download Invoice">
-            <span className={styles.icon}>⬇️</span>
+            <span className={styles.icon}><img src={downloadbtn} alt="Download" /></span>
           </button>
           <button className={styles.printButton} onClick={handlePrint} title="Print Invoice">
-            <span className={styles.icon}>🖨️</span>
+            <span className={styles.icon}><img src={printbtn} alt="Print" /></span>
           </button>
         </div>
         
