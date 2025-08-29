@@ -196,48 +196,46 @@
 
 .invoiceTable th {
   padding: 12px 15px;
-  background-color: #f0f0f0;
+  background-color: #b6b9cf;
   color: #333;
   font-weight: 600;
   border-bottom: 1px solid #ddd;
+  border-right: 2px solid #9294a6;
 }
 
 .invoiceTable td {
   padding: 12px 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #cccccc;
+  border-right: 2px solid #cccccc;
   color: #333;
 }
 
 .invoiceTable tr:hover {
-  background-color: #f9f9f9;
+  background-color: #e1e3f3;
 }
 
 .status {
   display: inline-block;
   padding: 6px 12px;
-  border-radius: 50px;
   font-size: 12px;
   font-weight: 600;
+  color: #48505e;
 }
 
 .paid {
-  background-color: rgba(39, 174, 96, 0.15);
-  color: #27ae60;
+  color: #48505e;
 }
 
 .unpaid {
-  background-color: rgba(243, 156, 18, 0.15);
-  color: #f39c12;
+  color: #48505e;
 }
 
 .returned {
-  background-color: rgba(155, 89, 182, 0.15);
-  color: #9b59b6;
+  color: #48505e;
 }
 
 .cancelled {
-  background-color: rgba(231, 76, 60, 0.15);
-  color: #e74c3c;
+  color: #48505e;
 }
 
 .actionButton {
