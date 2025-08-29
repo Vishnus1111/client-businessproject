@@ -367,9 +367,6 @@
   .invoiceContainer {
     padding: 10px;
     background: #32344a;
-    min-height: 100vh;
-    max-height: 100vh;
-    overflow-y: auto;
   }
   
   .header {
@@ -377,42 +374,6 @@
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 0;
-    border-bottom: none;
-  }
-  
-  .headerMobile {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .logoContainer {
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #8743FF 0%, #4136F1 100%);
-    border-radius: 50%;
-    overflow: hidden;
-  }
-  
-  .logo {
-    width: 70%;
-    height: auto;
-    padding: 5px;
-  }
-  
-  .pageTitle {
-    font-size: 18px;
-    margin: 0;
-    color: white;
   }
   
   .settingsButton {
@@ -561,19 +522,13 @@
     margin: 0 5px;
   }
   
-  /* Always show buttons in mobile */
+  /* Always show view and delete buttons */
   .viewButton,
-  .deleteButton,
-  .payButton,
-  .returnButton {
+  .deleteButton {
     display: inline-flex !important;
-    width: 32px;
-    height: 32px;
-    justify-content: center;
-    align-items: center;
   }
   
-  /* Show only icons for all buttons */
+  /* Show only icons for view and delete */
   .viewIcon img,
   .deleteIcon img {
     width: 24px;
@@ -581,18 +536,8 @@
     display: block;
   }
   
-  .payIcon,
-  .returnIcon {
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
   .viewButton span + span,
-  .deleteButton span + span,
-  .payButton span + span,
-  .returnButton span + span {
+  .deleteButton span + span {
     display: none;
   }
   
@@ -605,7 +550,6 @@
   .invoiceTable {
     border-collapse: collapse;
     width: 100%;
-    margin-bottom: 70px; /* Add space at bottom for mobile navigation */
   }
   
   .invoiceTable thead {
@@ -615,61 +559,26 @@
   .invoiceTable th:first-child {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    width: 60%;
+    width: 70%;
     text-align: left;
-    padding-left: 15px;
   }
   
   .invoiceTable th:last-child {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
-    width: 40%;
+    width: 30%;
     text-align: center;
   }
   
   .invoiceTable td:first-child {
     text-align: left;
     padding-left: 15px;
-    width: 60%;
-    font-weight: 500;
-    font-size: 14px;
-    color: #333;
+    width: 70%;
   }
   
   .invoiceTable td:last-child {
     text-align: center;
-    width: 40%;
-    padding-right: 0;
-  }
-  
-  /* Make the overall invoice list container have proper spacing */
-  .invoiceListContainer {
-    margin-bottom: 15px;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  
-  /* Show all buttons for all invoice types */
-  .payButton, .returnButton {
-    display: inline-flex !important;
-  }
-  
-  /* Ensure all buttons are evenly spaced */
-  .dropdownContent {
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  /* Make table rows have adequate spacing */
-  .invoiceTable tr {
-    height: 45px;
-    border-bottom: 1px solid #eee;
-  }
-  
-  /* Ensure pagination is visible and usable */
-  .pagination {
-    margin-top: 15px;
-    padding-bottom: 15px;
+    width: 30%;
   }
   
   /* Fix search container in mobile */
