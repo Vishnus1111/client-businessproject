@@ -122,12 +122,12 @@ const Product = () => {
           });
           
           setProducts(filteredProducts);
-          setTotalPages(Math.ceil(filteredProducts.length / 10));
+          setTotalPages(Math.ceil(filteredProducts.length / 9));
           console.log("📊 Filtered products:", filteredProducts.length);
         } else {
           // No search term, show all products
           setProducts(allProducts);
-          setTotalPages(Math.ceil(allProducts.length / 10));
+          setTotalPages(Math.ceil(allProducts.length / 9));
           console.log("📊 All products loaded:", allProducts.length);
         }
         
@@ -410,7 +410,7 @@ const Product = () => {
         
         // Update state with fresh data
         setProducts(data.products || []);
-        setTotalPages(Math.ceil((data.products?.length || 0) / 10));
+        setTotalPages(Math.ceil((data.products?.length || 0) / 9));
         
         // Refresh stats too
         await fetchInventoryStats();
@@ -484,8 +484,8 @@ const Product = () => {
   }
 
   // Paginate products for display
-  const startIndex = (currentPage - 1) * 10;
-  const endIndex = startIndex + 10;
+  const startIndex = (currentPage - 1) * 9;
+  const endIndex = startIndex + 9;
   const displayedProducts = products.slice(startIndex, endIndex);
 
   return (
