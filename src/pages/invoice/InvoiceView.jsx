@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './InvoiceView.module.css';
+import doublequote from "../../assets/invoice/doublequotes.png"
 
 const InvoiceView = ({ invoice, onClose }) => {
   // Format currency with Indian Rupee symbol
@@ -69,21 +70,22 @@ const InvoiceView = ({ invoice, onClose }) => {
         
         <div className={styles.invoiceLayout}>          
           <div className={styles.invoiceContainer} id="invoice-printable">
-            <h1 className={styles.invoiceTitle}>INVOICE</h1>
-            
-            <div className={styles.addressSection}>
-              <div className={styles.billedTo}>
-                <h4>Billed to</h4>
-                <p>Global Solutions Company</p>
-                <p>Company address</p>
-                <p>City, Country - 00000</p>
-                <p>TAX ID: 90360270900</p>
-              </div>
-              <div className={styles.businessAddress}>
-                <h4>Business Address</h4>
-                <p>ZipKart</p>
-                <p>KR Puram, Bengaluru - 560049</p>
-                <p>TAX ID: 90360270900</p>
+            <div className={styles.invoiceTopSection}>
+              <h1 className={styles.invoiceTitle}>INVOICE</h1>
+              <div className={styles.addressSection}>
+                <div className={styles.billedTo}>
+                  <h4>Billed to</h4>
+                  <p>Global Solutions Company</p>
+                  <p>Company address</p>
+                  <p>City, Country - 00000</p>
+                  <p>TAX ID: 90360270900</p>
+                </div>
+                <div className={styles.businessAddress}>
+                  <h4>Business Address</h4>
+                  <p>ZipKart</p>
+                  <p>KR Puram, Bengaluru - 560049</p>
+                  <p>TAX ID: 90360270900</p>
+                </div>
               </div>
             </div>
             
@@ -161,7 +163,7 @@ const InvoiceView = ({ invoice, onClose }) => {
             </div>
             
             <div className={styles.paymentNote}>
-              <input type="checkbox" checked readOnly />
+              <img src={doublequote} alt="Double Quote" />
               <span>Please pay within 15 days of receiving this invoice.</span>
             </div>
             

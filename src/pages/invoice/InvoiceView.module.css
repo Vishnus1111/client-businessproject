@@ -2,8 +2,8 @@
 .modalOverlay {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 280px;
+  right: 0px;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
@@ -16,25 +16,33 @@
 .modalContent {
   background-color: #fff;
   border-radius: 12px;
-  width: 95%;
-  max-width: 900px;
+  width: 50%;
+  max-width: 850px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
   position: relative;
-  margin-top: 20px;
+  margin: 0 auto;
+  margin-right: 300px;
 }
 
 .invoiceLayout {
   display: flex;
   position: relative;
+  padding-right: 30px;
+}
+
+.invoiceTopSection {
+  background-color: #f9fafc;
+  
 }
 
 .actionButtonsColumn {
   position: absolute;
-  top: 15px;
-  left: 15px;
+  top: 10px;
+  right: -0px;
   display: flex;
+  flex-direction: column;
   gap: 10px;
   z-index: 10;
 }
@@ -42,8 +50,8 @@
 .closeButton,
 .printButton,
 .downloadButton {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -51,12 +59,13 @@
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .closeButton {
   background-color: #e74c3c;
   color: white;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .closeButton:hover {
@@ -65,13 +74,13 @@
 
 .printButton, 
 .downloadButton {
-  background-color: #495057;
+  background-color: #2196f3;
   color: white;
 }
 
 .printButton:hover,
 .downloadButton:hover {
-  background-color: #6c757d;
+  background-color: #1976d2;
 }
 
 /* Invoice Content Styles */
@@ -160,9 +169,9 @@
 }
 
 .productTable {
-  width: 70%;
+  width: 65%;
   float: right;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
 }
 
 .productTable table {
@@ -186,17 +195,17 @@
 }
 
 .summary {
-  margin-left: auto;
-  width: 50%;
-  margin-top: 10px;
-  clear: right;
+  width: 65%;
+  margin-top: 0;
   float: right;
+  border-top: none;
 }
 
 .summaryDetails {
   display: flex;
   justify-content: space-between;
-  padding: 5px 0;
+  padding: 7px 10px;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .summaryDetails h4 {
@@ -214,13 +223,14 @@
 }
 
 .total {
-  border-top: 1px solid #e9ecef;
-  padding-top: 10px;
-  margin-top: 5px;
+  border-top: none;
+  border-bottom: none;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 .total h4, .total p {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #2c3e50;
 }
@@ -231,6 +241,7 @@
   align-items: center;
   gap: 8px;
   clear: both;
+  padding-top: 15px;
 }
 
 .paymentNote input[type="checkbox"] {
@@ -249,6 +260,7 @@
   border-top: 1px solid #e9ecef;
   padding-top: 15px;
   margin-top: 15px;
+  background-color: #f9fafc;
   clear: both;
 }
 
