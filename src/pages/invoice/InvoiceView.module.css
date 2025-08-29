@@ -318,34 +318,70 @@
     right: 10px;
     display: flex;
     flex-direction: row;
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 5px;
-    padding: 5px;
     z-index: 10;
   }
 
-  .closeButton, .downloadButton, .printButton {
-    margin: 0 5px;
+  .closeButton {
+    width: 36px;
+    height: 36px;
+    background-color: #ff3b30;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border: none;
+  }
+  
+  .closeButton img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+  
+  /* Hide download and print buttons in mobile view */
+  .downloadButton, .printButton {
+    display: none;
   }
 
   .invoiceTopSection {
     padding: 15px;
-    padding-top: 50px; /* Make room for action buttons */
+    padding-top: 40px; /* Slightly less padding at top */
   }
   
   .invoiceTitle {
     font-size: 24px;
     text-align: center;
     margin-top: 0;
+    margin-bottom: 15px;
+  }
+  
+  /* Improve address section styling for mobile */
+  .billedTo h4, .businessAddress h4 {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  
+  .billedTo p, .businessAddress p {
+    font-size: 12px;
+    margin: 3px 0;
   }
   
   .addressSection {
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 5px;
+    padding: 0 5px;
   }
   
   .billedTo, .businessAddress {
-    width: 100%;
+    width: 48%;
     margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f9fafc;
+    border-radius: 8px;
   }
   
   .invoiceDetails {
