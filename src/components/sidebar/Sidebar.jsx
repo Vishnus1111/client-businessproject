@@ -1,13 +1,44 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 import logo from "../../assets/dashboard/logo.png"
 
 const Sidebar = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [userName, setUserName] = useState('User');
+  
+  // Load user name from localStorage and update when it changes
+  useEffect(() => {
+    // Initial load of user name
+    const loadUserName = () => {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      setUserName(user.name || 'User');
+    };
+    
+    // Load initially
+    loadUserName();
+    
+    // Listen for user data change events
+    const handleUserDataChange = (event) => {
+      const updatedUser = event.detail.user;
+      setUserName(updatedUser.name || 'User');
+    };
+    
+    // Listen for custom events
+    window.addEventListener('userDataChanged', handleUserDataChange);
+    
+    // Set up interval to check for changes in localStorage every second
+    const checkInterval = setInterval(() => {
+      loadUserName();
+    }, 1000);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('userDataChanged', handleUserDataChange);
+      clearInterval(checkInterval);
+    };
+  }, []);
 
   const menuItems = [
     {
@@ -42,14 +73,7 @@ const Sidebar = () => {
     }
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('resetEmail');
-    toast.success('Logged out successfully');
-    navigate('/login');
-  };
-
+  // Helper function to check if a route is active
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
@@ -87,7 +111,7 @@ const Sidebar = () => {
           {!isCollapsed && (
             <div className={styles.userDetails}>
               <div className={styles.userName}>
-                {JSON.parse(localStorage.getItem('user') || '{}').name || 'User'}
+                {userName}
               </div>
             </div>
           )}

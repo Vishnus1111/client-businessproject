@@ -150,6 +150,27 @@ const Settings = () => {
       });
 
       if (response.ok) {
+        // Get the response data to use the API's returned values
+        const responseData = await response.json();
+        
+        // Update localStorage with the new user data from the API
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        // Use the user data returned from API if available, otherwise use what we sent
+        const updatedUser = { 
+          ...currentUser, 
+          name: responseData.user?.name || fullName,
+          email: responseData.user?.email || formData.email
+        };
+        
+        // Update localStorage with new user info
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        // Dispatch custom event to notify other components of user data change
+        const userUpdateEvent = new CustomEvent('userDataChanged', {
+          detail: { user: updatedUser }
+        });
+        window.dispatchEvent(userUpdateEvent);
+        
         toast.success('Profile updated successfully');
         // Reset password fields
         setFormData({

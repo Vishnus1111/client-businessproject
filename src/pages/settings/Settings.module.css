@@ -27,6 +27,9 @@
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .mobileContent {
@@ -40,6 +43,8 @@
   display: flex;
   border-bottom: 1px solid #e0e0e0;
   margin-bottom: 20px;
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .tabButton {
@@ -64,7 +69,11 @@
 
 .profileForm {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -205,7 +214,8 @@
   }
   
   .tabsContainer {
-    justify-content: center;
+    justify-content: flex-start;
+    width: 100%;
   }
   
   .tabButton {
@@ -216,6 +226,12 @@
 /* Profile form styles */
 .formGroup {
   margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 0;
 }
 
 .formGroup label {
@@ -223,6 +239,7 @@
   margin-bottom: 8px;
   font-weight: 500;
   color: #2c3e50;
+  align-self: flex-start;
 }
 
 .formInput {
@@ -232,6 +249,9 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
+  text-align: left;
+  align-self: stretch;
+  box-sizing: border-box;
 }
 
 .formInput:focus {
@@ -244,11 +264,19 @@
   .formGroup label {
     color: #555;
     font-size: 0.9rem;
+    align-self: flex-start;
   }
   
   .formInput {
     padding: 10px;
     border-radius: 8px;
+    width: 100%;
+    align-self: flex-start;
+  }
+  
+  .formGroup {
+    width: 100%;
+    align-items: flex-start;
   }
 }
 
@@ -263,6 +291,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 20px;
+  align-self: flex-end;
   float: right;
 }
 
@@ -303,6 +332,11 @@
   min-height: 45px;
   display: flex;
   align-items: center;
+  align-self: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
   transition: all 0.2s ease;
 }
 

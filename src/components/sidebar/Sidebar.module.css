@@ -153,16 +153,32 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center; /* Align vertically with avatar */
+  flex-direction: column;
+  justify-content: center;
 }
 
 .userName {
   color: white;
   font-weight: 500; /* Slightly reduced from 600 */
   font-size: 1rem;
-  margin: 0; /* Removed all margins to fix alignment */
+  margin: 0 0 4px 0; /* Added small margin below username */
   text-transform: capitalize;
   line-height: 1; /* Adjusted line height */
+}
+
+.logoutButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logoutButton:hover {
+  color: white;
+  text-decoration: underline;
 }
 
 .userRole {
