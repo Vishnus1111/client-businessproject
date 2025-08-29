@@ -193,42 +193,48 @@
 .statRevenueValue {
   font-size: 16px;
   font-weight: 600;
-  color: #28a745; /* Green color */
+  color: #323844;
   display: block;
+  margin-top: -35px;
 }
 
 .statRevenueLabel {
   font-size: 11px;
   color: #6c757d;
   display: block;
+  margin-top: 15px;
 }
 
 /* Cost styles */
 .statCostValue {
   font-size: 16px;
   font-weight: 600;
-  color: #ffc107; /* Yellow color */
+  color: #303540; /* Yellow color */
   display: block;
+  margin-top: -35px;
 }
 
 .statCostLabel {
   font-size: 11px;
   color: #6c757d;
   display: block;
+  margin-top: 15px;
 }
 
 /* Not in stock styles */
 .statNotInStockValue {
   font-size: 16px;
   font-weight: 600;
-  color: #dc3545; /* Red color */
+  color: #3b404d; /* Red color */
   display: block;
+  margin-top: -35px;
 }
 
 .statNotInStockLabel {
   font-size: 11px;
   color: #6c757d;
   display: block;
+  margin-top: 15px;
 }
 
 /* Products Section */
