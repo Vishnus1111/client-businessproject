@@ -1,28 +1,28 @@
 /* Settings Page Styles */
 .settingsContainer {
-  padding: 2rem;
-  background: #f8f9fa;
+  /* padding: 2rem; */
+  background: #424457;
   min-height: 100vh;
 }
 
 .header {
   margin-bottom: 2rem;
-  background: white;
   padding: 1.5rem 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 .pageTitle {
-  font-size: 2rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: white;
   margin: 0;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
 .content {
-  max-width: 1200px;
+  max-width: 1170px;
   margin: 0 auto;
+  margin-top: -30px;
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -30,6 +30,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  height: 520px;
 }
 
 .mobileContent {
@@ -42,7 +43,7 @@
 .tabsContainer {
   display: flex;
   border-bottom: 1px solid #e0e0e0;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   width: 100%;
   justify-content: flex-start;
 }
@@ -74,6 +75,8 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
+  position: relative; /* Keeps positioned elements contained within */
+  padding-bottom: 70px; /* Add padding at the bottom for the button */
 }
 
 @media (max-width: 768px) {
@@ -225,7 +228,7 @@
 
 /* Profile form styles */
 .formGroup {
-  margin-bottom: 20px;
+  margin-bottom: 9px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -243,21 +246,23 @@
 }
 
 .formInput {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  text-align: left;
-  align-self: stretch;
-  box-sizing: border-box;
+  width: 100% !important;
+  border: 2px solid black !important;
+  border-radius: 4px !important;
+  font-size: 1rem !important;
+  transition: all 0.2s ease !important;
+  text-align: left !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  background-color: white !important;
+  color: black !important;
 }
 
 .formInput:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-  outline: none;
+  border: 2px solid #3498db !important;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2) !important;
+  outline: none !important;
 }
 
 @media (max-width: 768px) {
@@ -265,34 +270,41 @@
     color: #555;
     font-size: 0.9rem;
     align-self: flex-start;
+    padding-left: 40px; /* Move field names 40px to the right */
   }
   
   .formInput {
-    padding: 10px;
-    border-radius: 8px;
-    width: 100%;
-    align-self: flex-start;
+    padding: 10px !important;
+    border-radius: 4px !important;
+    border: 2px solid black !important;
+    width: 100% !important;
+    align-self: flex-start !important;
+    margin-left: 40px; /* Move input fields 40px to the right */
+    width: calc(100% - 40px) !important; /* Adjust width to account for the margin */
   }
   
   .formGroup {
     width: 100%;
-    align-items: flex-start;
+    align-items: center;
+    align-items: center !important;
   }
 }
 
 .saveButton {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: #242531;
+  width: 150px;
+  height: 40px;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 20px;
-  align-self: flex-end;
-  float: right;
+  margin-top: 13px;
+  position: absolute !important; /* Use absolute positioning */
+  right: -560px !important; /* Place it at the right edge with some padding */
+  bottom: 20px !important; /* Position from bottom */
 }
 
 .saveButton:hover {
@@ -306,11 +318,13 @@
 
 @media (max-width: 768px) {
   .saveButton {
-    float: none;
+    position: relative !important;
     width: 100%;
     padding: 12px;
     background: #1d242e;
     margin-bottom: 20px;
+    right: 0 !important;
+    bottom: 0 !important;
   }
 }
 
@@ -323,21 +337,21 @@
 }
 
 .readOnlyField {
-  padding: 12px 15px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: #f8f9fa;
-  cursor: pointer;
-  min-height: 45px;
-  display: flex;
-  align-items: center;
-  align-self: stretch;
-  justify-content: flex-start;
-  width: 100%;
-  text-align: left;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
+  padding: 12px 15px !important;
+  border: 1px solid black !important;
+  border-radius: 4px !important;
+  font-size: 1rem !important;
+  background-color: white !important;
+  cursor: pointer !important;
+  min-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  align-self: stretch !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
 }
 
 .readOnlyField:hover {
@@ -352,9 +366,18 @@
 
 @media (max-width: 768px) {
   .readOnlyField {
-    padding: 10px;
+    padding: 40px;
     background-color: white;
     border: 1px solid #eee;
+    border-radius: 12px !important;
     font-size: 0.9rem;
+    width: 75% !important;
+    margin-left: 40px; /* Move read-only fields 40px to the right */
+    width: calc(75% - 40px) !important; /* Adjust width to account for the margin */
+  }
+
+  .saveButton{
+    width: 100px;
+    left: 300px !important;
   }
 }

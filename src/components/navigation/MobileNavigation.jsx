@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './MobileNavigation.module.css';
+import home from "../../assets/mobile/homes.png"
+import product from "../../assets/mobile/products.png"
+import invoice from "../../assets/mobile/invoice.png"  
+import statistics from '../../assets/mobile/statistics.png';
 
 const MobileNavigation = () => {
   const location = useLocation();
@@ -10,32 +14,27 @@ const MobileNavigation = () => {
       id: 'home',
       label: 'Home',
       path: '/dashboard',
-      icon: '🏠'
+      icon: <img src={home} alt="Home" className={styles.iconImage} />
     },
     {
       id: 'product',
       label: 'Product',
       path: '/dashboard/product',
-      icon: '📦'
+      icon: <img src={product} alt="Product" className={styles.iconImage} />
     },
     {
       id: 'invoice',
       label: 'Invoice',
       path: '/dashboard/invoice',
-      icon: '📄'
+      icon: <img src={invoice} alt="Invoice" className={styles.iconImage} />
     },
     {
       id: 'statistics',
       label: 'Statistics',
       path: '/dashboard/statistics',
-      icon: '📊'
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      path: '/dashboard/settings',
-      icon: '⚙️'
+      icon: <img src={statistics} alt="Statistics" className={styles.iconImage} />
     }
+    // Settings removed from bottom navigation
   ];
 
   const isActive = (path) => {
