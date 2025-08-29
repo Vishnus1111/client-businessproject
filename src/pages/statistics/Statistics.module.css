@@ -48,9 +48,6 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-  font-weight: 600;
-  cursor: pointer;
-}
 
 /* Stats Cards */
 .statsCards {
@@ -373,7 +370,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .statisticsContainer {
     padding: 1rem;
   }

@@ -26,6 +26,23 @@
   margin: 0;
 }
 
+/* Settings button for mobile */
+.settingsButton {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+}
+
+.settingsIcon {
+  font-size: 24px;
+}
+
 .searchContainer {
   display: flex;
   align-items: center;
@@ -36,7 +53,7 @@
   transition: all 0.3s ease;
 }
 
-.searchavatar{
+.searchavatar {
   align-items: left;
 }
 
@@ -79,7 +96,6 @@
   margin: 0 0 20px 0;
   font-weight: 450;
   text-align: left !important;
-  
 }
 
 .statsRow {
@@ -92,60 +108,51 @@
   flex: 1;
   padding: 15px;
   border-right: 1px solid #cccccc;
-  &:last-child {
-    border-right: none;
-  }
   position: relative;
   text-align: left;
   justify-content: space-between;
-  height: 130px;
+}
+
+.statBox:last-child {
+  border-right: none;
 }
 
 .statTitle {
   font-size: 14px;
-  color: black;
-  margin-bottom: 10px;
-  font-weight: 500;
+  color: #444;
+  margin-bottom: 8px;
+  font-weight: 400;
 }
 
 .statValue {
   font-size: 20px;
-  font-weight: 700;
+  color: #000;
+  font-weight: 600;
   margin-bottom: 5px;
-  color: #2c3e50;
 }
 
 .statSubText {
   font-size: 12px;
-  color: #7f8c8d;
+  color: #888;
   position: absolute;
-  bottom: 10px;
-  left: 15px;
-}
-
-/* We're not using this anymore as we're positioning elements absolutely */
-.statContent {
-  display: none;
+  bottom: 15px;
 }
 
 .statProcessed {
-  font-size: 18px;
-  font-weight: 700;
-  color: #465269;
   position: absolute;
-  bottom: 25px;
+  top: 15px;
   right: 15px;
-  text-align: right;
-  margin-bottom: 70px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
 }
 
 .statfieldname {
-  color: #b8bcc6;
-  font-size: 15px;
   position: absolute;
-  bottom: 10px;
   right: 15px;
-  text-align: right;
+  top: 38px;
+  font-size: 12px;
+  color: #666;
 }
 
 /* Invoice list */
@@ -157,47 +164,34 @@
 
 .listHeaderRow {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .listTitle {
   font-size: 18px;
   margin: 0;
-  font-weight: 600;
+  font-weight: 450;
 }
 
 .searchIndicator {
   display: flex;
   align-items: center;
-  background-color: #495057;
-  color: #f8f9fa;
-  padding: 5px 12px;
-  border-radius: 20px;
   font-size: 14px;
-  gap: 8px;
+  color: #444;
+  background: #f5f5f5;
+  padding: 5px 10px;
+  border-radius: 4px;
 }
 
 .clearSearch {
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  color: #fff;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  font-size: 16px;
-  line-height: 0;
-}
-
-.clearSearch:hover {
-  background: rgba(255, 255, 255, 0.3);
+  margin-left: 10px;
+  font-size: 18px;
+  color: #555;
 }
 
 .tableContainer {
@@ -300,56 +294,60 @@
   background-color: #f5f5f5;
 }
 
-.payButton:hover {
-  background-color: #e8f7f0;
+.viewIcon, .deleteIcon, .payIcon, .returnIcon {
+  margin-right: 10px;
 }
 
-.returnButton:hover {
-  background-color: #f0e8f7;
+.viewIcon img, .deleteIcon img {
+  width: 18px;
+  height: 18px;
 }
 
 .deleteButton:hover {
-  background-color: #ffeeee;
+  background-color: #feeaea;
+  color: #d33;
 }
 
-.viewIcon, .deleteIcon, .payIcon, .returnIcon {
-  margin-right: 8px;
+.payButton:hover {
+  background-color: #f0f7ee;
+  color: #3c763d;
 }
 
-/* Pagination */
+.returnButton:hover {
+  background-color: #fff9ea;
+  color: #e67e22;
+}
+
+/* Pagination controls */
 .pagination {
+  margin-top: 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding-top: 20px;
+  gap: 15px;
 }
 
 .paginationButton {
-  background: #f5f7fa;
+  background: #e9ecef;
   border: none;
-  padding: 8px 15px;
   border-radius: 4px;
+  padding: 8px 15px;
   cursor: pointer;
-  color: #333;
+  color: #343a40;
   font-weight: 500;
+  transition: all 0.2s;
 }
 
-.paginationButton:hover {
-  background: #e6e9ed;
+.paginationButton:hover:not([disabled]) {
+  background: #dee2e6;
 }
 
 .pageInfo {
-  color: #555;
   font-size: 14px;
-}
-
-/* Loading and error states */
-.loading, .error {
-  padding: 20px;
-  text-align: center;
   color: #555;
 }
 
+/* Error state */
 .error {
   color: #e74c3c;
 }
@@ -365,20 +363,230 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .invoiceContainer {
     padding: 10px;
+    background: #32344a;
   }
   
   .header {
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .settingsButton {
+    background: transparent;
+    border: none;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  /* Style the dashboard for mobile */
+  .dashboard {
+    background-color: white;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .dashboardTitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: black;
+  }
+  
+  .statsRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
   
   .statBox {
-    flex: 1 0 100%;
+    flex: 1 0 calc(50% - 5px);
+    border-right: none;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    height: auto;
+    min-height: 60px;
+  }
+  
+  .statTitle {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  
+  .statValue {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+  
+  .statSubText {
+    font-size: 10px;
+    position: static;
+    margin-top: 5px;
+  }
+  
+  .statProcessed {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 15px;
+    margin-bottom: 0;
+  }
+  
+  .statfieldname {
+    position: absolute;
+    top: 30px;
+    right: 10px;
+    font-size: 10px;
+  }
+  
+  /* Invoice list table for mobile view */
+  .invoiceListContainer {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+  }
+  
+  .listTitle {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+  
+  /* Hide specific columns on mobile */
+  .invoiceTable th:nth-child(2),
+  .invoiceTable th:nth-child(3),
+  .invoiceTable th:nth-child(4),
+  .invoiceTable th:nth-child(5),
+  .invoiceTable td:nth-child(2),
+  .invoiceTable td:nth-child(3),
+  .invoiceTable td:nth-child(4),
+  .invoiceTable td:nth-child(5) {
+    display: none;
+  }
+  
+  .invoiceTable th,
+  .invoiceTable td {
+    padding: 10px;
+    border: none;
+  }
+  
+  .invoiceTable th {
+    background-color: #c5c7e1;
+    font-size: 14px;
+  }
+  
+  .invoiceTable td {
+    font-size: 13px;
+  }
+  
+  /* Style the action buttons directly without dropdown in mobile */
+  .actionDropdown {
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  .actionButton {
+    display: none;
+  }
+  
+  /* Always show view and delete buttons without dropdown */
+  .dropdownContent {
+    display: flex !important;
+    position: static;
+    background: transparent;
+    box-shadow: none;
+    min-width: auto;
+  }
+  
+  .viewButton,
+  .deleteButton {
+    background: transparent;
+    padding: 0;
+    margin: 0 5px;
+  }
+  
+  /* Show all action buttons regardless of invoice status */
+  .dropdownContent button {
+    display: inline-flex;
+    background: transparent;
+    padding: 0;
+    margin: 0 5px;
+  }
+  
+  /* Always show view and delete buttons */
+  .viewButton,
+  .deleteButton {
+    display: inline-flex !important;
+  }
+  
+  /* Show only icons for view and delete */
+  .viewIcon img,
+  .deleteIcon img {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+  
+  .viewButton span + span,
+  .deleteButton span + span {
+    display: none;
+  }
+  
+  /* Force show the dropdown content on mobile without needing to click */
+  .dropdownContent:not(.show) {
+    display: flex !important;
+  }
+  
+  /* Style for the invoice table on mobile */
+  .invoiceTable {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .invoiceTable thead {
+    background-color: #c5c7e1;
+  }
+  
+  .invoiceTable th:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    width: 70%;
+    text-align: left;
+  }
+  
+  .invoiceTable th:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    width: 30%;
+    text-align: center;
+  }
+  
+  .invoiceTable td:first-child {
+    text-align: left;
+    padding-left: 15px;
+    width: 70%;
+  }
+  
+  .invoiceTable td:last-child {
+    text-align: center;
+    width: 30%;
+  }
+  
+  /* Fix search container in mobile */
+  .searchContainer {
+    display: none;
   }
 }
+
 /* Delete Confirmation Modal */
 .modalOverlay {
   position: fixed;

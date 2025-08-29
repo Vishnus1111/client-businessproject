@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './Home.module.css';
+import salesale from '../../assets/dashboard/Sales.png';
+import revenueIcon from '../../assets/dashboard/Revenue.png';
+import profitIcon from '../../assets/dashboard/Profit.png';
+import costIcon from '../../assets/dashboard/Cost.png';
+import purchaseIcon from '../../assets/dashboard/Purchase.png';
+import costIcon2 from '../../assets/dashboard/Cost (1).png';
+import cancelIcon from '../../assets/dashboard/Cancel.png';
+import returnIcon from '../../assets/dashboard/return.png';
+import inventoryQuantityIcon from '../../assets/dashboard/Quantity.png';
+import inventoryReceivedIcon from '../../assets/dashboard/inventoryreceived.png';
+import supplierIcon from '../../assets/dashboard/pro. summary.png';
+import categoryIcon from '../../assets/dashboard/pro. Categories.png';
 
 const Home = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -190,25 +202,25 @@ const Home = () => {
               title="Sales"
               value={`₹ ${dashboardData?.salesOverview?.totalOrders || 0}`}
               color="blue"
-              icon="💰"
+              icon= {<img src={salesale} alt="Sales Cost" />}
             />
             <StatCard
               title="Revenue"
               value={`₹ ${dashboardData?.salesOverview?.totalRevenue?.toLocaleString() || 0}`}
               color="orange"
-              icon="💳"
+              icon= {<img src={revenueIcon} alt="Revenue" />}
             />
             <StatCard
               title="Profit"
               value={`₹ ${dashboardData?.profitMetrics?.totalProfit?.toLocaleString() || 0}`}
               color="green"
-              icon="📊"
+              icon= {<img src={profitIcon} alt="Profit" />}
             />
             <StatCard
               title="Cost"
               value={`₹ ${dashboardData?.inventoryCost?.totalCost?.toLocaleString() || 0}`}
               color="purple"
-              icon="💸"
+              icon= {<img src={costIcon} alt="Cost" />}
             />
           </div>
         </div>
@@ -223,25 +235,25 @@ const Home = () => {
               title="Purchase"
               value={dashboardData?.purchaseOverview?.totalPurchases || 0}
               color="blue"
-              icon="🛒"
+              icon= {<img src={purchaseIcon} alt="Purchase" />}
             />
             <StatCard
               title="Cost"
               value={`₹ ${dashboardData?.purchaseOverview?.totalCost?.toLocaleString() || 0}`}
               color="orange"
-              icon="💰"
+              icon= {<img src={costIcon2} alt="Cost" />}
             />
             <StatCard
               title="Cancel"
               value={dashboardData?.orderMetrics?.cancelledOrders || 0}
               color="green"
-              icon="❌"
+              icon= {<img src={cancelIcon} alt="Cancel" />}
             />
             <StatCard
               title="Return"
               value={`₹ ${dashboardData?.orderMetrics?.returnAmount?.toLocaleString() || 0}`}
               color="purple"
-              icon="🔄"
+              icon= {<img src={returnIcon} alt="Return" />}
             />
           </div>
         </div>
@@ -505,7 +517,7 @@ const Home = () => {
             <h3>Inventory Summary</h3>
             <div className={styles.inventoryItems}>
               <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}>📦</div>
+                <div className={styles.inventoryIcon}><img src={inventoryQuantityIcon} alt="Inventory" /></div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>Quantity in Hand</span>
                   <span className={styles.inventoryValue}>
@@ -514,7 +526,7 @@ const Home = () => {
                 </div>
               </div>
               <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}>📥</div>
+                <div className={styles.inventoryIcon}><img src={inventoryReceivedIcon} alt="Incoming" /></div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>To be received</span>
                   <span className={styles.inventoryValue}>
@@ -530,7 +542,7 @@ const Home = () => {
             <h3>Product Summary</h3>
             <div className={styles.inventoryItems}>
               <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}>🏪</div>
+                <div className={styles.inventoryIcon}><img src={supplierIcon} alt="Suppliers" /></div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>Number of Suppliers</span>
                   <span className={styles.inventoryValue}>
@@ -539,7 +551,7 @@ const Home = () => {
                 </div>
               </div>
               <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}>📋</div>
+                <div className={styles.inventoryIcon}><img src={categoryIcon} alt="Categories" /></div>
                 <div className={styles.inventoryContent}>
                   <span className={styles.inventoryLabel}>Number of Categories</span>
                   <span className={styles.inventoryValue}>

@@ -5,11 +5,11 @@ import MobileNavigation from '../../components/navigation/MobileNavigation';
 import styles from './DashboardLayout.module.css';
 
 const DashboardLayout = () => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
   
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 600);
     };
     
     window.addEventListener('resize', handleResize);

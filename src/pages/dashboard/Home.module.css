@@ -373,7 +373,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .homeContainer {
     padding: 0;
   }
@@ -682,7 +682,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .chartContent {
     margin-left: 40px;
   }

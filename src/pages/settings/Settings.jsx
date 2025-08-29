@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Settings.module.css';
+import './patch.css';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 
 const Settings = () => {
   const [loading, setLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -17,12 +18,28 @@ const Settings = () => {
   // Handle window resize for responsive design
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const isMobileView = window.innerWidth <= 600;
+      setIsMobile(isMobileView);
+      
+      // Apply body styles for mobile
+      if (isMobileView) {
+        document.body.style.overflowY = 'hidden';
+        document.body.classList.add('settings-page-mobile');
+      } else {
+        document.body.style.overflowY = '';
+        document.body.classList.remove('settings-page-mobile');
+      }
     };
+    
+    // Set initial state
+    handleResize();
     
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
+      // Cleanup when component unmounts
+      document.body.style.overflowY = '';
+      document.body.classList.remove('settings-page-mobile');
     };
   }, []);
   
@@ -195,7 +212,10 @@ const Settings = () => {
   };
 
   return (
-    <div className={styles.settingsContainer}>
+    <div 
+      className={styles.settingsContainer}
+      style={isMobile ? { overflow: 'hidden', position: 'fixed', width: '100%', height: '100%' } : {}}
+    >
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Settings</h1>
       </div>

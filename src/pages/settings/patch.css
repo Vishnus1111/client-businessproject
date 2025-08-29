@@ -1,0 +1,24 @@
+/* Mobile-specific full-width styles to fix the background issue */
+@media (max-width: 600px) {
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    background-color: white !important;
+  }
+  
+  body.settings-page-mobile {
+    overflow-y: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    background-color: white !important;
+  }
+}

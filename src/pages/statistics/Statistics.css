@@ -200,7 +200,7 @@
   color: #FFD700;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .statistics-header {
     flex-direction: column;
     align-items: flex-start;
