@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './Home.module.css';
@@ -21,14 +21,13 @@ const Home = () => {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('weekly');
+  // Additional metrics derived from available endpoints
+  const [cancelMetrics, setCancelMetrics] = useState({ count: 0 });
+  const [returnMetrics, setReturnMetrics] = useState({ count: 0, amount: 0 });
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchChartData();
-    fetchTopProducts();
-  }, [selectedPeriod]);
+  // Effects will be attached after fetch functions are defined
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -45,6 +44,37 @@ const Home = () => {
         const data = await response.json();
         setDashboardData(data);
         console.log('Dashboard data loaded:', data);
+        // In parallel, enrich with cancel/return invoice metrics if available
+        // These endpoints already exist; we'll compute counts and totals client-side.
+        try {
+          const [cancelRes, returnRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/api/invoices?status=Cancelled`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }),
+            fetch(`${API_BASE_URL}/api/invoices?status=Returned`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+          ]);
+
+          if (cancelRes.ok) {
+            const cancelData = await cancelRes.json();
+            setCancelMetrics({ count: cancelData.totalInvoices || (cancelData.invoices ? cancelData.invoices.length : 0) });
+          }
+          if (returnRes.ok) {
+            const returnData = await returnRes.json();
+            const invoices = returnData.invoices || [];
+            const amount = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+            setReturnMetrics({ count: returnData.totalInvoices || invoices.length, amount });
+          }
+        } catch (e) {
+          console.warn('Optional cancel/return metrics fetch failed:', e);
+        }
       } else {
         toast.error('Failed to load dashboard data');
       }
@@ -54,9 +84,9 @@ const Home = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   
-  const fetchChartData = async () => {
+  const fetchChartData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       
@@ -129,9 +159,9 @@ const Home = () => {
       console.error('Chart data fetch error:', error);
       toast.error('Error loading chart data');
     }
-  };
+  }, [selectedPeriod]);
   
-  const fetchTopProducts = async () => {
+  const fetchTopProducts = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       
@@ -154,7 +184,18 @@ const Home = () => {
       console.error('Top products fetch error:', error);
       toast.error('Error loading top products');
     }
-  };
+  }, []);
+
+  // Load dashboard + top products on mount
+  useEffect(() => {
+    fetchDashboardData();
+    fetchTopProducts();
+  }, [fetchDashboardData, fetchTopProducts]);
+
+  // Load chart when period changes
+  useEffect(() => {
+    fetchChartData();
+  }, [fetchChartData]);
 
   const StatCard = ({ title, value, subtitle, color, icon }) => (
     <div className={`${styles.statCard} ${styles[color]}`}>
@@ -200,25 +241,25 @@ const Home = () => {
           <div className={styles.statsGrid}>
             <StatCard
               title="Sales"
-              value={`₹ ${dashboardData?.salesOverview?.totalOrders || 0}`}
+              value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`}
               color="blue"
               icon= {<img src={salesale} alt="Sales Cost" />}
             />
             <StatCard
               title="Revenue"
-              value={`₹ ${dashboardData?.salesOverview?.totalRevenue?.toLocaleString() || 0}`}
+              value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`}
               color="orange"
               icon= {<img src={revenueIcon} alt="Revenue" />}
             />
             <StatCard
               title="Profit"
-              value={`₹ ${dashboardData?.profitMetrics?.totalProfit?.toLocaleString() || 0}`}
+              value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`}
               color="green"
               icon= {<img src={profitIcon} alt="Profit" />}
             />
             <StatCard
               title="Cost"
-              value={`₹ ${dashboardData?.inventoryCost?.totalCost?.toLocaleString() || 0}`}
+              value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
               color="purple"
               icon= {<img src={costIcon} alt="Cost" />}
             />
@@ -233,25 +274,25 @@ const Home = () => {
           <div className={styles.statsGrid}>
             <StatCard
               title="Purchase"
-              value={dashboardData?.purchaseOverview?.totalPurchases || 0}
+              value={dashboardData?.overallInventory?.totalProducts?.recent || 0}
               color="blue"
               icon= {<img src={purchaseIcon} alt="Purchase" />}
             />
             <StatCard
               title="Cost"
-              value={`₹ ${dashboardData?.purchaseOverview?.totalCost?.toLocaleString() || 0}`}
+              value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
               color="orange"
               icon= {<img src={costIcon2} alt="Cost" />}
             />
             <StatCard
               title="Cancel"
-              value={dashboardData?.orderMetrics?.cancelledOrders || 0}
+              value={cancelMetrics.count || 0}
               color="green"
               icon= {<img src={cancelIcon} alt="Cancel" />}
             />
             <StatCard
               title="Return"
-              value={`₹ ${dashboardData?.orderMetrics?.returnAmount?.toLocaleString() || 0}`}
+              value={`₹ ${(returnMetrics.amount || 0).toLocaleString()}`}
               color="purple"
               icon= {<img src={returnIcon} alt="Return" />}
             />
