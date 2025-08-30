@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './AddProductForm.module.css';
@@ -10,7 +10,7 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
     category: '',
     costPrice: '',
     sellingPrice: '',
-    quantity: '',
+  quantity: '1',
     unit: 'piece',
     expiryDate: '',
     thresholdValue: '',
@@ -19,6 +19,7 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const quantityInputRef = useRef(null);
 
   // Generate product ID on component mount
   useEffect(() => {
@@ -114,7 +115,11 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
       toast.error('Selling price should be greater than or equal to cost price');
       return;
     }
-    if (!formData.quantity || parseInt(formData.quantity) < 0) {
+    // Quantity: default to 1 if empty, must be >= 0
+  const quantityToUse = formData.quantity === '' || formData.quantity === null || formData.quantity === undefined
+      ? 1
+      : parseInt(formData.quantity, 10);
+    if (isNaN(quantityToUse) || quantityToUse < 0) {
       toast.error('Quantity must be a positive number');
       return;
     }
@@ -122,7 +127,7 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
       toast.error('Threshold value must be a positive number');
       return;
     }
-    if (parseInt(formData.thresholdValue) > parseInt(formData.quantity)) {
+  if (parseInt(formData.thresholdValue) > quantityToUse) {
       toast.error('Threshold value cannot be greater than current quantity');
       return;
     }
@@ -145,9 +150,12 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
       const token = localStorage.getItem('token');
       const formDataToSend = new FormData();
 
-      // Append all form fields
+      // Append all form fields (with sanitized quantity)
       Object.keys(formData).forEach(key => {
-        if (formData[key]) {
+        if (key === 'quantity') {
+          // Ensure quantity is an integer and at least 1 by default
+          formDataToSend.append('quantity', String(Math.max(1, quantityToUse)));
+        } else if (formData[key]) {
           formDataToSend.append(key, formData[key]);
         }
       });
@@ -366,6 +374,13 @@ const AddProductForm = ({ onClose, onProductAdded }) => {
                   name="quantity"
                   value={formData.quantity}
                   onChange={handleInputChange}
+                  onFocus={() => {
+                    // Select all text so typing overwrites immediately
+                    if (quantityInputRef.current) {
+                      quantityInputRef.current.select();
+                    }
+                  }}
+                  ref={quantityInputRef}
                   placeholder="Enter product quantity"
                   className={styles.input}
                   min="0"
