@@ -73,11 +73,18 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
     // Log the product object to understand its structure
     console.log("Full product object:", product);
     
-    const productId = product._id || product.productId;
+    // Check if rating is selected before placing order
+    if (rating === 0) {
+      toast.error('Please select a rating before placing the order');
+      return;
+    }
+  // IMPORTANT: Backend expects productId (custom ID), not Mongo _id
+  const productId = product.productId || product._id;
     
     const orderData = {
       productId: productId,
-      quantityOrdered: quantity
+      quantityOrdered: quantity,
+      rating: rating // Include the selected rating in the order data
     };
     
     console.log("Placing order with data:", orderData);
@@ -87,75 +94,10 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
     }
   };
 
-  const handleRatingClick = async (selectedRating) => {
-    try {
-      setRating(selectedRating);
-      
-      // Make sure we have all required fields
-      if (!product) {
-        console.error('Product information is missing');
-        toast.error('Product information is incomplete');
-        return;
-      }
-      
-      // Use productId as that's the primary identifier in the database
-      const productIdentifier = product.productId;
-      
-      if (!productIdentifier) {
-        console.error('Product ID is missing');
-        toast.error('Product information is incomplete');
-        return;
-      }
-
-      const token = localStorage.getItem('token');
-      console.log('Submitting rating with data:', {
-        productId: productIdentifier,
-        rating: selectedRating
-      });
-      
-      // Create a simulated order ID for rating this product
-      const orderId = `ORDER-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-
-      // Use the existing statistics update-rating endpoint that's already connected to the top products
-      const response = await fetch(`${API_BASE_URL}/api/statistics/update-rating/${productIdentifier}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          orderId: orderId,
-          rating: selectedRating
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success('Rating submitted successfully');
-        console.log('Rating response:', data);
-        
-        // Set a thank you message that will be shown in the UI
-        setRating(selectedRating);
-        
-        // Refresh top products if a parent component provided a callback
-        if (typeof window.refreshTopProducts === 'function') {
-          window.refreshTopProducts();
-        }
-      } else {
-        let errorMessage = 'Failed to submit rating';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-          console.error('Rating submission failed:', errorData);
-        } catch (e) {
-          console.error('Error parsing error response:', e);
-        }
-        toast.error(errorMessage);
-      }
-    } catch (error) {
-      console.error('Error submitting rating:', error);
-      toast.error('Error submitting rating');
-    }
+  const handleRatingClick = (selectedRating) => {
+    // Simply set the rating in state - it will be sent with the order when "Place Order" is clicked
+    setRating(selectedRating);
+    console.log(`Rating selected: ${selectedRating} stars`);
   };
 
   if (!product) {
@@ -193,7 +135,7 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
             <div className={styles.productInfoSection}>
               <div className={styles.detailRow}>
                 <span className={styles.label}>ID:</span>
-                <span className={styles.value}>{product._id || product.productId || 'No ID available'}</span>
+                <span className={styles.value}>{product.productId || product._id || 'No ID available'}</span>
               </div>
               
               <div className={styles.detailRow}>
@@ -244,7 +186,7 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
               
               {/* Rating component */}
               <div className={styles.ratingContainer}>
-                <span className={styles.ratingLabel}>Rate this product:</span>
+                <span className={styles.ratingLabel}>Rate this product: <span className={styles.requiredStar}>*</span></span>
                 <div className={styles.ratingStars}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <span
@@ -258,7 +200,11 @@ const ProductDetailModal = ({ product, onClose, onPlaceOrder }) => {
                     </span>
                   ))}
                 </div>
-                {rating > 0 && <div className={styles.ratingText}>Thank you for rating!</div>}
+                {rating > 0 ? (
+                  <div className={styles.ratingText}>Thank you for rating!</div>
+                ) : (
+                  <div className={styles.ratingRequired}>Rating is required before placing an order</div>
+                )}
               </div>
               
               <button 

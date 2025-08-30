@@ -228,6 +228,18 @@
   margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #28a745;
+}
+
+.ratingRequired {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc3545;
+  font-style: italic;
+}
+
+.requiredStar {
+  color: #dc3545;
+  font-weight: bold;
   font-weight: 500;
 }
 
