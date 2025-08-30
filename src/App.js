@@ -14,7 +14,7 @@ import Home from './pages/dashboard/Home';
 import Product from './pages/product/Product';
 // Re-created Invoice component
 import Invoice from './pages/invoice/Invoice';
-import Statistics from './pages/statistics/Statistics';
+import Statistics from './pages/statistics/Statistics.jsx';
 import Settings from './pages/settings/Settings';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 

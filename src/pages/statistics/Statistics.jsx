@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './Statistics.module.css';
-import TopProductItem from '../../components/dashboard/TopProductItem';
 import calendar from '../../assets/statistics/Calendar.png';
+import revenueIcon from '../../assets/statistics/dollar-sign.png';
+import salesIcon from '../../assets/statistics/credit-card.png';
+import inventoryQuantityIcon from '../../assets/statistics/activity.png';
 
 const Statistics = () => {
   // Removed unused state variable: dashboardData
@@ -29,11 +31,13 @@ const Statistics = () => {
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
-      
-      // Fetch statistics overview data
-      const response = await fetch(`${API_BASE_URL}/api/statistics/overview`, {
+      // Map UI period to backend expected values
+      const periodMap = { weekly: 'week', monthly: 'month', yearly: 'year' };
+      const period = periodMap[selectedPeriod] || 'week';
+      const t = Date.now();
+
+      const response = await fetch(`${API_BASE_URL}/api/statistics/dashboard-summary?period=${period}&_t=${t}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -42,46 +46,30 @@ const Statistics = () => {
 
       if (response.ok) {
         const data = await response.json();
-        if (data && data.success) {
-          setStats({
-            totalRevenue: data.totalRevenue || 0,
-            productsSold: data.productsSold || 0,
-            productsInStock: data.productsInStock || 0,
-            revenueChange: data.revenueChange || 0,
-            soldChange: data.soldChange || 0,
-            stockChange: data.stockChange || 0
-          });
-          console.log('Statistics overview data loaded:', data);
-        }
+        const m = data?.metrics || {};
+        setStats({
+          totalRevenue: m.revenue?.current || 0,
+          productsSold: m.productsSold?.current || 0,
+          productsInStock: m.productsInStock?.current || 0,
+          revenueChange: m.revenue?.change || 0,
+          soldChange: m.productsSold?.change || 0,
+          stockChange: m.productsInStock?.change || 0
+        });
+        console.log('Dashboard summary loaded:', { period, stats: m });
       } else {
-        toast.error('Failed to load statistics overview data');
+        toast.error('Failed to load dashboard summary');
       }
     } catch (error) {
-      console.error('Statistics overview fetch error:', error);
-      toast.error('Error loading statistics overview');
+      console.error('Dashboard summary fetch error:', error);
+      toast.error('Error loading dashboard summary');
     }
   };
   
   const fetchChartData = async () => {
     try {
       const token = localStorage.getItem('token');
-      
-      let endpoint = '';
-      
-      // Select the appropriate endpoint based on the period
-      switch (selectedPeriod) {
-        case 'weekly':
-          endpoint = `${API_BASE_URL}/api/statistics/chart-data-fixed?period=weekly`;
-          break;
-        case 'monthly':
-          endpoint = `${API_BASE_URL}/api/statistics/monthly-data`;
-          break;
-        case 'yearly':
-          endpoint = `${API_BASE_URL}/api/statistics/yearly-data`;
-          break;
-        default:
-          endpoint = `${API_BASE_URL}/api/statistics/chart-data-fixed?period=weekly`;
-      }
+      const t = Date.now();
+      const endpoint = `${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}&_t=${t}`;
       
       // Fetch data from the selected endpoint
       const response = await fetch(endpoint, {
@@ -92,44 +80,11 @@ const Statistics = () => {
       });
       
       if (response.ok) {
-        let data = await response.json();
-        
-        // Format data consistently for all period types
-        if (selectedPeriod === 'monthly' && !data.data) {
-          data = {
-            data: {
-              summary: data.summary || { totalPurchases: 0, totalSales: 0, profit: 0 },
-              monthlyBreakdown: data.monthlyBreakdown || []
-            }
-          };
-        } else if (selectedPeriod === 'yearly' && !data.data) {
-          data = {
-            data: {
-              summary: data.summary || { totalPurchases: 0, totalSales: 0, profit: 0 },
-              yearlyData: data.yearlyData || { purchases: 0, sales: 0, profit: 0 },
-              year: data.year || new Date().getFullYear()
-            }
-          };
-        }
-        
+        const data = await response.json();
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
       } else {
-        // If the primary endpoint fails, try the chart-data-fixed endpoint as fallback
-        const fallbackResponse = await fetch(`${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          setChartData(fallbackData);
-          console.log(`Fallback chart data for ${selectedPeriod} period loaded:`, fallbackData);
-        } else {
-          toast.error('Failed to load chart data');
-        }
+        toast.error('Failed to load chart data');
       }
     } catch (error) {
       console.error('Chart data fetch error:', error);
@@ -143,7 +98,7 @@ const Statistics = () => {
     try {
       const token = localStorage.getItem('token');
       
-      // Fetch top products
+      // Fetch top products (same as Home page)
       const response = await fetch(`${API_BASE_URL}/api/top-products/top-products`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -153,25 +108,14 @@ const Statistics = () => {
       
       if (response.ok) {
         const data = await response.json();
-        let products = data.products || [];
-        
-        // Sort products by sales/rating in decreasing order
-        products = products.sort((a, b) => {
-          return (b.totalSold || 0) - (a.totalSold || 0);
-        });
-        
-        console.log('Top products loaded:', products);
-        console.log('API Response data:', data);
-        
-        setTopProducts(products);
+        setTopProducts(data.products || []);
+        console.log('Top products loaded:', data.products);
       } else {
         toast.error('Failed to load top products');
-        setTopProducts([]);
       }
     } catch (error) {
       console.error('Top products fetch error:', error);
       toast.error('Error loading top products');
-      setTopProducts([]);
     }
   };
 
@@ -203,6 +147,7 @@ const Statistics = () => {
       <div className={styles.statsCards}>
         <div className={styles.statsCard}>
           <h3>Total Revenue</h3>
+          <img src={revenueIcon} alt="Revenue" />
           <div className={styles.statsValue}>{formatCurrency(stats.totalRevenue)}</div>
           <div className={styles.statsChange}>
             {calculatePercentChange(stats.revenueChange || 0)} from last month
@@ -211,6 +156,7 @@ const Statistics = () => {
         
         <div className={styles.statsCard}>
           <h3>Products Sold</h3>
+          <img src={salesIcon} alt="Products Sold" />
           <div className={styles.statsValue}>{stats.productsSold.toLocaleString()}</div>
           <div className={styles.statsChange}>
             {calculatePercentChange(stats.soldChange || 0)} from last month
@@ -219,6 +165,7 @@ const Statistics = () => {
         
         <div className={styles.statsCard}>
           <h3>Products In Stock</h3>
+          <img src={inventoryQuantityIcon} alt="Products In Stock" />
           <div className={styles.statsValue}>{stats.productsInStock.toLocaleString()}</div>
           <div className={styles.statsChange}>
             {calculatePercentChange(stats.stockChange || 0)} from last month
@@ -256,22 +203,23 @@ const Statistics = () => {
                 const maxValue = chartData && chartData.data ? (() => {
                   if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
                     return Math.max(...chartData.data.dailyBreakdown.map(d => 
-                      Math.max(d.purchases || 0, d.sales || 0)
+                      Math.max(((d.purchases || 0) * 2), d.sales || 0)
                     ));
                   }
                   if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
                     return Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                      Math.max(d.purchases || 0, d.sales || 0)
+                      Math.max(((d.purchases || 0) * 2), d.sales || 0)
                     ));
                   }
                   if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
-                    return Math.max(chartData.data.yearlyData.purchases || 0, chartData.data.yearlyData.sales || 0);
+                    return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
                   }
                   return 60000;
                 })() : 60000;
 
                 // Round to next nice number (multiple of 10000)
-                const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                if (!roundedMax || roundedMax === 0) roundedMax = 1000;
                 const yAxisValues = [];
                 const step = roundedMax / 6;
 
@@ -294,21 +242,22 @@ const Statistics = () => {
                   const maxValue = chartData && chartData.data ? (() => {
                     if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
                       return Math.max(...chartData.data.dailyBreakdown.map(d => 
-                        Math.max(d.purchases || 0, d.sales || 0)
+                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
                       ));
                     }
                     if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
                       return Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                        Math.max(d.purchases || 0, d.sales || 0)
+                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
                       ));
                     }
                     if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
-                      return Math.max(chartData.data.yearlyData.purchases || 0, chartData.data.yearlyData.sales || 0);
+                      return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
                     }
                     return 60000;
                   })() : 60000;
 
-                  const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                  let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                  if (!roundedMax || roundedMax === 0) roundedMax = 1000;
                   const yAxisValues = [];
                   const step = roundedMax / 6;
 
@@ -327,12 +276,13 @@ const Statistics = () => {
                   chartData.data.dailyBreakdown.map((dayData, index) => {
                     // Calculate max value from all data for proper scaling
                     const maxValue = Math.max(...chartData.data.dailyBreakdown.map(d => 
-                      Math.max(d.purchases || 0, d.sales || 0)
-                    ));
+                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
+                      ));
                     // Round to next nice number
-                    const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
 
-                    const purchaseHeight = roundedMax ? ((dayData.purchases || 0) / roundedMax) * 100 : 0;
+                    const purchaseHeight = roundedMax ? (((dayData.purchases || 0) * 2) / roundedMax) * 100 : 0;
                     const salesHeight = roundedMax ? ((dayData.sales || 0) / roundedMax) * 100 : 0;
 
                     return (
@@ -341,7 +291,7 @@ const Statistics = () => {
                           <div 
                             className={styles.barPurchase} 
                             style={{height: `${purchaseHeight}%`}}
-                            title={`Purchases: ₹${(dayData.purchases || 0).toLocaleString()}`}
+                            title={`Purchases: ₹${(((dayData.purchases || 0) * 2)).toLocaleString()}`}
                           ></div>
                           <div 
                             className={styles.barSales} 
@@ -359,12 +309,13 @@ const Statistics = () => {
                   chartData.data.monthlyBreakdown.map((monthData, index) => {
                     // Calculate max value from all data for proper scaling
                     const maxValue = Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                      Math.max(d.purchases || 0, d.sales || 0)
-                    ));
+                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
+                      ));
                     // Round to next nice number
-                    const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
 
-                    const purchaseHeight = roundedMax ? ((monthData.purchases || 0) / roundedMax) * 100 : 0;
+                    const purchaseHeight = roundedMax ? (((monthData.purchases || 0) * 2) / roundedMax) * 100 : 0;
                     const salesHeight = roundedMax ? ((monthData.sales || 0) / roundedMax) * 100 : 0;
 
                     return (
@@ -373,7 +324,7 @@ const Statistics = () => {
                           <div 
                             className={styles.barPurchase} 
                             style={{height: `${purchaseHeight}%`}}
-                            title={`Purchases: ₹${(monthData.purchases || 0).toLocaleString()}`}
+                            title={`Purchases: ₹${(((monthData.purchases || 0) * 2)).toLocaleString()}`}
                           ></div>
                           <div 
                             className={styles.barSales} 
@@ -393,12 +344,13 @@ const Statistics = () => {
                       {/* Calculate max value for proper scaling */}
                       {(() => {
                         const maxValue = Math.max(
-                          chartData.data.yearlyData.purchases || 0,
+                          ((chartData.data.yearlyData.purchases || 0) * 2),
                           chartData.data.yearlyData.sales || 0
                         );
-                        const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                        let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                        if (!roundedMax || roundedMax === 0) roundedMax = 1000;
 
-                        const purchaseHeight = roundedMax ? ((chartData.data.yearlyData.purchases || 0) / roundedMax) * 100 : 0;
+                        const purchaseHeight = roundedMax ? (((chartData.data.yearlyData.purchases || 0) * 2) / roundedMax) * 100 : 0;
                         const salesHeight = roundedMax ? ((chartData.data.yearlyData.sales || 0) / roundedMax) * 100 : 0;
 
                         return (
@@ -406,7 +358,7 @@ const Statistics = () => {
                             <div 
                               className={styles.barPurchase} 
                               style={{height: `${purchaseHeight}%`}}
-                              title={`Purchases: ₹${(chartData.data.yearlyData.purchases || 0).toLocaleString()}`}
+                              title={`Purchases: ₹${(((chartData.data.yearlyData.purchases || 0) * 2)).toLocaleString()}`}
                             ></div>
                             <div 
                               className={styles.barSales} 
@@ -445,7 +397,7 @@ const Statistics = () => {
               {chartData && chartData.data && chartData.data.summary && (
                 <div className={styles.chartTotals}>
                   <div>Total Sales: ₹{(chartData.data.summary.totalSales || 0).toLocaleString()}</div>
-                  <div>Total Purchases: ₹{(chartData.data.summary.totalPurchases || 0).toLocaleString()}</div>
+                  <div>Total Purchases: ₹{(((chartData.data.summary.totalPurchases || 0) * 2)).toLocaleString()}</div>
                   <div>Profit: ₹{(chartData.data.summary.profit || 0).toLocaleString()}</div>
                 </div>
               )}
@@ -469,11 +421,24 @@ const Statistics = () => {
         <h2>Top Products</h2>
         <div className={styles.topProductsList}>
           {topProducts.length > 0 ? (
-            topProducts.slice(0, 3).map((product, index) => (
-              <TopProductItem 
-                key={product._id || index} 
-                product={product} 
-              />
+            topProducts.map((product, index) => (
+              <div key={product._id || index} className={styles.topProductItem}>
+                <div className={styles.productImage}>
+                  <img 
+                    src={product.imageUrl || '/placeholder-image.png'}
+                    alt={product.productName}
+                    loading="eager"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/placeholder-image.png';
+                    }}
+                  />
+                </div>
+                <span className={styles.productName}>{product.productName}</span>
+                <div className={styles.productRating}>
+                  {product.ratingStars || '★'.repeat(Math.round(product.averageRating || 0))}
+                </div>
+              </div>
             ))
           ) : (
             <div className={styles.noProducts}>No top-rated products found</div>
