@@ -109,8 +109,8 @@ const Home = () => {
       
       if (response.ok) {
         let data = await response.json();
-        
-        // Format data consistently for all period types
+
+        // Normalize structure for all period types first
         if (selectedPeriod === 'monthly' && !data.data) {
           data = {
             data: {
@@ -127,9 +127,44 @@ const Home = () => {
             }
           };
         }
-        
-        setChartData(data);
-        console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
+
+        // Multiply purchases by 2 at retrieval time (graph-only adjustment)
+        const multiplied = (() => {
+          if (!data || !data.data) return data;
+          const cloned = { ...data, data: { ...data.data } };
+          // Summary
+          if (cloned.data.summary) {
+            cloned.data.summary = {
+              ...cloned.data.summary,
+              totalPurchases: ((cloned.data.summary.totalPurchases || 0) * 2)
+            };
+          }
+          // Weekly breakdown
+          if (Array.isArray(cloned.data.dailyBreakdown)) {
+            cloned.data.dailyBreakdown = cloned.data.dailyBreakdown.map(d => ({
+              ...d,
+              purchases: ((d?.purchases || 0) * 2)
+            }));
+          }
+          // Monthly breakdown
+          if (Array.isArray(cloned.data.monthlyBreakdown)) {
+            cloned.data.monthlyBreakdown = cloned.data.monthlyBreakdown.map(d => ({
+              ...d,
+              purchases: ((d?.purchases || 0) * 2)
+            }));
+          }
+          // Yearly data
+          if (cloned.data.yearlyData) {
+            cloned.data.yearlyData = {
+              ...cloned.data.yearlyData,
+              purchases: ((cloned.data.yearlyData.purchases || 0) * 2)
+            };
+          }
+          return cloned;
+        })();
+
+        setChartData(multiplied);
+        console.log(`Chart data for ${selectedPeriod} period loaded:`, multiplied);
       } else {
         // If the primary endpoint fails, try the chart-data-fixed endpoint as fallback
         const fallbackResponse = await fetch(`${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}`, {
@@ -140,9 +175,39 @@ const Home = () => {
         });
         
         if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          setChartData(fallbackData);
-          console.log(`Fallback chart data for ${selectedPeriod} period loaded:`, fallbackData);
+          let fallbackData = await fallbackResponse.json();
+          // Multiply purchases by 2 similarly for fallback
+          const multipliedFallback = (() => {
+            if (!fallbackData || !fallbackData.data) return fallbackData;
+            const cloned = { ...fallbackData, data: { ...fallbackData.data } };
+            if (cloned.data.summary) {
+              cloned.data.summary = {
+                ...cloned.data.summary,
+                totalPurchases: ((cloned.data.summary.totalPurchases || 0) * 2)
+              };
+            }
+            if (Array.isArray(cloned.data.dailyBreakdown)) {
+              cloned.data.dailyBreakdown = cloned.data.dailyBreakdown.map(d => ({
+                ...d,
+                purchases: ((d?.purchases || 0) * 2)
+              }));
+            }
+            if (Array.isArray(cloned.data.monthlyBreakdown)) {
+              cloned.data.monthlyBreakdown = cloned.data.monthlyBreakdown.map(d => ({
+                ...d,
+                purchases: ((d?.purchases || 0) * 2)
+              }));
+            }
+            if (cloned.data.yearlyData) {
+              cloned.data.yearlyData = {
+                ...cloned.data.yearlyData,
+                purchases: ((cloned.data.yearlyData.purchases || 0) * 2)
+              };
+            }
+            return cloned;
+          })();
+          setChartData(multipliedFallback);
+          console.log(`Fallback chart data for ${selectedPeriod} period loaded:`, multipliedFallback);
         } else {
           toast.error('Failed to load chart data');
         }

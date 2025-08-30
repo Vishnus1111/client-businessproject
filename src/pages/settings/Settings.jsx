@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Settings.module.css';
 import './patch.css';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const [loading, setLoading] = useState(false);
@@ -14,6 +15,9 @@ const Settings = () => {
     password: '',
     confirmPassword: '',
   });
+  const navigate = useNavigate();
+  // Guard to avoid duplicate effect execution in React.StrictMode (dev only)
+  const didFetchRef = useRef(false);
   
   // Handle window resize for responsive design
   useEffect(() => {
@@ -54,12 +58,17 @@ const Settings = () => {
 
   // Fetch user profile when component mounts
   useEffect(() => {
+    // Avoid duplicate fetches in dev StrictMode
+    if (didFetchRef.current) return;
+    didFetchRef.current = true;
+
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
         if (!token) {
           toast.error('You are not logged in');
+          navigate('/login');
           return;
         }
 
@@ -75,7 +84,7 @@ const Settings = () => {
           const userData = await response.json();
           
           // Split the name into first and last name
-          const nameParts = userData.name.split(' ');
+          const nameParts = (userData.name || '').split(' ');
           const firstName = nameParts[0] || '';
           const lastName = nameParts.slice(1).join(' ') || '';
           
@@ -87,8 +96,16 @@ const Settings = () => {
             confirmPassword: ''
           });
         } else {
-          const errorData = await response.json();
-          toast.error(errorData.error || 'Failed to load profile');
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 401 || response.status === 403) {
+            // Token missing/expired/invalid -> force re-login
+            toast.error('Session expired or invalid. Please log in again.');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+          } else {
+            toast.error(errorData.error || 'Failed to load profile');
+          }
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -99,7 +116,7 @@ const Settings = () => {
     };
 
     fetchUserProfile();
-  }, []);
+  }, [navigate]);
 
   // Toggle field editability on double click
   const handleDoubleClick = (field) => {
@@ -138,6 +155,7 @@ const Settings = () => {
       const token = localStorage.getItem('token');
       if (!token) {
         toast.error('You are not logged in');
+        navigate('/login');
         return;
       }
 
@@ -196,8 +214,13 @@ const Settings = () => {
           confirmPassword: ''
         });
       } else {
-        const errorData = await response.json();
-        if (errorData.error === "Email already in use") {
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || response.status === 403) {
+          toast.error('Session expired or invalid. Please log in again.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+        } else if (errorData.error === "Email already in use") {
           toast.error('Email already exists. Please use a different email.');
         } else {
           toast.error(errorData.error || 'Failed to update profile');
