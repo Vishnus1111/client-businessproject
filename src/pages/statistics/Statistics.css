@@ -120,26 +120,23 @@
   margin: 0;
 }
 
-.period-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.period-buttons button {
-  background: #f5f5f5;
+/* Period selector dropdown replacing buttons */
+.period-selector { display: inline-block; }
+.period-select {
+  background-color: #fff;
   border: 1px solid #ddd;
   padding: 8px 15px;
   border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none; /* we inject calendar via inline style */
 }
-
-.period-buttons button.active {
-  background-color: #fff;
-  border-color: #aaa;
-  font-weight: bold;
-}
+.period-select:focus { outline: none; border-color: #aaa; }
+.period-select::-ms-expand { display: none; }
 
 .chart-body {
   height: 300px;
@@ -216,7 +213,5 @@
     align-items: flex-start;
   }
   
-  .period-buttons {
-    margin-top: 10px;
-  }
+  .period-selector { margin-top: 10px; }
 }

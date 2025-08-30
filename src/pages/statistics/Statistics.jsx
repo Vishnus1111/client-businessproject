@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './Statistics.module.css';
 import TopProductItem from '../../components/dashboard/TopProductItem';
+import calendar from '../../assets/statistics/Calendar.png';
 
 const Statistics = () => {
   // Removed unused state variable: dashboardData
@@ -233,6 +234,13 @@ const Statistics = () => {
               value={selectedPeriod} 
               onChange={(e) => setSelectedPeriod(e.target.value)}
               className={styles.periodSelect}
+              style={{
+                backgroundImage: `url(${calendar})`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: '10px center',
+                backgroundSize: '18px',
+                paddingLeft: '36px'
+              }}
             >
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>

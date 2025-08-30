@@ -10,6 +10,7 @@ import {
   Legend
 } from 'chart.js';
 import './Statistics.css';
+import calendar from '../../assets/statistics/Calendar.png';
 import API_BASE_URL from '../config';
 
 // Register ChartJS components
@@ -227,25 +228,23 @@ const Statistics = () => {
       <div className="chart-container">
         <div className="chart-header">
           <h2 className="chart-title">Sales & Purchase</h2>
-          <div className="period-buttons">
-            <button 
-              className={period === 'week' ? 'active' : ''} 
-              onClick={() => handlePeriodChange('week')}
+          <div className="period-selector">
+            <select
+              className="period-select"
+              value={period}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              style={{
+                backgroundImage: `url(${calendar})`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: '12px center',
+                backgroundSize: '18px',
+                paddingLeft: '40px'
+              }}
             >
-              Weekly
-            </button>
-            <button 
-              className={period === 'month' ? 'active' : ''} 
-              onClick={() => handlePeriodChange('month')}
-            >
-              Monthly
-            </button>
-            <button 
-              className={period === 'year' ? 'active' : ''} 
-              onClick={() => handlePeriodChange('year')}
-            >
-              Yearly
-            </button>
+              <option value="week">Weekly</option>
+              <option value="month">Monthly</option>
+              <option value="year">Yearly</option>
+            </select>
           </div>
         </div>
 

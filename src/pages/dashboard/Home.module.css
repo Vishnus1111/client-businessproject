@@ -193,7 +193,13 @@
   background: white;
   font-size: 0.9rem;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none; /* calendar icon provided inline */
 }
+
+.periodSelect::-ms-expand { display: none; }
 
 .chartContainer {
   height: 300px;

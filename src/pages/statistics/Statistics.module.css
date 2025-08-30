@@ -123,6 +123,19 @@
   color: #333;
 }
 
+.periodSelector {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendarIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+}
+
 .periodSelect {
   padding: 8px 16px;
   border-radius: 6px;
@@ -132,6 +145,16 @@
   outline: none;
   font-weight: 500;
   cursor: pointer;
+  /* Hide native dropdown arrow across browsers */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
+}
+
+/* Hide arrow on legacy Edge/IE */
+.periodSelect::-ms-expand {
+  display: none;
 }
 
 .chartContainer {

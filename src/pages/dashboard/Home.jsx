@@ -14,6 +14,7 @@ import inventoryQuantityIcon from '../../assets/dashboard/Quantity.png';
 import inventoryReceivedIcon from '../../assets/dashboard/inventoryreceived.png';
 import supplierIcon from '../../assets/dashboard/pro. summary.png';
 import categoryIcon from '../../assets/dashboard/pro. Categories.png';
+import calendar from '../../assets/statistics/Calendar.png';
 
 const Home = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -302,6 +303,13 @@ const Home = () => {
                 value={selectedPeriod} 
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className={styles.periodSelect}
+                style={{
+                  backgroundImage: `url(${calendar})`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: '10px center',
+                  backgroundSize: '18px',
+                  paddingLeft: '36px'
+                }}
               >
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
