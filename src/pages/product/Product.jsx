@@ -300,18 +300,22 @@ const Product = () => {
       console.log("📊 Upload metadata:", uploadMetadata);
     }
     
-    // Clear any active search and set loading state
+    // Clear any active search; avoid full-page loading overlay for CSV uploads
     setSearchQuery('');
     setIsSearchActive(false);
-    setLoading(true);
+    if (!isCsvUpload) {
+      setLoading(true);
+    }
     
     // Show loading notification with more specific info if available
     if (isCsvUpload && uploadMetadata?.count) {
       toast.info(`Processing ${uploadMetadata.count} products from CSV upload...`);
-      setLoadingMessage(`Loading ${uploadMetadata.count} new products. Please wait...`);
+      // Do not show full-page loading message for CSV uploads
     } else {
       toast.info(isCsvUpload ? "Processing CSV upload..." : "Adding new product...");
-      setLoadingMessage(isCsvUpload ? "Processing CSV upload. This may take a moment..." : "Refreshing product list...");
+      if (!isCsvUpload) {
+        setLoadingMessage("Refreshing product list...");
+      }
     }
     
     // Define a function to fetch with maximum cache busting
@@ -390,13 +394,15 @@ const Product = () => {
         // For CSV uploads, add an initial delay to allow server processing
         if (isCsvUpload && attempt === 1) {
           console.log("📊 CSV Upload detected - Adding initial delay for server processing");
-          setLoadingMessage("Processing CSV upload. Please wait...");
+          // Skip full-page loading message for CSV uploads
           await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second initial delay for CSV
         }
         // Wait longer between each attempt
         else if (attempt > 1) {
           const delay = (attempt - 1) * (isCsvUpload ? 800 : 500); // Longer delays for CSV uploads
-          setLoadingMessage(`Refreshing product list (Attempt ${attempt}/${maxAttempts})...`);
+          if (!isCsvUpload) {
+            setLoadingMessage(`Refreshing product list (Attempt ${attempt}/${maxAttempts})...`);
+          }
           await new Promise(resolve => setTimeout(resolve, delay));
         }
         
@@ -425,12 +431,14 @@ const Product = () => {
           } else {
             toast.success(`Product list updated successfully! (attempt ${attempt})`);
           }
-          setLoadingMessage("");
+          if (!isCsvUpload) {
+            setLoadingMessage("");
+          }
         } else if (isCsvUpload) {
           // No products received but this is a CSV upload
           // We should try another time to make sure products are loaded
           console.log("No products found in response yet, will retry...");
-          setLoadingMessage(`Products not loaded yet, retrying... (${attempt}/${maxAttempts})`);
+          // Do not show blocking message for CSV uploads
           
           // Don't mark success yet, we need to try again
           success = false;
@@ -446,19 +454,25 @@ const Product = () => {
         // Only show error on final attempt
         if (attempt === maxAttempts) {
           toast.error("Could not refresh product list automatically. Please refresh the page.");
-          setLoadingMessage("Failed to refresh products. Please reload the page manually.");
+          if (!isCsvUpload) {
+            setLoadingMessage("Failed to refresh products. Please reload the page manually.");
+          }
         } else {
           // Update loading message with retry information
-          setLoadingMessage(`Retry attempt ${attempt + 1}/${maxAttempts} in progress...`);
+          if (!isCsvUpload) {
+            setLoadingMessage(`Retry attempt ${attempt + 1}/${maxAttempts} in progress...`);
+          }
         }
       }
     }
     
     // Regardless of success/failure, end loading state
-    if (success) {
+    if (success && !isCsvUpload) {
       setLoadingMessage("");
     }
-    setLoading(false);
+    if (!isCsvUpload) {
+      setLoading(false);
+    }
     console.log(`🏁 Refresh complete. Success: ${success}, Attempts: ${attempt}`);
   }, [fetchInventoryStats]); // Only depend on fetchInventoryStats
   

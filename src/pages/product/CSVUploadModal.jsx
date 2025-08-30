@@ -299,9 +299,22 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       console.log("📋 Response data:", data);
 
       // Check if products were actually added, regardless of success flag
-      const successCount = data.results?.successful?.length || 0;
-      const failedCount = data.results?.failed?.length || 0;
-      const totalProcessed = data.results?.total || 0;
+      // Backend may return counts as numbers (in results) and arrays (in details)
+      const successCount = Array.isArray(data.results?.successful)
+        ? data.results.successful.length
+        : (Array.isArray(data.details?.successful)
+            ? data.details.successful.length
+            : (typeof data.results?.successful === 'number' ? data.results.successful : 0));
+
+      const failedCount = Array.isArray(data.results?.failed)
+        ? data.results.failed.length
+        : (Array.isArray(data.details?.failed)
+            ? data.details.failed.length
+            : (typeof data.results?.failed === 'number' ? data.results.failed : 0));
+
+      const totalProcessed = typeof data.results?.total === 'number'
+        ? data.results.total
+        : (successCount + failedCount);
       
       console.log(`📊 Upload stats: ${successCount} succeeded, ${failedCount} failed, ${totalProcessed} total`);
       
