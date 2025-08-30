@@ -10,6 +10,7 @@ import {
   Legend
 } from 'chart.js';
 import './Statistics.css';
+import API_BASE_URL from '../config';
 
 // Register ChartJS components
 ChartJS.register(
@@ -31,41 +32,36 @@ const Statistics = () => {
   });
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Backend API base URL
-  const API_BASE_URL = 'http://localhost:3000/api/statistics';
+  // Backend API base URL (from env/config)
+  const API_STATS = `${API_BASE_URL}/api/statistics`;
 
   // Fetch dashboard summary data
   useEffect(() => {
     const fetchDashboardSummary = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/dashboard-summary?period=${period}`);
+  const response = await fetch(`${API_STATS}/dashboard-summary?period=${period}`);
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard summary');
         }
         const data = await response.json();
         setDashboardSummary(data.metrics);
       } catch (err) {
-        console.error('Error fetching dashboard summary:', err);
-        // Use fallback data when API fails
-        setDashboardSummary({
-          revenue: { current: 232875, change: 20.1 },
-          productsSold: { current: 8294, change: 16.1 },
-          productsInStock: { current: 234, change: 10.5 }
-        });
+  console.error('Error fetching dashboard summary:', err);
+  setError('Failed to load dashboard summary');
       }
     };
 
     fetchDashboardSummary();
-  }, [period]);
+  }, [period, API_STATS]);
 
   // Fetch chart data
   useEffect(() => {
     const fetchChartData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/chart-data?period=${period}`);
+  const response = await fetch(`${API_STATS}/chart-data?period=${period}`);
         if (!response.ok) {
           throw new Error('Failed to fetch chart data');
         }
@@ -92,79 +88,36 @@ const Statistics = () => {
         setChartData(chartConfig);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching chart data:', err);
-        // Use fallback data when API fails
-        setLoading(false);
-        
-        // Generate fallback data based on period
-        const labels = [];
-        const salesData = [];
-        const purchaseData = [];
-        
-        if (period === 'week') {
-          labels.push('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
-          salesData.push(42000, 38000, 35000, 37000, 39000, 43000, 40000);
-          purchaseData.push(30000, 32000, 28000, 30000, 25000, 29000, 27000);
-        } else if (period === 'month') {
-          labels.push('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
-          salesData.push(45000, 52000, 38000, 41000, 39000, 36000, 33000, 31000, 39000, 42000, 43000, 48000);
-          purchaseData.push(35000, 40000, 30000, 33000, 31000, 28000, 25000, 23000, 30000, 32000, 33000, 36000);
-        } else if (period === 'year') {
-          const currentYear = new Date().getFullYear();
-          for (let i = 0; i < 12; i++) {
-            const monthName = new Date(currentYear, i, 1).toLocaleString('default', { month: 'short' });
-            labels.push(`${monthName} ${currentYear}`);
-          }
-          salesData.push(450000, 520000, 380000, 410000, 390000, 360000, 330000, 310000, 390000, 420000, 430000, 480000);
-          purchaseData.push(350000, 400000, 300000, 330000, 310000, 280000, 250000, 230000, 300000, 320000, 330000, 360000);
-        }
-        
-        const fallbackChartConfig = {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Purchase',
-              data: purchaseData,
-              backgroundColor: '#2E93fA',
-              barPercentage: 0.6,
-            },
-            {
-              label: 'Sales',
-              data: salesData,
-              backgroundColor: '#4CAF50',
-              barPercentage: 0.6,
-            }
-          ]
-        };
-        
-        setChartData(fallbackChartConfig);
+  console.error('Error fetching chart data:', err);
+  setLoading(false);
+  setError('Failed to load chart data');
       }
     };
 
     fetchChartData();
-  }, [period]);
+  }, [period, API_STATS]);
 
   // Fetch top products
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/top-products?limit=6`);
+        // Prefer dedicated top-products route
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/top-products/top-products?limit=6`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'Content-Type': 'application/json'
+          }
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch top products');
         }
         const data = await response.json();
-        setTopProducts(data.products || []);
+        // top-products route returns { success, products: [...] }
+        setTopProducts(data.products || data.topProducts || []);
       } catch (err) {
         console.error('Error fetching top products:', err);
-        // Use fallback data when API fails
-        setTopProducts([
-          { productName: 'Redbull', averageRating: 4.8 },
-          { productName: 'Kit kat', averageRating: 4.5 },
-          { productName: 'Coca cola', averageRating: 4.2 },
-          { productName: 'Milo', averageRating: 4.3 },
-          { productName: 'Ariel', averageRating: 4.7 },
-          { productName: 'Bru', averageRating: 4.5 }
-        ]);
+        setTopProducts([]);
       }
     };
 
