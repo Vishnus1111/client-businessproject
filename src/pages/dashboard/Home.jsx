@@ -566,15 +566,21 @@ const Home = () => {
                 topProducts.map((product, index) => (
                   <div key={product._id || index} className={styles.topProductItem}>
                     <div className={styles.productImage}>
-                    <img 
-                      src={product.imageUrl || '/placeholder-image.png'}
-                      alt={product.productName}
-                      loading="eager"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = '/placeholder-image.png';
-                      }}
-                    />
+                    {product.imageUrl ? (
+                      <img 
+                        src={(() => {
+                          let url = product.imageUrl;
+                          if (!url) return '';
+                          if (url.startsWith('http')) return url;
+                          // Normalize backslashes to forward slashes (if any)
+                          url = url.replace(/\\\\/g, '/');
+                          const clean = url.startsWith('/') ? url.slice(1) : url;
+                          const path = clean.includes('uploads/') ? clean : `uploads/${clean}`;
+                          return `${API_BASE_URL}/${path}`;
+                        })()}
+                        alt={product.productName}
+                      />
+                    ) : null}
                   </div>
                     <span className={styles.productName}>{product.productName}</span>
                     <div className={styles.productRating}>
