@@ -226,7 +226,7 @@ const Home = () => {
             />
             <StatCard
               title="Cost"
-              value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
+              value={`₹ ${((((chartData?.data?.summary?.totalPurchases) || 0) * 2).toLocaleString())}`}
               color="orange"
               icon= {<img src={costIcon2} alt="Cost" />}
             />
