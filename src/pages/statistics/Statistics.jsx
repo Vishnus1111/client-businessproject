@@ -19,7 +19,11 @@ const Statistics = () => {
     productsInStock: 0,
     revenueChange: 0,
     soldChange: 0,
-    stockChange: 0
+  stockChange: 0,
+  // previous period values for correct label logic
+  revenuePrev: 0,
+  soldPrev: 0,
+  stockPrev: 0
   });
 
   useEffect(() => {
@@ -53,7 +57,10 @@ const Statistics = () => {
           productsInStock: m.productsInStock?.current || 0,
           revenueChange: m.revenue?.change || 0,
           soldChange: m.productsSold?.change || 0,
-          stockChange: m.productsInStock?.change || 0
+          stockChange: m.productsInStock?.change || 0,
+          revenuePrev: m.revenue?.previous || 0,
+          soldPrev: m.productsSold?.previous || 0,
+          stockPrev: m.productsInStock?.previous || 0
         });
         console.log('Dashboard summary loaded:', { period, stats: m });
       } else {
@@ -124,6 +131,19 @@ const Statistics = () => {
     return value >= 0 ? `+${value}%` : `${value}%`;
   };
 
+  // Build the comparison label text based on selected period
+  const getComparisonSuffix = () => {
+    if (selectedPeriod === 'weekly') return 'last day';
+    if (selectedPeriod === 'monthly') return 'last month';
+    return 'last year';
+  };
+
+  // Determine the displayed percent, forcing 100% if previous value is 0
+  const getDisplayedPercent = (changeValue, previousValue) => {
+    const val = (previousValue === 0) ? 100 : (changeValue || 0);
+    return calculatePercentChange(val);
+  };
+
   // Format currency
   const formatCurrency = (amount) => {
     return `₹${parseFloat(amount || 0).toLocaleString()}`;
@@ -150,7 +170,7 @@ const Statistics = () => {
           <img src={revenueIcon} alt="Revenue" />
           <div className={styles.statsValue}>{formatCurrency(stats.totalRevenue)}</div>
           <div className={styles.statsChange}>
-            {calculatePercentChange(stats.revenueChange || 0)} from last month
+            {getDisplayedPercent(stats.revenueChange, stats.revenuePrev)} from {getComparisonSuffix()}
           </div>
         </div>
         
@@ -159,7 +179,7 @@ const Statistics = () => {
           <img src={salesIcon} alt="Products Sold" />
           <div className={styles.statsValue}>{stats.productsSold.toLocaleString()}</div>
           <div className={styles.statsChange}>
-            {calculatePercentChange(stats.soldChange || 0)} from last month
+            {getDisplayedPercent(stats.soldChange, stats.soldPrev)} from {getComparisonSuffix()}
           </div>
         </div>
         
@@ -168,7 +188,17 @@ const Statistics = () => {
           <img src={inventoryQuantityIcon} alt="Products In Stock" />
           <div className={styles.statsValue}>{stats.productsInStock.toLocaleString()}</div>
           <div className={styles.statsChange}>
-            {calculatePercentChange(stats.stockChange || 0)} from last month
+            {(() => {
+              // If previous period has no value (0) we display 100%.
+              // Backend sets previous to current when it was 0; detect that and force 100% for monthly/yearly only.
+              const isWeekly = selectedPeriod === 'weekly';
+              const backendMaskedZero = (stats.stockChange === 0 && stats.stockPrev === stats.productsInStock);
+              const prevZero = stats.stockPrev === 0;
+              if (!isWeekly && (prevZero || backendMaskedZero)) {
+                return '+100%';
+              }
+              return getDisplayedPercent(stats.stockChange, stats.stockPrev);
+            })()} from {getComparisonSuffix()}
           </div>
         </div>
       </div>
