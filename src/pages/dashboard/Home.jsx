@@ -47,30 +47,21 @@ const Home = () => {
         // In parallel, enrich with cancel/return invoice metrics if available
         // These endpoints already exist; we'll compute counts and totals client-side.
         try {
-          const [cancelRes, returnRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/api/invoices?status=Cancelled`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }),
-            fetch(`${API_BASE_URL}/api/invoices?status=Returned`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            })
-          ]);
+          // Get cancelled invoices once, use it for both cancel count and return amount (sum of selling price)
+          const cancelRes = await fetch(`${API_BASE_URL}/api/invoices?status=Cancelled`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
 
           if (cancelRes.ok) {
             const cancelData = await cancelRes.json();
-            setCancelMetrics({ count: cancelData.totalInvoices || (cancelData.invoices ? cancelData.invoices.length : 0) });
-          }
-          if (returnRes.ok) {
-            const returnData = await returnRes.json();
-            const invoices = returnData.invoices || [];
-            const amount = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
-            setReturnMetrics({ count: returnData.totalInvoices || invoices.length, amount });
+            const invoices = cancelData.invoices || [];
+            const cancelCount = cancelData.totalInvoices || invoices.length;
+            const returnAmount = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+            setCancelMetrics({ count: cancelCount });
+            setReturnMetrics({ count: cancelCount, amount: returnAmount });
           }
         } catch (e) {
           console.warn('Optional cancel/return metrics fetch failed:', e);
