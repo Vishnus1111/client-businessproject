@@ -436,18 +436,17 @@
 .topProductsList {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* tighter vertical spacing */
+  gap: 0.75rem;
 }
 
 .topProductItem {
-  display: grid;
-  grid-template-columns: 40px 1fr auto; /* image, name, rating pills */
-  align-items: center;
-  column-gap: 8px; /* tighter gap between name and rating */
-  row-gap: 4px;
-  padding: 8px 0; /* smaller 
-   spacing like screenshot */
-  border-bottom: none; /* remove any bottom divider line */
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap; /* allow rating to wrap below name */
+  gap: 8px 10px;
+  padding: 0.75rem 0;
+  border-bottom: none; /* remove separator line */
 }
 
 .topProductItem:last-child {
@@ -458,31 +457,30 @@
   font-size: 0.9rem;
   color: #2c3e50;
   font-weight: 500;
-  margin-right: 8px;
 }
 
 .productRating {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  flex-basis: 100%; /* push to next line */
+  margin-left: 50px; /* slight right indent (align with image width) */
+  margin-top: 6px; /* minimal vertical gap */
 }
 
-/* Pill rating bar (6 pills) */
-.ratingBar {
+/* Rating bars */
+.ratingBars {
   display: inline-flex;
   gap: 6px;
 }
 
-.ratingPill {
-  width: 14px;
+.ratingBar {
+  width: 18px;
   height: 6px;
-  border-radius: 6px;
-  background: #f1f3f5; /* light/empty */
+  background-color: #fbe296; /* unfilled */
+  border-radius: 9999px;
   display: inline-block;
 }
 
-.ratingPill.filled {
-  background: #ffc107; /* yellow */
+.ratingBar.filled {
+  background-color: #fad85d; /* filled */
 }
 
 /* Responsive Design */
@@ -1179,22 +1177,25 @@
 }
 
 /* ===== Top Products: place rating on the next line slightly right ===== */
-/* Updated: keep name and rating on the same row, remove extra gaps */
 .rightColumn .topProductsList .topProductItem {
-  display: grid !important;
-  grid-template-columns: 40px 1fr auto !important;
-  align-items: center !important;
-  column-gap: 12px !important;
-  row-gap: 0 !important;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start; /* avoid space-between */
+  gap: 10px;
+  flex-wrap: wrap; /* allow rating to wrap below */
 }
 
-.rightColumn .topProductsList .productImage { flex: 0 0 40px; }
+.rightColumn .topProductsList .productImage {
+  flex: 0 0 40px; /* fixed width for alignment */
+}
 
-.rightColumn .topProductsList .productName { margin: 0; }
+.rightColumn .topProductsList .productName {
+  flex: 1 1 auto;
+}
 
 .rightColumn .topProductsList .productRating {
-  width: auto !important;
-  margin-left: 0 !important;
-  margin-top: 0 !important;
-  text-align: right;
+  width: 100%;            /* force new line */
+  margin-left: 50px;      /* slight rightward indent (image width + padding) */
+  margin-top: 6px;        /* spacing under name */
+  text-align: left;
 }

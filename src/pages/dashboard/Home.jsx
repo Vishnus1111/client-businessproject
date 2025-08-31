@@ -678,7 +678,19 @@ const Home = () => {
                   </div>
                     <span className={styles.productName}>{product.productName}</span>
                     <div className={styles.productRating}>
-                      {product.ratingStars || '★'.repeat(Math.round(product.averageRating || 0))}
+                      {(() => {
+                        const starCount = typeof product.ratingStars === 'string'
+                          ? ((product.ratingStars.match(/★/g) || []).length)
+                          : 0;
+                        const rating = Math.max(0, Math.min(5, Math.round((product.averageRating ?? starCount ?? 0))));
+                        return (
+                          <div className={styles.ratingBars} aria-label={`Rating: ${rating} of 5`}>
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <span key={i} className={`${styles.ratingBar} ${i < rating ? styles.filled : ''}`}></span>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))
