@@ -32,7 +32,7 @@ const Home = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      
+
       // Fetch dashboard statistics
       const response = await fetch(`${API_BASE_URL}/api/dashboard/stats`, {
         headers: {
@@ -45,10 +45,9 @@ const Home = () => {
         const data = await response.json();
         setDashboardData(data);
         console.log('Dashboard data loaded:', data);
+
         // In parallel, enrich with cancel/return invoice metrics if available
-        // These endpoints already exist; we'll compute counts and totals client-side.
         try {
-          // Get cancelled invoices once, use it for both cancel count and return amount (sum of selling price)
           const cancelRes = await fetch(`${API_BASE_URL}/api/invoices?status=Cancelled`, {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -97,186 +96,111 @@ const Home = () => {
       if (response.ok) {
         const data = await response.json();
 
-        // Frontend-only fallback: if sales are all zero, rebuild from orders for responsiveness
+        // Always recompute sales from orders and patch if needed (keep purchases untouched)
         try {
           const isWeekly = selectedPeriod === 'weekly';
           const isMonthly = selectedPeriod === 'monthly';
           const isYearly = selectedPeriod === 'yearly';
 
-          const salesAllZero = (() => {
-            const d = data?.data;
-            if (!d) return false;
-            if (isWeekly && Array.isArray(d.dailyBreakdown)) {
-              return d.dailyBreakdown.every(x => (x.sales || 0) === 0);
+          const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
-            if (isMonthly && Array.isArray(d.monthlyBreakdown)) {
-              return d.monthlyBreakdown.every(x => (x.sales || 0) === 0);
-            }
-            if (isYearly && d.yearlyData) {
-              return (d.yearlyData.sales || 0) === 0;
-            }
-            return false;
-          })();
+          });
+          if (ordersRes.ok) {
+            const ordersJson = await ordersRes.json();
+            const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
 
-          if (salesAllZero) {
-            // Pull recent orders and aggregate totals client-side
-            const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+            const safeDate = (o) => new Date(o.createdAt || o.orderDate || o.date || 0);
+            const amount = (o) => Number(o.totalAmount || 0);
+            const notCancelled = (o) => (o.orderStatus || '').toLowerCase() !== 'cancelled';
+
+            if (isWeekly && Array.isArray(data?.data?.dailyBreakdown)) {
+              // Build a 7-day window ending today
+              const today = new Date();
+              today.setHours(23, 59, 59, 999);
+              const start = new Date(today);
+              start.setDate(today.getDate() - 6);
+              start.setHours(0, 0, 0, 0);
+
+              const dayKey = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString();
+              const salesMap = new Map();
+              for (let i = 0; i < 7; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                salesMap.set(dayKey(d), 0);
               }
-            });
-            if (ordersRes.ok) {
-              const ordersJson = await ordersRes.json();
-              const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
 
-              const safeDate = (o) => new Date(o.createdAt || o.orderDate || o.date || 0);
-              const amount = (o) => Number(o.totalAmount || 0);
-              const notCancelled = (o) => (o.orderStatus || '').toLowerCase() !== 'cancelled';
-
-              if (isWeekly && Array.isArray(data?.data?.dailyBreakdown)) {
-                // Build a 7-day window ending today
-                const today = new Date();
-                today.setHours(23, 59, 59, 999);
-                const start = new Date(today);
-                start.setDate(today.getDate() - 6);
-                start.setHours(0, 0, 0, 0);
-
-                const dayKey = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString();
-                const salesMap = new Map();
-                for (let i = 0; i < 7; i++) {
-                  const d = new Date(start);
-                  d.setDate(start.getDate() + i);
-                  salesMap.set(dayKey(d), 0);
+              orders.filter(notCancelled).forEach(o => {
+                const d = safeDate(o);
+                if (d >= start && d <= today) {
+                  const key = dayKey(d);
+                  if (salesMap.has(key)) {
+                    salesMap.set(key, salesMap.get(key) + amount(o));
+                  }
                 }
+              });
 
-                orders.filter(notCancelled).forEach(o => {
-                  const d = safeDate(o);
-                  if (d >= start && d <= today) {
-                    const key = dayKey(d);
-                    if (salesMap.has(key)) {
-                      salesMap.set(key, salesMap.get(key) + amount(o));
-                    }
-                  }
-                });
+              // Patch sales values in the same order
+              const patched = data.data.dailyBreakdown.map(entry => {
+                const key = dayKey(new Date(entry.date));
+                const sales = salesMap.has(key) ? salesMap.get(key) : (entry.sales || 0);
+                return { ...entry, sales };
+              });
+              data.data.dailyBreakdown = patched;
 
-                // Replace sales values in the same order
-                const patched = data.data.dailyBreakdown.map(entry => {
-                  const key = dayKey(new Date(entry.date));
-                  const sales = salesMap.has(key) ? salesMap.get(key) : (entry.sales || 0);
-                  return { ...entry, sales };
-                });
-                data.data.dailyBreakdown = patched;
+              // Patch summary totalSales only (leave profit/purchases as-is)
+              const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
+              data.data.summary = { ...(data.data.summary || {}), totalSales };
+            }
 
-                // Also patch summary totalSales
-                const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
-                // Compute profit from orders joined with product cost within the same window
-                let profit = 0;
-                try {
-                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                  });
-                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
-                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
-                  orders.filter(notCancelled).forEach(o => {
-                    const d = safeDate(o);
-                    if (d >= start && d <= today) {
-                      const p = prodMap.get(o.productId);
-                      const cost = Number(p?.costPrice || 0);
-                      const unit = Number(o.pricePerUnit || 0);
-                      const qty = Number(o.quantityOrdered || 0);
-                      profit += (unit - cost) * qty;
-                    }
-                  });
-                } catch {}
-                data.data.summary = { ...(data.data.summary || {}), totalSales, profit };
-              }
+            if (isMonthly && Array.isArray(data?.data?.monthlyBreakdown)) {
+              // Aggregate by month for current year
+              const now = new Date();
+              const year = now.getFullYear();
+              const byMonth = Array(12).fill(0);
 
-              if (isMonthly && Array.isArray(data?.data?.monthlyBreakdown)) {
-                // Aggregate by month for current year
-                const now = new Date();
-                const year = now.getFullYear();
-                const byMonth = Array(12).fill(0);
+              orders.filter(notCancelled).forEach(o => {
+                const d = safeDate(o);
+                if (d.getFullYear() === year) {
+                  byMonth[d.getMonth()] += amount(o);
+                }
+              });
 
-                orders.filter(notCancelled).forEach(o => {
-                  const d = safeDate(o);
-                  if (d.getFullYear() === year) {
-                    byMonth[d.getMonth()] += amount(o);
-                  }
-                });
+              const monthIndex = (name) => new Date(`${name} 1, ${year}`).getMonth();
+              const patched = data.data.monthlyBreakdown.map(entry => {
+                const idx = monthIndex(entry.month);
+                const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : (entry.sales || 0);
+                return { ...entry, sales };
+              });
+              data.data.monthlyBreakdown = patched;
 
-                const monthIndex = (name) => new Date(`${name} 1, ${year}`).getMonth();
-                const patched = data.data.monthlyBreakdown.map(entry => {
-                  const idx = monthIndex(entry.month);
-                  const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : (entry.sales || 0);
-                  return { ...entry, sales };
-                });
-                data.data.monthlyBreakdown = patched;
+              // Patch summary totalSales only
+              const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
+              data.data.summary = { ...(data.data.summary || {}), totalSales };
+            }
 
-                // Also patch summary totalSales
-                const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
-                // Compute yearly profit from orders joined with product cost
-                let profit = 0;
-                try {
-                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                  });
-                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
-                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
-                  orders.filter(notCancelled).forEach(o => {
-                    const d = safeDate(o);
-                    if (d.getFullYear() === year) {
-                      const p = prodMap.get(o.productId);
-                      const cost = Number(p?.costPrice || 0);
-                      const unit = Number(o.pricePerUnit || 0);
-                      const qty = Number(o.quantityOrdered || 0);
-                      profit += (unit - cost) * qty;
-                    }
-                  });
-                } catch {}
-                data.data.summary = { ...(data.data.summary || {}), totalSales, profit };
-              }
+            if (isYearly && data?.data?.yearlyData) {
+              const now = new Date();
+              const year = now.getFullYear();
+              const yearSales = orders.filter(notCancelled).reduce((sum, o) => {
+                const d = safeDate(o);
+                return d.getFullYear() === year ? sum + amount(o) : sum;
+              }, 0);
+              data.data.yearlyData = { ...data.data.yearlyData, sales: yearSales };
 
-              if (isYearly && data?.data?.yearlyData) {
-                const now = new Date();
-                const year = now.getFullYear();
-                const yearSales = orders.filter(notCancelled).reduce((sum, o) => {
-                  const d = safeDate(o);
-                  return d.getFullYear() === year ? sum + amount(o) : sum;
-                }, 0);
-                data.data.yearlyData = { ...data.data.yearlyData, sales: yearSales };
-
-                // Also patch summary totalSales
-                // Compute yearly profit from orders joined with product cost
-                let profit = 0;
-                try {
-                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                  });
-                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
-                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
-                  orders.filter(notCancelled).forEach(o => {
-                    const d = safeDate(o);
-                    if (d.getFullYear() === year) {
-                      const p = prodMap.get(o.productId);
-                      const cost = Number(p?.costPrice || 0);
-                      const unit = Number(o.pricePerUnit || 0);
-                      const qty = Number(o.quantityOrdered || 0);
-                      profit += (unit - cost) * qty;
-                    }
-                  });
-                } catch {}
-                data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales, profit };
-              }
+              // Patch summary totalSales only
+              data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales };
             }
           }
         } catch (e) {
-          console.warn('Sales fallback computation skipped due to error:', e);
+          console.warn('Sales recompute from orders skipped due to error:', e);
         }
 
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} loaded:`, data);
-      } else {
+  } else {
         toast.error('Failed to load chart data');
       }
     } catch (error) {
@@ -347,11 +271,18 @@ const Home = () => {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.pageTitle}>Home</h1>
-          <input 
-            type="text" 
-            placeholder="Search here..." 
-            className={styles.searchInput}
-          />
+          <div className={styles.searchContainer}>
+            <button className={styles.searchButton} type="button" aria-label="Search">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+              </svg>
+            </button>
+            <input 
+              type="text" 
+              placeholder="Search here..." 
+              className={styles.searchInput}
+            />
+          </div>
         </div>
       </div>
 
@@ -369,25 +300,21 @@ const Home = () => {
                 <StatCard
                   title="Sales"
                   value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`}
-                  color="blue"
                   icon={<img src={salesale} alt="Sales Cost" />}
                 />
                 <StatCard
                   title="Revenue"
                   value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`}
-                  color="orange"
                   icon={<img src={revenueIcon} alt="Revenue" />}
                 />
                 <StatCard
                   title="Profit"
                   value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`}
-                  color="green"
                   icon={<img src={profitIcon} alt="Profit" />}
                 />
                 <StatCard
                   title="Cost"
                   value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
-                  color="purple"
                   icon={<img src={costIcon} alt="Cost" />}
                 />
               </div>
@@ -402,25 +329,21 @@ const Home = () => {
                 <StatCard
                   title="Purchase"
                   value={dashboardData?.overallInventory?.totalProducts?.recent || 0}
-                  color="blue"
                   icon={<img src={purchaseIcon} alt="Purchase" />}
                 />
                 <StatCard
                   title="Cost"
                   value={`₹ ${((((chartData?.data?.summary?.totalPurchases) || 0) * 2).toLocaleString())}`}
-                  color="orange"
                   icon={<img src={costIcon2} alt="Cost" />}
                 />
                 <StatCard
                   title="Cancel"
                   value={cancelMetrics.count || 0}
-                  color="green"
                   icon={<img src={cancelIcon} alt="Cancel" />}
                 />
                 <StatCard
                   title="Return"
                   value={`₹ ${(returnMetrics.amount || 0).toLocaleString()}`}
-                  color="purple"
                   icon={<img src={returnIcon} alt="Return" />}
                 />
               </div>
@@ -661,15 +584,6 @@ const Home = () => {
                 </div>
               </div>
               
-              <div className={styles.chartSummary}>
-                {chartData && chartData.data && chartData.data.summary && (
-                  <div className={styles.chartTotals}>
-                    <div>Total Sales: ₹{(chartData.data.summary.totalSales || 0).toLocaleString()}</div>
-                    <div>Total Purchases: ₹{(((chartData.data.summary.totalPurchases || 0) * 2)).toLocaleString()}</div>
-                    <div>Profit: ₹{(chartData.data.summary.profit || 0).toLocaleString()}</div>
-                  </div>
-                )}
-              </div>
               
               <div className={styles.chartLegend}>
                 <div className={styles.legendItem}>
@@ -720,7 +634,7 @@ const Home = () => {
               <div className={styles.inventoryItem}>
                 <div className={styles.inventoryIcon}><img src={supplierIcon} alt="Suppliers" /></div>
                 <div className={styles.inventoryContent}>
-                  <span className={styles.inventoryLabel}>Number of Suppliers</span>
+                  <span className={styles.inventoryLabel}>Number of <br />Suppliers</span>
                   <span className={styles.inventoryValue}>
                     {dashboardData?.productMetrics?.suppliersCount || 0}
                   </span>
@@ -729,7 +643,7 @@ const Home = () => {
               <div className={styles.inventoryItem}>
                 <div className={styles.inventoryIcon}><img src={categoryIcon} alt="Categories" /></div>
                 <div className={styles.inventoryContent}>
-                  <span className={styles.inventoryLabel}>Number of Categories</span>
+                  <span className={styles.inventoryLabel}>Number of <br /> Categories</span>
                   <span className={styles.inventoryValue}>
                     {dashboardData?.productMetrics?.categoriesCount || 0}
                   </span>

@@ -142,178 +142,124 @@ const Statistics = () => {
       if (response.ok) {
         const data = await response.json();
 
-        // Frontend-only fallback: if sales are all zero, rebuild from orders
+        // Always recompute sales from orders and patch only sales + totalSales (keep purchases/others intact)
         try {
           const isWeekly = selectedPeriod === 'weekly';
           const isMonthly = selectedPeriod === 'monthly';
           const isYearly = selectedPeriod === 'yearly';
 
-          const salesAllZero = (() => {
-            const d = data?.data;
-            if (!d) return false;
-            if (isWeekly && Array.isArray(d.dailyBreakdown)) {
-              return d.dailyBreakdown.every(x => (x.sales || 0) === 0);
+          const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
-            if (isMonthly && Array.isArray(d.monthlyBreakdown)) {
-              return d.monthlyBreakdown.every(x => (x.sales || 0) === 0);
-            }
-            if (isYearly && d.yearlyData) {
-              return (d.yearlyData.sales || 0) === 0;
-            }
-            return false;
-          })();
+          });
+          if (ordersRes.ok) {
+            const ordersJson = await ordersRes.json();
+            const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
 
-          if (salesAllZero) {
-            const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+            const safeDate = (o) => new Date(o.createdAt || o.orderDate || o.date || 0);
+            const amount = (o) => Number(o.totalAmount || 0);
+            const notCancelled = (o) => (o.orderStatus || '').toLowerCase() !== 'cancelled';
+
+            if (isWeekly && Array.isArray(data?.data?.dailyBreakdown)) {
+              const today = new Date();
+              today.setHours(23, 59, 59, 999);
+              const start = new Date(today);
+              start.setDate(today.getDate() - 6);
+              start.setHours(0, 0, 0, 0);
+
+              const dayKey = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString();
+              const salesMap = new Map();
+              for (let i = 0; i < 7; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                salesMap.set(dayKey(d), 0);
               }
-            });
-            if (ordersRes.ok) {
-              const ordersJson = await ordersRes.json();
-              const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
 
-              const safeDate = (o) => new Date(o.createdAt || o.orderDate || o.date || 0);
-              const amount = (o) => Number(o.totalAmount || 0);
-              const notCancelled = (o) => (o.orderStatus || '').toLowerCase() !== 'cancelled';
-
-              if (isWeekly && Array.isArray(data?.data?.dailyBreakdown)) {
-                const today = new Date();
-                today.setHours(23, 59, 59, 999);
-                const start = new Date(today);
-                start.setDate(today.getDate() - 6);
-                start.setHours(0, 0, 0, 0);
-
-                const dayKey = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString();
-                const salesMap = new Map();
-                for (let i = 0; i < 7; i++) {
-                  const d = new Date(start);
-                  d.setDate(start.getDate() + i);
-                  salesMap.set(dayKey(d), 0);
+              orders.filter(notCancelled).forEach(o => {
+                const d = safeDate(o);
+                if (d >= start && d <= today) {
+                  const key = dayKey(d);
+                  if (salesMap.has(key)) {
+                    salesMap.set(key, salesMap.get(key) + amount(o));
+                  }
                 }
+              });
 
-                orders.filter(notCancelled).forEach(o => {
-                  const d = safeDate(o);
-                  if (d >= start && d <= today) {
-                    const key = dayKey(d);
-                    if (salesMap.has(key)) {
-                      salesMap.set(key, salesMap.get(key) + amount(o));
-                    }
-                  }
-                });
+              const patched = data.data.dailyBreakdown.map(entry => {
+                const key = dayKey(new Date(entry.date));
+                const sales = salesMap.has(key) ? salesMap.get(key) : (entry.sales || 0);
+                return { ...entry, sales };
+              });
+              data.data.dailyBreakdown = patched;
 
-                const patched = data.data.dailyBreakdown.map(entry => {
-                  const key = dayKey(new Date(entry.date));
-                  const sales = salesMap.has(key) ? salesMap.get(key) : (entry.sales || 0);
-                  return { ...entry, sales };
-                });
-                data.data.dailyBreakdown = patched;
+              const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
+              const totalPurchases = patched.reduce((sum, e) => sum + (Number(e.purchases) || 0), 0);
+              data.data.summary = { ...(data.data.summary || {}), totalSales, totalPurchases };
+            }
 
-                // Patch summary totalSales
-                const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
-                // Compute profit from orders joined with product cost within the same window
-                let profit = 0;
-                try {
-                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                  });
-                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
-                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
-                  orders.filter(notCancelled).forEach(o => {
-                    const d = safeDate(o);
-                    if (d >= start && d <= today) {
-                      const p = prodMap.get(o.productId);
-                      const cost = Number(p?.costPrice || 0);
-                      const unit = Number(o.pricePerUnit || 0);
-                      const qty = Number(o.quantityOrdered || 0);
-                      profit += (unit - cost) * qty;
-                    }
-                  });
-                } catch {}
-                data.data.summary = { ...(data.data.summary || {}), totalSales, profit };
-              }
+            if (isMonthly && Array.isArray(data?.data?.monthlyBreakdown)) {
+              const now = new Date();
+              const year = now.getFullYear();
+              const byMonth = Array(12).fill(0);
 
-              if (isMonthly && Array.isArray(data?.data?.monthlyBreakdown)) {
-                const now = new Date();
-                const year = now.getFullYear();
-                const byMonth = Array(12).fill(0);
+              orders.filter(notCancelled).forEach(o => {
+                const d = safeDate(o);
+                if (d.getFullYear() === year) {
+                  byMonth[d.getMonth()] += amount(o);
+                }
+              });
 
-                orders.filter(notCancelled).forEach(o => {
-                  const d = safeDate(o);
-                  if (d.getFullYear() === year) {
-                    byMonth[d.getMonth()] += amount(o);
-                  }
-                });
+              const monthIndex = (name) => new Date(`${name} 1, ${year}`).getMonth();
+              const patched = data.data.monthlyBreakdown.map(entry => {
+                const idx = monthIndex(entry.month);
+                const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : (entry.sales || 0);
+                return { ...entry, sales };
+              });
+              data.data.monthlyBreakdown = patched;
 
-                const monthIndex = (name) => new Date(`${name} 1, ${year}`).getMonth();
-                const patched = data.data.monthlyBreakdown.map(entry => {
-                  const idx = monthIndex(entry.month);
-                  const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : (entry.sales || 0);
-                  return { ...entry, sales };
-                });
-                data.data.monthlyBreakdown = patched;
+              const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
+              const totalPurchases = patched.reduce((sum, e) => sum + (Number(e.purchases) || 0), 0);
+              data.data.summary = { ...(data.data.summary || {}), totalSales, totalPurchases };
+            }
 
-                // Patch summary totalSales
-                const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
-                // Compute yearly profit from orders joined with product cost
-                let profit = 0;
-                try {
-                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                  });
-                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
-                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
-                  orders.filter(notCancelled).forEach(o => {
-                    const d = safeDate(o);
-                    if (d.getFullYear() === year) {
-                      const p = prodMap.get(o.productId);
-                      const cost = Number(p?.costPrice || 0);
-                      const unit = Number(o.pricePerUnit || 0);
-                      const qty = Number(o.quantityOrdered || 0);
-                      profit += (unit - cost) * qty;
-                    }
-                  });
-                } catch {}
-                data.data.summary = { ...(data.data.summary || {}), totalSales, profit };
-              }
+            if (isYearly && data?.data?.yearlyData) {
+              const now = new Date();
+              const year = now.getFullYear();
+              const yearSales = orders.filter(notCancelled).reduce((sum, o) => {
+                const d = safeDate(o);
+                return d.getFullYear() === year ? sum + amount(o) : sum;
+              }, 0);
+              data.data.yearlyData = { ...data.data.yearlyData, sales: yearSales };
 
-              if (isYearly && data?.data?.yearlyData) {
-                const now = new Date();
-                const year = now.getFullYear();
-                const yearSales = orders.filter(notCancelled).reduce((sum, o) => {
-                  const d = safeDate(o);
-                  return d.getFullYear() === year ? sum + amount(o) : sum;
-                }, 0);
-                data.data.yearlyData = { ...data.data.yearlyData, sales: yearSales };
-
-                // Patch summary totalSales
-                // Compute yearly profit from orders joined with product cost
-                let profit = 0;
-                try {
-                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                  });
-                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
-                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
-                  orders.filter(notCancelled).forEach(o => {
-                    const d = safeDate(o);
-                    if (d.getFullYear() === year) {
-                      const p = prodMap.get(o.productId);
-                      const cost = Number(p?.costPrice || 0);
-                      const unit = Number(o.pricePerUnit || 0);
-                      const qty = Number(o.quantityOrdered || 0);
-                      profit += (unit - cost) * qty;
-                    }
-                  });
-                } catch {}
-                data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales, profit };
-              }
+              const yearPurchases = Number(data?.data?.yearlyData?.purchases || 0);
+              data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales, totalPurchases: yearPurchases };
             }
           }
         } catch (e) {
-          console.warn('Sales fallback computation skipped due to error:', e);
+          console.warn('Sales recompute from orders skipped due to error:', e);
         }
+
+        // Ensure totals are always in sync with the current breakdown
+        try {
+          const d = data?.data;
+          if (d) {
+            if (selectedPeriod === 'weekly' && Array.isArray(d.dailyBreakdown)) {
+              const totalSales = d.dailyBreakdown.reduce((s, e) => s + (Number(e.sales) || 0), 0);
+              const totalPurchases = d.dailyBreakdown.reduce((s, e) => s + (Number(e.purchases) || 0), 0);
+              data.data.summary = { ...(d.summary || {}), totalSales, totalPurchases };
+            } else if (selectedPeriod === 'monthly' && Array.isArray(d.monthlyBreakdown)) {
+              const totalSales = d.monthlyBreakdown.reduce((s, e) => s + (Number(e.sales) || 0), 0);
+              const totalPurchases = d.monthlyBreakdown.reduce((s, e) => s + (Number(e.purchases) || 0), 0);
+              data.data.summary = { ...(d.summary || {}), totalSales, totalPurchases };
+            } else if (selectedPeriod === 'yearly' && d.yearlyData) {
+              const totalSales = Number(d.yearlyData.sales || 0);
+              const totalPurchases = Number(d.yearlyData.purchases || 0);
+              data.data.summary = { ...(d.summary || {}), totalSales, totalPurchases };
+            }
+          }
+        } catch {}
 
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} period loaded:`, data);

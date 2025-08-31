@@ -69,41 +69,82 @@ const Statistics = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_STATS}/chart-data?period=${period}`, {
+        const periodMap = { week: 'weekly', month: 'monthly', year: 'yearly' };
+        const mapped = periodMap[period] || 'weekly';
+        const t = Date.now();
+
+        // Prefer the fixed endpoint used by Home for consistent shape
+        let resp = await fetch(`${API_BASE_URL}/api/statistics/chart-data-fixed?period=${mapped}&_t=${t}`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             'Content-Type': 'application/json'
           }
         });
-        if (!response.ok) {
-          throw new Error('Failed to fetch chart data');
+
+        // Fallback to legacy endpoint if needed
+        if (!resp.ok) {
+          resp = await fetch(`${API_STATS}/chart-data?period=${period}&_t=${t}`, {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              'Content-Type': 'application/json'
+            }
+          });
         }
-        const data = await response.json();
-        
+
+        if (!resp.ok) throw new Error('Failed to fetch chart data');
+
+        const payload = await resp.json();
+
+        // Transform to Chart.js dataset using Home’s conventions (purchases * 2)
+        let labels = [];
+        let purchases = [];
+        let sales = [];
+
+        const d = payload?.data || payload; // support both shapes
+        if (mapped === 'weekly' && Array.isArray(d?.dailyBreakdown)) {
+          labels = d.dailyBreakdown.map(x => (x.day ? x.day.substring(0,3) : new Date(x.date).toLocaleDateString(undefined, { weekday: 'short' })));
+          purchases = d.dailyBreakdown.map(x => Number(x.purchases || 0) * 2);
+          sales = d.dailyBreakdown.map(x => Number(x.sales || 0));
+        } else if (mapped === 'monthly' && Array.isArray(d?.monthlyBreakdown)) {
+          labels = d.monthlyBreakdown.map(x => (x.month ? x.month.substring(0,3) : x.label || ''));
+          purchases = d.monthlyBreakdown.map(x => Number(x.purchases || 0) * 2);
+          sales = d.monthlyBreakdown.map(x => Number(x.sales || 0));
+        } else if (mapped === 'yearly' && d?.yearlyData) {
+          const year = payload?.data?.year || new Date().getFullYear();
+          labels = [String(year)];
+          purchases = [Number(d.yearlyData.purchases || 0) * 2];
+          sales = [Number(d.yearlyData.sales || 0)];
+        } else if (Array.isArray(payload?.chartData)) {
+          // Legacy array shape fallback
+          labels = payload.chartData.map(item => item.label);
+          purchases = payload.chartData.map(item => Number(item.purchases || 0) * 2);
+          sales = payload.chartData.map(item => Number(item.sales || 0));
+        }
+
         const chartConfig = {
-          labels: data.chartData.map(item => item.label),
+          labels,
           datasets: [
             {
               label: 'Purchase',
-              data: data.chartData.map(item => item.purchases),
+              data: purchases,
               backgroundColor: '#2E93fA',
               barPercentage: 0.6,
             },
             {
               label: 'Sales',
-              data: data.chartData.map(item => item.sales),
+              data: sales,
               backgroundColor: '#4CAF50',
               barPercentage: 0.6,
             }
           ]
         };
-        
+
         setChartData(chartConfig);
         setLoading(false);
       } catch (err) {
-  console.error('Error fetching chart data:', err);
-  setLoading(false);
-  setError('Failed to load chart data');
+        console.error('Error fetching chart data:', err);
+        setLoading(false);
+        setError('Failed to load chart data');
       }
     };
 

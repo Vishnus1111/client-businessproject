@@ -3,6 +3,20 @@
   padding: 0;
   background: #424457;
   min-height: 100vh;
+  position: relative;
+  --barWidth: 6px; /* single source of truth for bar thickness */
+}
+
+/* Top horizontal line that aligns with sidebar top line */
+.homeContainer::before {
+  content: '';
+  position: absolute;
+  top: 60px; /* Aligns with sidebar top line (matches Product page) */
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ffffff; /* solid white line */
+  z-index: 10;
 }
 
 .loadingContainer {
@@ -31,9 +45,10 @@
 /* Header */
 .header {
   background: #424457;
-  padding: 0.75rem 2rem; /* reduced height */
+  padding: 10px 16px; /* slightly reduced height */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem; /* allow cards to occupy more space */
+  margin-bottom: 12px;
+  position: relative;
 }
 
 .headerContent {
@@ -44,38 +59,66 @@
 }
 
 .pageTitle {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.75rem; /* slightly smaller like mock */
+  font-weight: 600;
   color: #ffffff; /* readable on dark header */
   margin: 0;
 }
 
+/* Product-like search bar */
+.searchContainer {
+  display: flex;
+  align-items: center;
+  background-color: #4e5062;
+  border-radius: 24px; /* increased radius */
+  padding: 0;
+  width: 210px; /* match Product page */
+  transition: all 0.2s ease;
+  position: relative;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+
+.searchButton {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px; /* match Product page */
+  width: 36px;
+}
+
 .searchInput {
-  padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #f8f9fa;
-  width: 300px;
-  font-size: 0.95rem;
+  border: none;
+  background: transparent;
+  padding: 8px 10px; /* match Product page */
+  width: 100%;
+  height: 20px;
+  outline: none;
+  color: #333; /* match Product page */
+  font-size: 13px;
+  box-shadow: none;
 }
 
 .searchInput::placeholder {
-  color: #999;
+  color: #ffffff; /* white placeholder like Product page */
+  opacity: 1;
 }
 
 /* Overview Sections */
-.overviewSection {
-  margin-bottom: 2rem;
-}
+
 
 .sectionHeader {
-  margin-bottom: 1rem;
-  padding: 0 2rem;
+  text-align: left;
 }
 
 .sectionHeader h2 {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #2c3e50;
   margin: 0;
 }
@@ -91,7 +134,6 @@
 .statCard {
   background: white;
   padding: 1.5rem;
-  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -101,6 +143,46 @@
 
 .statCard:hover {
   transform: translateY(-2px);
+}
+
+/* Disable hover effects for icons/cards inside Sales & Purchase overview sections */
+.overviewsContainer .overviewSection .statCard,
+.overviewsContainer .overviewSection .statCard:hover {
+  transform: none;
+  cursor: default;
+}
+
+/* Currency value tweaks: bring ₹ closer to digits and reduce size/weight where requested */
+/* Sales Overview: cards 2 (Revenue), 3 (Profit), 4 (Cost) */
+.overviewsContainer .overviewSection:first-child .statsGrid > div:nth-child(2) .statValue,
+.overviewsContainer .overviewSection:first-child .statsGrid > div:nth-child(3) .statValue,
+.overviewsContainer .overviewSection:first-child .statsGrid > div:nth-child(4) .statValue {
+  word-spacing: -4px; /* eliminate space between ₹ and value */
+  font-size: 1.25rem; /* smaller */
+  font-weight: 600;   /* lighter */
+  white-space: nowrap;
+}
+
+/* Purchase Overview: card 2 (Cost) */
+.overviewsContainer .overviewSection:nth-child(2) .statsGrid > div:nth-child(2) .statValue {
+  word-spacing: -4px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Make ALL values in Sales & Purchase overview the same smaller size and style */
+.overviewsContainer .overviewSection .statsGrid > div .statValue {
+  font-size: 0.9rem !important; /* unify size */
+  font-weight: 600 !important;    /* unify weight */
+  color: black !important;      /* unify color with values */
+}
+
+/* Make the field names beside the values the same appearance in Sales & Purchase overview */
+.overviewsContainer .overviewSection .statsGrid > div .statTitle {
+  font-size: 0.9rem !important; /* same as values */
+  font-weight: 600 !important;     /* match values */
+  color: black !important;       /* match values */
 }
 
 .statIcon {
@@ -133,37 +215,35 @@
 .statContent { flex: 1; display: flex; flex-direction: column; }
 
 .statValue {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .statTitle {
-  font-size: 0.95rem;
-  color: #7f8c8d;
-  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  margin-top: 0.15rem;
 }
 
 .statSubtitle {
   font-size: 0.85rem;
-  color: #95a5a6;
 }
 
 /* Bottom Section */
 .bottomSection {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  gap: 1rem;
   padding: 0 2rem;
 }
 
 /* Chart Section */
 .chartSection {
   background: #fff;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  border: 1px solid #dfe3f0; /* subtle border like mock */
+  padding: 1.1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .chartHeader {
@@ -219,7 +299,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: none; /* NOTE: This line previously added the visible bottom line under the bars */
 }
 
 .chartBar {
@@ -256,9 +336,11 @@
 
 .chartLegend {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* left align legend */
   gap: 2rem;
-  padding-top: 1rem;
+  padding-top: 0.5rem;
+  padding-left: 50px; /* align with plot area after y-axis */
+  margin-bottom: 0;
 }
 
 .legendItem {
@@ -270,9 +352,9 @@
 }
 
 .legendColor {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
+  width: 8px;  /* small round dots as in mock */
+  height: 8px;
+  border-radius: 50%;
 }
 
 /* Right Sidebar */
@@ -283,17 +365,19 @@
 }
 
 .summaryCard {
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #dfe3f0;
+  /* padding: 0.1rem; */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .summaryCard h3 {
   font-size: 1.2rem;
   font-weight: 600;
   color: #2c3e50;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
+  text-align: left;
 }
 
 .inventoryItems {
@@ -307,7 +391,7 @@
   display: flex;
   flex-direction: column; /* icon on top, then content */
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   text-align: center;
 }
 
@@ -315,7 +399,6 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #f39c12, #e67e22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -341,19 +424,30 @@
   color: #2c3e50;
 }
 
+/* Make Inventory & Product Summary value and field name match overview styles */
+.rightColumn .summaryCard .inventoryValue,
+.rightColumn .summaryCard .inventoryLabel {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: black !important;
+}
+
 /* Top Products */
 .topProductsList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 12px; /* tighter vertical spacing */
 }
 
 .topProductItem {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 40px 1fr auto; /* image, name, rating pills */
   align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  column-gap: 8px; /* tighter gap between name and rating */
+  row-gap: 4px;
+  padding: 8px 0; /* smaller 
+   spacing like screenshot */
+  border-bottom: none; /* remove any bottom divider line */
 }
 
 .topProductItem:last-child {
@@ -361,13 +455,34 @@
 }
 
 .productName {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #2c3e50;
   font-weight: 500;
+  margin-right: 8px;
 }
 
 .productRating {
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Pill rating bar (6 pills) */
+.ratingBar {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.ratingPill {
+  width: 14px;
+  height: 6px;
+  border-radius: 6px;
+  background: #f1f3f5; /* light/empty */
+  display: inline-block;
+}
+
+.ratingPill.filled {
+  background: #ffc107; /* yellow */
 }
 
 /* Responsive Design */
@@ -452,13 +567,14 @@
   justify-content: space-between;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  bottom: -4px; /* BASELINE NUDGE #1: move bars closer to the 0-axis (increased by 1px) */
 }
 
 .barLabel {
   font-size: 11px;
   color: #666;
-  margin-bottom: 5px;
+  transform: translateY(4px); /* BASELINE NUDGE #2: increased by 1px */
+  border-bottom: 0 !important; /* remove any leftover bottom border line */
   text-align: center;
 }
 
@@ -535,14 +651,14 @@
 }
 
 .barPurchase {
-  width: 15px;
+  width: var(--barWidth);
   background-color: #3498db;
   margin-right: 1px;
   border-radius: 3px 3px 0 0;
 }
 
 .barSales {
-  width: 15px;
+  width: var(--barWidth);
   background-color: #2ecc71;
   margin-left: 1px;
   border-radius: 3px 3px 0 0;
@@ -555,7 +671,7 @@
   grid-template-columns: 1fr; /* Sales on top, Purchase below */
   gap: 1.5rem;
   margin-bottom: 1.5rem;
-  padding: 0 1rem; /* decrease page padding so white sections can extend */
+  padding: 0; /* align with chart width (outer grid already has 0 1rem) */
 }
 
 .overviewSection {
@@ -575,6 +691,7 @@
   flex-direction: column;
   position: relative;
   height: 100%;
+  gap: 0; /* remove vertical gaps inside placeholder */
 }
 
 .chartContent {
@@ -591,7 +708,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  bottom: 30px;
+  bottom: 18px; /* reduced space for x labels */
   width: 50px;
   display: flex;
   flex-direction: column;
@@ -600,7 +717,7 @@
 
 .yAxisLabel {
   font-size: 10px;
-  color: #777;
+  color: #9aa3b2; /* lighter like mock */
   text-align: right;
   padding-right: 5px;
 }
@@ -611,17 +728,16 @@
   left: 0;
   right: 0;
   top: 0;
-  bottom: 30px;
+  bottom: 18px; /* sync with yAxis */
   z-index: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
+/* Hide grid/axis lines: show only values */
 .gridLine {
-  width: 100%;
-  height: 1px;
-  background-color: rgba(0, 0, 0, 0.05);
+  display: none;
 }
 
 /* Chart Bars */
@@ -633,7 +749,7 @@
   left: 0;
   right: 0;
   top: 0;
-  bottom: 30px;
+  bottom: 0; /* bring x-axis labels right under bars */
   z-index: 1;
   padding-bottom: 0;
 }
@@ -656,26 +772,32 @@
 }
 
 .barPurchase, .barSales {
-  width: 15px;
-  border-radius: 4px 4px 0 0;
+  width: var(--barWidth); /* normalized per request */
+  border-top-left-radius: 9999px; /* semicircle top */
+  border-top-right-radius: 9999px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
   min-height: 2px;
-  opacity: 0.8;
+  opacity: 0.9;
   transition: opacity 0.2s ease;
   margin: 0 1px;
 }
 
+/* Smooth vertical gradients for bars */
 .barPurchase {
-  background: #3498db;
+  background: linear-gradient(to top, #7f7cf5 0%, #78c8f3 100%) !important;
 }
 
 .barSales {
-  background: #2ecc71;
+  background: linear-gradient(to top, #49a769 0%, #56d864 100%) !important;
 }
 
 .barLabel {
   font-size: 12px;
   color: #666;
-  margin-top: 10px;
+  margin-top: 2px; /* pull labels closer to bar base */
+  margin-bottom: 0; /* remove extra bottom gap */
+  line-height: 1;
   text-align: center;
 }
 
@@ -726,31 +848,32 @@
 /* Overviews: white section with four horizontal stat items */
 .overviewSection {
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-  padding: 0.5rem 0.25rem 0.75rem; /* give more breathing room */
+  border-radius: 10px;
+  border: 1px solid #dfe3f0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  padding: 0.00005rem 0.00005rem 0.00005rem;
 }
 
-.sectionHeader { padding: 1rem 1rem 0 1rem; margin-bottom: 0.75rem; }
+.sectionHeader { padding: 0.5rem 1rem 0 1rem; margin-bottom: 0.25rem; }
 
 .overviewSection .statsGrid {
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  padding: 0 1.25rem 1.25rem 1.25rem;
+  gap: 0.75rem; /* tighter spacing between cards */
+  padding: 0 0.75rem 0.5rem 0.75rem; /* reduced side and bottom padding */
 }
 
 .overviewSection .statCard {
   background: transparent;
   box-shadow: none;
-  padding: 0.75rem 0.5rem;
+  padding: 0.4rem 0.25rem; /* decreased to shrink overall height */
   flex-direction: column; /* stack icon, value, label vertically */
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem; /* tighter spacing within the card */
 }
 /* Icon appearance inside overview: soft background, no border */
 .overviewSection .statIcon {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   box-shadow: none;
@@ -765,13 +888,13 @@
 .overviewSection .statCard.green .statIcon { background: rgba(46, 204, 113, 0.15); }
 .overviewSection .statCard.purple .statIcon { background: rgba(155, 89, 182, 0.15); }
 
-.overviewSection .statContent { text-align: center; display: flex; flex-direction: row; align-items: baseline; justify-content: center; gap: 10px; }
+.overviewSection .statContent { text-align: center; display: flex; flex-direction: row; align-items: baseline; justify-content: center; gap: 6px; }
 .overviewSection .statValue { font-size: 1.35rem; line-height: 1.1; }
 .overviewSection .statTitle { font-size: 0.85rem; color: #6b7a89; }
 
-/* Chart occupies ~60% viewport height to mirror layout */
-.chartSection { padding: 1.25rem; }
-.chartSection .chartContainer { height: 60vh; }
+/* Chart occupies less height and tighter paddings */
+.chartSection { padding: 1rem 1.25rem 0.75rem; }
+.chartSection .chartContainer { height: 300px; }
 
 /* Right column cards already white; make Top Products grow */
 .rightColumn .summaryCard:last-child { display: flex; flex-direction: column; }
@@ -781,4 +904,297 @@
 @media (max-width: 1200px) {
   .dashboardGrid { grid-template-columns: 1fr; }
   .rightColumn { grid-template-rows: auto auto auto; }
+}
+
+/* ===== Align second-row cards (Purchase Overview and Product Summary) ===== */
+/* Shared height for the second row */
+.homeContainer { --secondRowCardHeight: 150px; }
+
+/* Purchase Overview (second overview section on the left) */
+.overviewsContainer .overviewSection:nth-child(2) {
+  min-height: var(--secondRowCardHeight);
+  display: flex;
+  flex-direction: column;
+}
+.overviewsContainer .overviewSection:nth-child(2) .statsGrid {
+  flex: 1;
+  align-content: center;
+}
+
+/* Product Summary (second summary card on the right) */
+.rightColumn > .summaryCard:nth-child(2) {
+  min-height: var(--secondRowCardHeight);
+  display: flex;
+  flex-direction: column;
+}
+.rightColumn > .summaryCard:nth-child(2) h3 {
+  padding: 0.5rem 1rem 0 1rem; /* align header padding with overview header */
+  margin: 0 0 0.25rem 0;        /* slightly tighter spacing like overview */
+}
+.rightColumn > .summaryCard:nth-child(2) .inventoryItems {
+  padding: 0 1rem 0.5rem;       /* align grid padding with overview grid */
+}
+
+/* ===== Exact alignment for both rows using fixed heights ===== */
+/* Define row heights (tweak these values to fine-tune) */
+.homeContainer { --row1Height: 170px; --row2Height: 150px; }
+
+/* Row 1: Sales Overview (left) and Inventory Summary (right) */
+.overviewsContainer .overviewSection:first-child,
+.rightColumn > .summaryCard:first-child {
+  height: var(--row1Height) !important;
+  display: flex;
+  flex-direction: column;
+}
+.rightColumn > .summaryCard:first-child h3 { padding: 0.5rem 1rem 0 1rem; margin: 0 0 0.25rem 0; }
+.rightColumn > .summaryCard:first-child .inventoryItems { padding: 0 1rem 0.5rem; flex: 1; }
+.overviewsContainer .overviewSection:first-child .statsGrid { flex: 1; align-content: center; }
+
+/* Row 2: Purchase Overview (left) and Product Summary (right) */
+.overviewsContainer .overviewSection:nth-child(2),
+.rightColumn > .summaryCard:nth-child(2) {
+  height: var(--row2Height) !important;
+  display: flex;
+  flex-direction: column;
+}
+.rightColumn > .summaryCard:nth-child(2) h3 { padding: 0.5rem 1rem 0 1rem; margin: 0 0 0.25rem 0; }
+.rightColumn > .summaryCard:nth-child(2) .inventoryItems { padding: 0 1rem 0.5rem; flex: 1; }
+.overviewsContainer .overviewSection:nth-child(2) .statsGrid { flex: 1; align-content: center; }
+
+/* ===== Align top-row cards (Sales Overview and Inventory Summary) ===== */
+/* Provide a shared height variable on container scope */
+.homeContainer { --topRowCardHeight: 150px; }
+
+/* Sales Overview (first overview section on the left) */
+.overviewsContainer .overviewSection:first-child {
+  min-height: var(--topRowCardHeight);
+  display: flex;
+  flex-direction: column;
+}
+.overviewsContainer .overviewSection:first-child .statsGrid {
+  flex: 1;
+  align-content: center;
+}
+
+/* Inventory Summary (first summary card on the right) */
+.rightColumn > .summaryCard:first-child {
+  min-height: var(--topRowCardHeight);
+  display: flex;
+  flex-direction: column;
+}
+.rightColumn > .summaryCard:first-child h3 {
+  padding: 0.5rem 1rem 0 1rem; /* align header padding with overview */
+  margin: 0 0 0.25rem 0;        /* match tighter overview header spacing */
+}
+.rightColumn > .summaryCard:first-child .inventoryItems {
+  padding: 0 1rem 0.5rem;      /* align grid padding with overview */
+}
+
+/* ===== Override: make Home chart match Statistics page exactly ===== */
+/* Container and header */
+.chartSection {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  border: none; /* remove container border including bottom line */
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.periodSelector {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.periodSelect {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  font-size: 14px;
+  outline: none;
+  font-weight: 500;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
+}
+
+.periodSelect::-ms-expand { display: none; }
+
+/* Chart layout */
+.chartContainer { height: 340px; }
+
+.chartPlaceholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.yAxis {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-right: 8px;
+  width: 60px;
+}
+
+.yAxisLabel {
+  font-size: 12px;
+  color: #777;
+  text-align: right;
+}
+
+.chartContent {
+  margin-left: 60px;
+  height: 240px;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.chartGrid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gridLine {
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.05);
+  width: 100%;
+  display: block; /* ensure visible (overrides earlier hidden) */
+}
+
+/* Hide only the topmost and bottom (0-axis) grid lines */
+.chartGrid .gridLine:first-child,
+.chartGrid .gridLine:last-child,
+.chartGrid .gridLine:nth-child(1),
+.chartGrid .gridLine:nth-last-child(1),
+.chartGrid .gridLine:first-of-type,
+.chartGrid .gridLine:last-of-type {
+  display: none !important;
+}
+
+.chartBars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -3px; /* BASELINE NUDGE #1: move bars closer to the 0-axis (increase magnitude to push lower) */
+  display: flex;
+  padding: 0 20px;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 240px;
+  transform: translateY(10px); /* BASELINE NUDGE #2: extra pixel push to visually touch the baseline */
+  border-bottom: none !important; /* Ensure no baseline/border shows at the bottom of the plot */
+}
+
+.chartBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 60px;
+  justify-content: flex-end; /* ensure barContainer sits on baseline */
+  border-bottom: none !important;
+}
+
+.barContainer {
+  width: 100%;
+  height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.barPurchase, .barSales {
+  width: var(--barWidth); /* enforce fixed bar thickness */
+  margin: 0 2px;
+  transition: height 0.5s;
+  border-top-left-radius: 9999px; /* semicircle top like the 1st screenshot */
+  border-top-right-radius: 9999px; /* semicircle top like the 1st screenshot */
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0; /* semicircular top */
+}
+
+.barPurchase {
+  background: linear-gradient(to top, #7f7cf5 0%, #78c8f3 100%) !important; /* smooth purchase gradient */
+}
+
+.barSales {
+  background: linear-gradient(to top, #49a769 0%, #56d864 100%) !important; /* smooth sales gradient */
+}
+
+.barLabel {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.chartSummary { margin-top: auto; margin-left: 60px; }
+
+.chartTotals {
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: #555;
+}
+
+.chartLegend {
+  display: flex;
+  margin-top: 10px;
+  margin-left: 60px;
+  gap: 16px;
+}
+
+.legendItem { display: flex; align-items: center; }
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%; /* make legend bullets circular */
+  margin-right: 6px;
+}
+
+/* ===== Top Products: place rating on the next line slightly right ===== */
+/* Updated: keep name and rating on the same row, remove extra gaps */
+.rightColumn .topProductsList .topProductItem {
+  display: grid !important;
+  grid-template-columns: 40px 1fr auto !important;
+  align-items: center !important;
+  column-gap: 12px !important;
+  row-gap: 0 !important;
+}
+
+.rightColumn .topProductsList .productImage { flex: 0 0 40px; }
+
+.rightColumn .topProductsList .productName { margin: 0; }
+
+.rightColumn .topProductsList .productRating {
+  width: auto !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  text-align: right;
 }
