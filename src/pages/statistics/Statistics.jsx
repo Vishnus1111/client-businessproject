@@ -51,7 +51,7 @@ const Statistics = () => {
       if (response.ok) {
         const data = await response.json();
         const m = data?.metrics || {};
-        setStats({
+        let nextStats = {
           totalRevenue: m.revenue?.current || 0,
           productsSold: m.productsSold?.current || 0,
           productsInStock: m.productsInStock?.current || 0,
@@ -61,7 +61,60 @@ const Statistics = () => {
           revenuePrev: m.revenue?.previous || 0,
           soldPrev: m.productsSold?.previous || 0,
           stockPrev: m.productsInStock?.previous || 0
-        });
+        };
+
+        // Frontend-only fallback: if both revenue and productsSold are 0, compute from orders
+        if ((nextStats.totalRevenue === 0) && (nextStats.productsSold === 0)) {
+          try {
+            const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            if (ordersRes.ok) {
+              const ordersJson = await ordersRes.json();
+              const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
+
+              // Determine time window based on selectedPeriod
+              const now = new Date();
+              let start;
+              if (selectedPeriod === 'weekly') {
+                start = new Date(now);
+                start.setDate(now.getDate() - 6);
+                start.setHours(0, 0, 0, 0);
+              } else if (selectedPeriod === 'monthly') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+              } else {
+                // yearly
+                start = new Date(now.getFullYear(), 0, 1);
+              }
+              const end = new Date(now);
+              end.setHours(23, 59, 59, 999);
+
+              const inWindow = (d) => d >= start && d <= end;
+              const notCancelled = (o) => (o.orderStatus || '').toLowerCase() !== 'cancelled';
+              const parseDate = (o) => new Date(o.createdAt || o.orderDate || o.date || 0);
+
+              let computedRevenue = 0;
+              let computedQty = 0;
+              orders.filter(notCancelled).forEach(o => {
+                const d = parseDate(o);
+                if (inWindow(d)) {
+                  computedRevenue += Number(o.totalAmount || 0);
+                  computedQty += Number(o.quantityOrdered || 0);
+                }
+              });
+
+              nextStats.totalRevenue = computedRevenue;
+              nextStats.productsSold = computedQty;
+            }
+          } catch (e) {
+            console.warn('Stats fallback from orders failed:', e);
+          }
+        }
+
+        setStats(nextStats);
         console.log('Dashboard summary loaded:', { period, stats: m });
       } else {
         toast.error('Failed to load dashboard summary');
@@ -88,6 +141,123 @@ const Statistics = () => {
       
       if (response.ok) {
         const data = await response.json();
+
+        // Frontend-only fallback: if sales are all zero, rebuild from orders
+        try {
+          const isWeekly = selectedPeriod === 'weekly';
+          const isMonthly = selectedPeriod === 'monthly';
+          const isYearly = selectedPeriod === 'yearly';
+
+          const salesAllZero = (() => {
+            const d = data?.data;
+            if (!d) return false;
+            if (isWeekly && Array.isArray(d.dailyBreakdown)) {
+              return d.dailyBreakdown.every(x => (x.sales || 0) === 0);
+            }
+            if (isMonthly && Array.isArray(d.monthlyBreakdown)) {
+              return d.monthlyBreakdown.every(x => (x.sales || 0) === 0);
+            }
+            if (isYearly && d.yearlyData) {
+              return (d.yearlyData.sales || 0) === 0;
+            }
+            return false;
+          })();
+
+          if (salesAllZero) {
+            const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            if (ordersRes.ok) {
+              const ordersJson = await ordersRes.json();
+              const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
+
+              const safeDate = (o) => new Date(o.createdAt || o.orderDate || o.date || 0);
+              const amount = (o) => Number(o.totalAmount || 0);
+              const notCancelled = (o) => (o.orderStatus || '').toLowerCase() !== 'cancelled';
+
+              if (isWeekly && Array.isArray(data?.data?.dailyBreakdown)) {
+                const today = new Date();
+                today.setHours(23, 59, 59, 999);
+                const start = new Date(today);
+                start.setDate(today.getDate() - 6);
+                start.setHours(0, 0, 0, 0);
+
+                const dayKey = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toDateString();
+                const salesMap = new Map();
+                for (let i = 0; i < 7; i++) {
+                  const d = new Date(start);
+                  d.setDate(start.getDate() + i);
+                  salesMap.set(dayKey(d), 0);
+                }
+
+                orders.filter(notCancelled).forEach(o => {
+                  const d = safeDate(o);
+                  if (d >= start && d <= today) {
+                    const key = dayKey(d);
+                    if (salesMap.has(key)) {
+                      salesMap.set(key, salesMap.get(key) + amount(o));
+                    }
+                  }
+                });
+
+                const patched = data.data.dailyBreakdown.map(entry => {
+                  const key = dayKey(new Date(entry.date));
+                  const sales = salesMap.has(key) ? salesMap.get(key) : (entry.sales || 0);
+                  return { ...entry, sales };
+                });
+                data.data.dailyBreakdown = patched;
+
+                // Patch summary totalSales
+                const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
+                data.data.summary = { ...(data.data.summary || {}), totalSales };
+              }
+
+              if (isMonthly && Array.isArray(data?.data?.monthlyBreakdown)) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const byMonth = Array(12).fill(0);
+
+                orders.filter(notCancelled).forEach(o => {
+                  const d = safeDate(o);
+                  if (d.getFullYear() === year) {
+                    byMonth[d.getMonth()] += amount(o);
+                  }
+                });
+
+                const monthIndex = (name) => new Date(`${name} 1, ${year}`).getMonth();
+                const patched = data.data.monthlyBreakdown.map(entry => {
+                  const idx = monthIndex(entry.month);
+                  const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : (entry.sales || 0);
+                  return { ...entry, sales };
+                });
+                data.data.monthlyBreakdown = patched;
+
+                // Patch summary totalSales
+                const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
+                data.data.summary = { ...(data.data.summary || {}), totalSales };
+              }
+
+              if (isYearly && data?.data?.yearlyData) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const yearSales = orders.filter(notCancelled).reduce((sum, o) => {
+                  const d = safeDate(o);
+                  return d.getFullYear() === year ? sum + amount(o) : sum;
+                }, 0);
+                data.data.yearlyData = { ...data.data.yearlyData, sales: yearSales };
+
+                // Patch summary totalSales
+                data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales };
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Sales fallback computation skipped due to error:', e);
+        }
+
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
       } else {

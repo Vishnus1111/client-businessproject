@@ -17,9 +17,9 @@ const Product = () => {
     categories: 0,
     totalProducts: 0,
     totalRevenue: 0,
-    totalCost: 0,
-    topSelling: 0,
-    lowStocks: { ordered: 0, notInStock: 0 }
+  totalCost: 0,
+  topSelling: 0,
+  lowStocks: { ordered: 0, notInStock: 0 }
   });
   
   // State for product ordering
@@ -155,21 +155,70 @@ const Product = () => {
         }
       });
 
+      let base = {
+        categories: 0,
+        totalProducts: 0,
+        totalRevenue: 0,
+        lowStocks: { ordered: 0, notInStock: 0 }
+      };
+
       if (response.ok) {
         const data = await response.json();
-        setInventoryStats({
+        base = {
           categories: data.overallInventory?.categories?.count || 0,
           totalProducts: data.overallInventory?.totalProducts?.count || 0,
-          totalRevenue: calculateTotalWithTaxAndShipping(data.overallInventory?.totalProducts?.revenue || 0),
-          totalCost: data.overallInventory?.topSelling?.cost || 0,
-          topSelling: Math.min(5, data.overallInventory?.topSelling?.count || 5), // Force max 5 for top selling
-          lowStocks: data.overallInventory?.lowStocks || { ordered: 0, notInStock: 0 }
-        });
+          // Use backend revenue as-is to stay responsive to DB and avoid phantom ₹50
+          totalRevenue: Number(data.overallInventory?.totalProducts?.revenue || 0),
+          lowStocks: {
+            // Show actual count of products currently in Low stock from the loaded list
+            ordered: (products || []).filter(p => p?.availability === 'Low stock').length,
+            // Keep backend-provided notInStock if present
+            notInStock: data.overallInventory?.lowStocks?.notInStock || 0
+          }
+        };
       }
+
+      // Top selling: derive from top-products API; cap count at 5; if none, show 0
+      let topSellingCount = 0;
+      let topSellingCost = 0;
+      try {
+        const tpRes = await fetch(`${API_BASE_URL}/api/top-products/top-products`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (tpRes.ok) {
+          const tpData = await tpRes.json();
+          const topList = Array.isArray(tpData.products) ? tpData.products : [];
+          topSellingCount = Math.min(5, topList.length);
+
+          // Build a quick lookup for product costPrice from loaded products
+          const prodMap = new Map((products || []).map(p => [p.productId, p]));
+          topSellingCost = topList.slice(0, 5).reduce((sum, item) => {
+            // Prefer productId when present; fall back to _id
+            const pid = item.productId || item._id || item.id;
+            // Use costPrice from API if provided; else fall back to local product map
+            const costPriceFromApi = typeof item.costPrice === 'number' ? item.costPrice : undefined;
+            const costPrice = costPriceFromApi !== undefined ? costPriceFromApi : (prodMap.get(pid)?.costPrice || 0);
+            // Frontend-only: without sales quantities, treat cost as per-item and sum for up to 5 items
+            return sum + costPrice;
+          }, 0);
+        }
+      } catch (e) {
+        // Non-fatal: keep zeros if request fails
+        console.warn('Top products fetch failed:', e.message || e);
+      }
+
+      setInventoryStats({
+        ...base,
+        topSelling: topSellingCount,
+        totalCost: topSellingCost
+      });
     } catch (error) {
       console.error('Error fetching inventory stats:', error);
     }
-  }, []);
+  }, [products]);
 
   // Initial load
   useEffect(() => {
@@ -210,6 +259,13 @@ const Product = () => {
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Recompute inventory stats whenever products change to keep counts responsive
+  useEffect(() => {
+    if (Array.isArray(products)) {
+      fetchInventoryStats();
+    }
+  }, [products, fetchInventoryStats]);
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -252,16 +308,10 @@ const Product = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `₹${amount?.toFixed(0) || 0}`;
+  return `₹${amount?.toFixed(0) || 0}`;
   };
   
-  // Calculate total with tax (10%) and shipping (₹50)
-  const calculateTotalWithTaxAndShipping = (amount) => {
-    const baseAmount = Number(amount || 0);
-    const tax = baseAmount * 0.10; // 10% tax
-    const shipping = 50; // Fixed shipping charge
-    return baseAmount + tax + shipping;
-  };
+  // (Removed tax/shipping adjustment; revenue is taken as-is from backend)
 
   const AddProductModal = () => (
     <div className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>

@@ -105,9 +105,11 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
   console.log("Making request to validate CSV with duplicate checking...");
       
       // Use the validate-csv endpoint for validation only
-      const response = await fetch(`${API_BASE_URL}/api/products/validate-csv?checkDuplicates=true&_t=${Date.now()}`, {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/api/products/validate-csv?checkDuplicates=true&_t=${Date.now()}`, {
         method: 'POST',
         headers: {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
           'Expires': '0'

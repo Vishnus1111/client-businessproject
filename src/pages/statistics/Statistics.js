@@ -42,7 +42,13 @@ const Statistics = () => {
   useEffect(() => {
     const fetchDashboardSummary = async () => {
       try {
-  const response = await fetch(`${API_STATS}/dashboard-summary?period=${period}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_STATS}/dashboard-summary?period=${period}` , {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'Content-Type': 'application/json'
+          }
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard summary');
         }
@@ -62,7 +68,13 @@ const Statistics = () => {
     const fetchChartData = async () => {
       try {
         setLoading(true);
-  const response = await fetch(`${API_STATS}/chart-data?period=${period}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_STATS}/chart-data?period=${period}`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            'Content-Type': 'application/json'
+          }
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch chart data');
         }

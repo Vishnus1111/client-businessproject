@@ -130,7 +130,13 @@ const Invoice = () => {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/api/invoices`);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_BASE_URL}/api/invoices`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         
         if (response.data.success) {
           setInvoices(response.data.invoices);
