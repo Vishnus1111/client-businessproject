@@ -177,79 +177,80 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Overviews Section - Side by Side */}
-      <div className={styles.overviewsContainer}>
-        {/* Sales Overview */}
-        <div className={styles.overviewSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Sales Overview</h2>
-          </div>
-          <div className={styles.statsGrid}>
-            <StatCard
-              title="Sales"
-              value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`}
-              color="blue"
-              icon= {<img src={salesale} alt="Sales Cost" />}
-            />
-            <StatCard
-              title="Revenue"
-              value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`}
-              color="orange"
-              icon= {<img src={revenueIcon} alt="Revenue" />}
-            />
-            <StatCard
-              title="Profit"
-              value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`}
-              color="green"
-              icon= {<img src={profitIcon} alt="Profit" />}
-            />
-            <StatCard
-              title="Cost"
-              value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
-              color="purple"
-              icon= {<img src={costIcon} alt="Cost" />}
-            />
-          </div>
-        </div>
+      {/* Main Dashboard Grid */}
+      <div className={styles.dashboardGrid}>
+        <div className={styles.leftColumn}>
+          {/* Overviews Section - within left column */}
+          <div className={styles.overviewsContainer}>
+            {/* Sales Overview */}
+            <div className={styles.overviewSection}>
+              <div className={styles.sectionHeader}>
+                <h2>Sales Overview</h2>
+              </div>
+              <div className={styles.statsGrid}>
+                <StatCard
+                  title="Sales"
+                  value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`}
+                  color="blue"
+                  icon={<img src={salesale} alt="Sales Cost" />}
+                />
+                <StatCard
+                  title="Revenue"
+                  value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`}
+                  color="orange"
+                  icon={<img src={revenueIcon} alt="Revenue" />}
+                />
+                <StatCard
+                  title="Profit"
+                  value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`}
+                  color="green"
+                  icon={<img src={profitIcon} alt="Profit" />}
+                />
+                <StatCard
+                  title="Cost"
+                  value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
+                  color="purple"
+                  icon={<img src={costIcon} alt="Cost" />}
+                />
+              </div>
+            </div>
 
-        {/* Purchase Overview */}
-        <div className={styles.overviewSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Purchase Overview</h2>
+            {/* Purchase Overview */}
+            <div className={styles.overviewSection}>
+              <div className={styles.sectionHeader}>
+                <h2>Purchase Overview</h2>
+              </div>
+              <div className={styles.statsGrid}>
+                <StatCard
+                  title="Purchase"
+                  value={dashboardData?.overallInventory?.totalProducts?.recent || 0}
+                  color="blue"
+                  icon={<img src={purchaseIcon} alt="Purchase" />}
+                />
+                <StatCard
+                  title="Cost"
+                  value={`₹ ${((((chartData?.data?.summary?.totalPurchases) || 0) * 2).toLocaleString())}`}
+                  color="orange"
+                  icon={<img src={costIcon2} alt="Cost" />}
+                />
+                <StatCard
+                  title="Cancel"
+                  value={cancelMetrics.count || 0}
+                  color="green"
+                  icon={<img src={cancelIcon} alt="Cancel" />}
+                />
+                <StatCard
+                  title="Return"
+                  value={`₹ ${(returnMetrics.amount || 0).toLocaleString()}`}
+                  color="purple"
+                  icon={<img src={returnIcon} alt="Return" />}
+                />
+              </div>
+            </div>
           </div>
-          <div className={styles.statsGrid}>
-            <StatCard
-              title="Purchase"
-              value={dashboardData?.overallInventory?.totalProducts?.recent || 0}
-              color="blue"
-              icon= {<img src={purchaseIcon} alt="Purchase" />}
-            />
-            <StatCard
-              title="Cost"
-              value={`₹ ${((((chartData?.data?.summary?.totalPurchases) || 0) * 2).toLocaleString())}`}
-              color="orange"
-              icon= {<img src={costIcon2} alt="Cost" />}
-            />
-            <StatCard
-              title="Cancel"
-              value={cancelMetrics.count || 0}
-              color="green"
-              icon= {<img src={cancelIcon} alt="Cancel" />}
-            />
-            <StatCard
-              title="Return"
-              value={`₹ ${(returnMetrics.amount || 0).toLocaleString()}`}
-              color="purple"
-              icon= {<img src={returnIcon} alt="Return" />}
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* Bottom Section */}
-      <div className={styles.bottomSection}>
-        {/* Sales & Purchase Chart */}
-        <div className={styles.chartSection}>
+          {/* Sales & Purchase Chart */}
+          <div className={styles.chartSection}>
           <div className={styles.chartHeader}>
             <h3>Sales & Purchase</h3>
             <div className={styles.periodSelector}>
@@ -505,9 +506,10 @@ const Home = () => {
             </div>
           </div>
         </div>
+  </div>
 
-        {/* Right Sidebar */}
-        <div className={styles.rightSidebar}>
+  {/* Right Column (Summaries + Top Products) */}
+  <div className={styles.rightColumn}>
           {/* Inventory Summary */}
           <div className={styles.summaryCard}>
             <h3>Inventory Summary</h3>

@@ -93,8 +93,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
     setValidationData(null);
     setLoading(true);
 
-    try {
-      const token = localStorage.getItem('token');
+  try {
       
       const formData = new FormData();
       formData.append('csvFile', csvFile);
@@ -103,7 +102,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       // Add check for duplicates flag
       formData.append('checkDuplicates', 'true');
 
-      console.log("Making request to validate CSV with duplicate checking...");
+  console.log("Making request to validate CSV with duplicate checking...");
       
       // Use the validate-csv endpoint for validation only
       const response = await fetch(`${API_BASE_URL}/api/products/validate-csv?checkDuplicates=true&_t=${Date.now()}`, {

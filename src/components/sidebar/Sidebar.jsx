@@ -5,7 +5,7 @@ import logo from "../../assets/dashboard/logo.png"
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed] = useState(false);
   const [userName, setUserName] = useState('User');
   
   // Load user name from localStorage and update when it changes
