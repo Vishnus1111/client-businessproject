@@ -299,7 +299,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       const data = await response.json();
       console.log("📋 Response data:", data);
 
-      // Check if products were actually added, regardless of success flag
+  // Check if products were actually added, regardless of success flag
       // Backend may return counts as numbers (in results) and arrays (in details)
       const successCount = Array.isArray(data.results?.successful)
         ? data.results.successful.length
@@ -352,11 +352,19 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
             localStorage.setItem('csv_upload_timestamp', Date.now().toString());
             localStorage.setItem('csv_upload_count', successCount.toString());
             
+            // Collect successful product IDs in the exact processed order (last added should appear first)
+            const successfulList = Array.isArray(data.details?.successful) ? data.details.successful : [];
+            const successIds = successfulList
+              .map(entry => entry.productId)
+              .filter(Boolean)
+              .reverse(); // last added first
+
             // Call the callback function with CSV flag AND upload metadata
             onProductsAdded(true, { 
               uploadId: uniqueId,
               count: successCount,
-              timestamp: Date.now()
+              timestamp: Date.now(),
+              successIds
             });
             
             // Show a toast to inform the user the process is ongoing

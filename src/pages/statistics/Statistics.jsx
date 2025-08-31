@@ -212,7 +212,26 @@ const Statistics = () => {
 
                 // Patch summary totalSales
                 const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
-                data.data.summary = { ...(data.data.summary || {}), totalSales };
+                // Compute profit from orders joined with product cost within the same window
+                let profit = 0;
+                try {
+                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                  });
+                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
+                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
+                  orders.filter(notCancelled).forEach(o => {
+                    const d = safeDate(o);
+                    if (d >= start && d <= today) {
+                      const p = prodMap.get(o.productId);
+                      const cost = Number(p?.costPrice || 0);
+                      const unit = Number(o.pricePerUnit || 0);
+                      const qty = Number(o.quantityOrdered || 0);
+                      profit += (unit - cost) * qty;
+                    }
+                  });
+                } catch {}
+                data.data.summary = { ...(data.data.summary || {}), totalSales, profit };
               }
 
               if (isMonthly && Array.isArray(data?.data?.monthlyBreakdown)) {
@@ -237,7 +256,26 @@ const Statistics = () => {
 
                 // Patch summary totalSales
                 const totalSales = patched.reduce((sum, e) => sum + (Number(e.sales) || 0), 0);
-                data.data.summary = { ...(data.data.summary || {}), totalSales };
+                // Compute yearly profit from orders joined with product cost
+                let profit = 0;
+                try {
+                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                  });
+                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
+                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
+                  orders.filter(notCancelled).forEach(o => {
+                    const d = safeDate(o);
+                    if (d.getFullYear() === year) {
+                      const p = prodMap.get(o.productId);
+                      const cost = Number(p?.costPrice || 0);
+                      const unit = Number(o.pricePerUnit || 0);
+                      const qty = Number(o.quantityOrdered || 0);
+                      profit += (unit - cost) * qty;
+                    }
+                  });
+                } catch {}
+                data.data.summary = { ...(data.data.summary || {}), totalSales, profit };
               }
 
               if (isYearly && data?.data?.yearlyData) {
@@ -250,7 +288,26 @@ const Statistics = () => {
                 data.data.yearlyData = { ...data.data.yearlyData, sales: yearSales };
 
                 // Patch summary totalSales
-                data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales };
+                // Compute yearly profit from orders joined with product cost
+                let profit = 0;
+                try {
+                  const prodRes = await fetch(`${API_BASE_URL}/api/products/all?_t=${t}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                  });
+                  const prodJson = prodRes.ok ? await prodRes.json() : { products: [] };
+                  const prodMap = new Map((prodJson.products || []).map(p => [p.productId, p]));
+                  orders.filter(notCancelled).forEach(o => {
+                    const d = safeDate(o);
+                    if (d.getFullYear() === year) {
+                      const p = prodMap.get(o.productId);
+                      const cost = Number(p?.costPrice || 0);
+                      const unit = Number(o.pricePerUnit || 0);
+                      const qty = Number(o.quantityOrdered || 0);
+                      profit += (unit - cost) * qty;
+                    }
+                  });
+                } catch {}
+                data.data.summary = { ...(data.data.summary || {}), totalSales: yearSales, profit };
               }
             }
           }
@@ -359,12 +416,13 @@ const Statistics = () => {
           <div className={styles.statsValue}>{stats.productsInStock.toLocaleString()}</div>
           <div className={styles.statsChange}>
             {(() => {
-              // If previous period has no value (0) we display 100%.
-              // Backend sets previous to current when it was 0; detect that and force 100% for monthly/yearly only.
-              const isWeekly = selectedPeriod === 'weekly';
+              // If previous period has no value (0 or missing) and current > 0, display +100% for all periods.
+              // This keeps the UI responsive even when backend previous is absent.
               const backendMaskedZero = (stats.stockChange === 0 && stats.stockPrev === stats.productsInStock);
               const prevZero = stats.stockPrev === 0;
-              if (!isWeekly && (prevZero || backendMaskedZero)) {
+              const prevMissing = stats.stockPrev === null || stats.stockPrev === undefined || Number.isNaN(stats.stockPrev);
+              const currentPositive = (stats.productsInStock || 0) > 0;
+              if (currentPositive && (prevZero || prevMissing || backendMaskedZero)) {
                 return '+100%';
               }
               return getDisplayedPercent(stats.stockChange, stats.stockPrev);

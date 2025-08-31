@@ -457,15 +457,45 @@ const Product = () => {
         }
         
         // Get fresh data
-        const data = await fetchWithNoCaching();
+  const data = await fetchWithNoCaching();
         console.log(`✅ Attempt ${attempt}: Fresh data received:`, data.products?.length || 0, "products");
         
         // Verify we have products in the response
         const hasProducts = Array.isArray(data.products) && data.products.length > 0;
         console.log(`Received ${data.products?.length || 0} products in response`);
         
-        // Update state with fresh data
-        setProducts(data.products || []);
+        // If this was a CSV upload and we have an ordered list of productIds, place them at the very top in that order
+        let sortedProducts = (data.products || []).slice();
+        if (isCsvUpload && uploadMetadata?.successIds && uploadMetadata.successIds.length > 0) {
+          const idSet = new Set(uploadMetadata.successIds);
+          const topItems = [];
+          const restItems = [];
+          for (const p of sortedProducts) {
+            if (p?.productId && idSet.has(p.productId)) {
+              topItems.push(p);
+            } else {
+              restItems.push(p);
+            }
+          }
+          // Order topItems to match successIds order exactly
+          const topOrdered = uploadMetadata.successIds
+            .map(id => topItems.find(p => p.productId === id))
+            .filter(Boolean);
+          sortedProducts = [...topOrdered, ...restItems];
+        } else {
+          // Otherwise sort deterministically so newly-added items appear at the top (stable order)
+          sortedProducts.sort((a, b) => {
+            const t = new Date(b.createdAt) - new Date(a.createdAt);
+            if (t !== 0) return t;
+            const aid = String(a._id || '');
+            const bid = String(b._id || '');
+            return bid.localeCompare(aid);
+          });
+        }
+
+        // Update state with sorted data and reset to first page to show new items on top
+        setProducts(sortedProducts);
+        setCurrentPage(1);
         setTotalPages(Math.ceil((data.products?.length || 0) / 9));
         
         // Refresh stats too
