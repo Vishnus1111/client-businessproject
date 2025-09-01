@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './Statistics.module.css';
@@ -8,22 +8,21 @@ import salesIcon from '../../assets/statistics/credit-card.png';
 import inventoryQuantityIcon from '../../assets/statistics/activity.png';
 
 const Statistics = () => {
-  // Removed unused state variable: dashboardData
   const [chartData, setChartData] = useState(null);
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('weekly');
+  const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({
     totalRevenue: 0,
     productsSold: 0,
     productsInStock: 0,
     revenueChange: 0,
     soldChange: 0,
-  stockChange: 0,
-  // previous period values for correct label logic
-  revenuePrev: 0,
-  soldPrev: 0,
-  stockPrev: 0
+    stockChange: 0,
+    revenuePrev: 0,
+    soldPrev: 0,
+    stockPrev: 0,
   });
 
   useEffect(() => {
@@ -36,16 +35,15 @@ const Statistics = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      // Map UI period to backend expected values
       const periodMap = { weekly: 'week', monthly: 'month', yearly: 'year' };
       const period = periodMap[selectedPeriod] || 'week';
       const t = Date.now();
 
       const response = await fetch(`${API_BASE_URL}/api/statistics/dashboard-summary?period=${period}&_t=${t}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
@@ -60,23 +58,21 @@ const Statistics = () => {
           stockChange: m.productsInStock?.change || 0,
           revenuePrev: m.revenue?.previous || 0,
           soldPrev: m.productsSold?.previous || 0,
-          stockPrev: m.productsInStock?.previous || 0
+          stockPrev: m.productsInStock?.previous || 0,
         };
 
-        // Frontend-only fallback: if both revenue and productsSold are 0, compute from orders
-        if ((nextStats.totalRevenue === 0) && (nextStats.productsSold === 0)) {
+        if (nextStats.totalRevenue === 0 && nextStats.productsSold === 0) {
           try {
             const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
               headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
             });
             if (ordersRes.ok) {
               const ordersJson = await ordersRes.json();
               const orders = Array.isArray(ordersJson.orders) ? ordersJson.orders : [];
 
-              // Determine time window based on selectedPeriod
               const now = new Date();
               let start;
               if (selectedPeriod === 'weekly') {
@@ -86,7 +82,6 @@ const Statistics = () => {
               } else if (selectedPeriod === 'monthly') {
                 start = new Date(now.getFullYear(), now.getMonth(), 1);
               } else {
-                // yearly
                 start = new Date(now.getFullYear(), 0, 1);
               }
               const end = new Date(now);
@@ -98,7 +93,7 @@ const Statistics = () => {
 
               let computedRevenue = 0;
               let computedQty = 0;
-              orders.filter(notCancelled).forEach(o => {
+              orders.filter(notCancelled).forEach((o) => {
                 const d = parseDate(o);
                 if (inWindow(d)) {
                   computedRevenue += Number(o.totalAmount || 0);
@@ -115,7 +110,6 @@ const Statistics = () => {
         }
 
         setStats(nextStats);
-        console.log('Dashboard summary loaded:', { period, stats: m });
       } else {
         toast.error('Failed to load dashboard summary');
       }
@@ -124,25 +118,23 @@ const Statistics = () => {
       toast.error('Error loading dashboard summary');
     }
   };
-  
+
   const fetchChartData = async () => {
     try {
       const token = localStorage.getItem('token');
       const t = Date.now();
       const endpoint = `${API_BASE_URL}/api/statistics/chart-data-fixed?period=${selectedPeriod}&_t=${t}`;
-      
-      // Fetch data from the selected endpoint
+
       const response = await fetch(endpoint, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
 
-        // Always recompute sales from orders and patch only sales + totalSales (keep purchases/others intact)
         try {
           const isWeekly = selectedPeriod === 'weekly';
           const isMonthly = selectedPeriod === 'monthly';
@@ -150,9 +142,9 @@ const Statistics = () => {
 
           const ordersRes = await fetch(`${API_BASE_URL}/api/orders/orders?limit=500&_t=${t}`, {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           });
           if (ordersRes.ok) {
             const ordersJson = await ordersRes.json();
@@ -177,7 +169,7 @@ const Statistics = () => {
                 salesMap.set(dayKey(d), 0);
               }
 
-              orders.filter(notCancelled).forEach(o => {
+              orders.filter(notCancelled).forEach((o) => {
                 const d = safeDate(o);
                 if (d >= start && d <= today) {
                   const key = dayKey(d);
@@ -187,9 +179,9 @@ const Statistics = () => {
                 }
               });
 
-              const patched = data.data.dailyBreakdown.map(entry => {
+              const patched = data.data.dailyBreakdown.map((entry) => {
                 const key = dayKey(new Date(entry.date));
-                const sales = salesMap.has(key) ? salesMap.get(key) : (entry.sales || 0);
+                const sales = salesMap.has(key) ? salesMap.get(key) : entry.sales || 0;
                 return { ...entry, sales };
               });
               data.data.dailyBreakdown = patched;
@@ -204,7 +196,7 @@ const Statistics = () => {
               const year = now.getFullYear();
               const byMonth = Array(12).fill(0);
 
-              orders.filter(notCancelled).forEach(o => {
+              orders.filter(notCancelled).forEach((o) => {
                 const d = safeDate(o);
                 if (d.getFullYear() === year) {
                   byMonth[d.getMonth()] += amount(o);
@@ -212,9 +204,9 @@ const Statistics = () => {
               });
 
               const monthIndex = (name) => new Date(`${name} 1, ${year}`).getMonth();
-              const patched = data.data.monthlyBreakdown.map(entry => {
+              const patched = data.data.monthlyBreakdown.map((entry) => {
                 const idx = monthIndex(entry.month);
-                const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : (entry.sales || 0);
+                const sales = Number.isFinite(byMonth[idx]) ? byMonth[idx] : entry.sales || 0;
                 return { ...entry, sales };
               });
               data.data.monthlyBreakdown = patched;
@@ -241,7 +233,6 @@ const Statistics = () => {
           console.warn('Sales recompute from orders skipped due to error:', e);
         }
 
-        // Ensure totals are always in sync with the current breakdown
         try {
           const d = data?.data;
           if (d) {
@@ -262,7 +253,6 @@ const Statistics = () => {
         } catch {}
 
         setChartData(data);
-        console.log(`Chart data for ${selectedPeriod} period loaded:`, data);
       } else {
         toast.error('Failed to load chart data');
       }
@@ -273,23 +263,20 @@ const Statistics = () => {
       setLoading(false);
     }
   };
-  
+
   const fetchTopProducts = async () => {
     try {
       const token = localStorage.getItem('token');
-      
-      // Fetch top products (same as Home page)
       const response = await fetch(`${API_BASE_URL}/api/top-products/top-products`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setTopProducts(data.products || []);
-        console.log('Top products loaded:', data.products);
       } else {
         toast.error('Failed to load top products');
       }
@@ -299,27 +286,34 @@ const Statistics = () => {
     }
   };
 
-  // Calculate percentage change
-  const calculatePercentChange = (value) => {
-    return value >= 0 ? `+${value}%` : `${value}%`;
-  };
+  const calculatePercentChange = (value) => (value >= 0 ? `+${value}%` : `${value}%`);
+  const getComparisonSuffix = () => (selectedPeriod === 'weekly' ? 'last day' : selectedPeriod === 'monthly' ? 'last month' : 'last year');
+  const getDisplayedPercent = (changeValue, previousValue) => (previousValue === 0 ? '+100%' : calculatePercentChange(changeValue || 0));
+  const formatCurrency = (amount) => `₹${parseFloat(amount || 0).toLocaleString()}`;
 
-  // Build the comparison label text based on selected period
-  const getComparisonSuffix = () => {
-    if (selectedPeriod === 'weekly') return 'last day';
-    if (selectedPeriod === 'monthly') return 'last month';
-    return 'last year';
-  };
+  const sectionTitles = useMemo(
+    () => ({
+      revenue: 'total revenue',
+      sold: 'products sold',
+      stock: 'products in stock',
+      chart: 'sales & purchase',
+      top: 'top products',
+    }),
+    []
+  );
 
-  // Determine the displayed percent, forcing 100% if previous value is 0
-  const getDisplayedPercent = (changeValue, previousValue) => {
-    const val = (previousValue === 0) ? 100 : (changeValue || 0);
-    return calculatePercentChange(val);
-  };
+  const anyMatch = useMemo(() => {
+    const q = (searchTerm || '').trim().toLowerCase();
+    if (!q) return false;
+    return Object.values(sectionTitles).some((t) => t.includes(q));
+  }, [searchTerm, sectionTitles]);
 
-  // Format currency
-  const formatCurrency = (amount) => {
-    return `₹${parseFloat(amount || 0).toLocaleString()}`;
+  const desat = (key) => {
+    const q = (searchTerm || '').trim().toLowerCase();
+    if (!q) return false;
+    const title = sectionTitles[key] || '';
+    const matched = title.includes(q);
+    return anyMatch ? !matched : true;
   };
 
   if (loading) {
@@ -330,15 +324,29 @@ const Statistics = () => {
       </div>
     );
   }
-  
+
   return (
     <div className={styles.statisticsContainer}>
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Statistics & Analytics</h1>
+        <div className={styles.searchContainer}>
+          <button className={styles.searchButton} type="button" aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          </button>
+          <input
+            type="text"
+            placeholder="Search here..."
+            className={styles.searchInput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
-      
+
       <div className={styles.statsCards}>
-        <div className={styles.statsCard}>
+        <div className={`${styles.statsCard} ${desat('revenue') ? styles.desaturate : ''}`}>
           <h3>Total Revenue</h3>
           <img src={revenueIcon} alt="Revenue" />
           <div className={styles.statsValue}>{formatCurrency(stats.totalRevenue)}</div>
@@ -346,8 +354,8 @@ const Statistics = () => {
             {getDisplayedPercent(stats.revenueChange, stats.revenuePrev)} from {getComparisonSuffix()}
           </div>
         </div>
-        
-        <div className={styles.statsCard}>
+
+        <div className={`${styles.statsCard} ${desat('sold') ? styles.desaturate : ''}`}>
           <h3>Products Sold</h3>
           <img src={salesIcon} alt="Products Sold" />
           <div className={styles.statsValue}>{stats.productsSold.toLocaleString()}</div>
@@ -355,16 +363,14 @@ const Statistics = () => {
             {getDisplayedPercent(stats.soldChange, stats.soldPrev)} from {getComparisonSuffix()}
           </div>
         </div>
-        
-        <div className={styles.statsCard}>
+
+        <div className={`${styles.statsCard} ${desat('stock') ? styles.desaturate : ''}`}>
           <h3>Products In Stock</h3>
           <img src={inventoryQuantityIcon} alt="Products In Stock" />
           <div className={styles.statsValue}>{stats.productsInStock.toLocaleString()}</div>
           <div className={styles.statsChange}>
             {(() => {
-              // If previous period has no value (0 or missing) and current > 0, display +100% for all periods.
-              // This keeps the UI responsive even when backend previous is absent.
-              const backendMaskedZero = (stats.stockChange === 0 && stats.stockPrev === stats.productsInStock);
+              const backendMaskedZero = stats.stockChange === 0 && stats.stockPrev === stats.productsInStock;
               const prevZero = stats.stockPrev === 0;
               const prevMissing = stats.stockPrev === null || stats.stockPrev === undefined || Number.isNaN(stats.stockPrev);
               const currentPositive = (stats.productsInStock || 0) > 0;
@@ -376,86 +382,51 @@ const Statistics = () => {
           </div>
         </div>
       </div>
-      
-      <div className={styles.chartSection}>
-        <div className={styles.chartHeader}>
-          <h3>Sales & Purchase</h3>
-          <div className={styles.periodSelector}>
-            <select 
-              value={selectedPeriod} 
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className={styles.periodSelect}
-              style={{
-                backgroundImage: `url(${calendar})`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: '10px center',
-                backgroundSize: '18px',
-                paddingLeft: '36px'
-              }}
-            >
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-        </div>
-        <div className={styles.chartContainer}>
-          <div className={styles.chartPlaceholder}>
-            <div className={styles.yAxis}>
-              {(() => {
-                // Dynamic y-axis based on max value
-                const maxValue = chartData && chartData.data ? (() => {
-                  if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
-                    return Math.max(...chartData.data.dailyBreakdown.map(d => 
-                      Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                    ));
-                  }
-                  if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
-                    return Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                      Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                    ));
-                  }
-                  if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
-                    return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
-                  }
-                  return 60000;
-                })() : 60000;
 
-                // Round to next nice number (multiple of 10000)
-                let roundedMax = Math.ceil(maxValue / 10000) * 10000;
-                if (!roundedMax || roundedMax === 0) roundedMax = 1000;
-                const yAxisValues = [];
-                const step = roundedMax / 6;
-
-                for (let i = 6; i >= 0; i--) {
-                  yAxisValues.push(Math.round(step * i));
-                }
-
-                return yAxisValues.map((value, index) => (
-                  <div key={index} className={styles.yAxisLabel}>
-                    {value.toLocaleString()}
-                  </div>
-                ));
-              })()}
+      <div className={styles.bottomGrid}>
+        <div className={`${styles.chartSection} ${desat('chart') ? styles.desaturate : ''}`}>
+          <div className={styles.chartHeader}>
+            <h3>Sales & Purchase</h3>
+            <div className={styles.periodSelector}>
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className={styles.periodSelect}
+                style={{
+                  backgroundImage: `url(${calendar})`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: '10px center',
+                  backgroundSize: '18px',
+                  paddingLeft: '36px',
+                }}
+              >
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
             </div>
+          </div>
 
-            <div className={styles.chartContent}>
-              <div className={styles.chartGrid}>
+          <div className={styles.chartContainer}>
+            <div className={styles.chartPlaceholder}>
+              <div className={styles.yAxis}>
                 {(() => {
-                  // Use same values as y-axis
                   const maxValue = chartData && chartData.data ? (() => {
                     if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
-                      return Math.max(...chartData.data.dailyBreakdown.map(d => 
-                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                      ));
+                      return Math.max(
+                        ...chartData.data.dailyBreakdown.map((d) => Math.max(((d.purchases || 0) * 2), d.sales || 0))
+                      );
                     }
                     if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
-                      return Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                      ));
+                      return Math.max(
+                        ...chartData.data.monthlyBreakdown.map((d) => Math.max(((d.purchases || 0) * 2), d.sales || 0))
+                      );
                     }
                     if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
-                      return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
+                      return Math.max(
+                        ((chartData.data.yearlyData.purchases || 0) * 2),
+                        chartData.data.yearlyData.sales || 0
+                      );
                     }
                     return 60000;
                   })() : 60000;
@@ -464,195 +435,218 @@ const Statistics = () => {
                   if (!roundedMax || roundedMax === 0) roundedMax = 1000;
                   const yAxisValues = [];
                   const step = roundedMax / 6;
-
                   for (let i = 6; i >= 0; i--) {
                     yAxisValues.push(Math.round(step * i));
                   }
-
                   return yAxisValues.map((value, index) => (
-                    <div key={index} className={styles.gridLine}></div>
+                    <div key={index} className={styles.yAxisLabel}>
+                      {value.toLocaleString()}
+                    </div>
                   ));
                 })()}
               </div>
 
-              <div className={styles.chartBars}>
-                {selectedPeriod === 'weekly' && chartData?.data?.dailyBreakdown && (
-                  chartData.data.dailyBreakdown.map((dayData, index) => {
-                    // Calculate max value from all data for proper scaling
-                    const maxValue = Math.max(...chartData.data.dailyBreakdown.map(d => 
-                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                      ));
-                    // Round to next nice number
-                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
-                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
-
-                    const purchaseHeight = roundedMax ? (((dayData.purchases || 0) * 2) / roundedMax) * 100 : 0;
-                    const salesHeight = roundedMax ? ((dayData.sales || 0) / roundedMax) * 100 : 0;
-
-                    return (
-                      <div key={index} className={styles.chartBar}>
-                        <div className={styles.barContainer}>
-                          <div 
-                            className={styles.barPurchase} 
-                            style={{height: `${purchaseHeight}%`}}
-                            title={`Purchases: ₹${(((dayData.purchases || 0) * 2)).toLocaleString()}`}
-                          ></div>
-                          <div 
-                            className={styles.barSales} 
-                            style={{height: `${salesHeight}%`}}
-                            title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`}
-                          ></div>
-                        </div>
-                        <div className={styles.barLabel}>{dayData.day.substring(0, 3)}</div>
-                      </div>
-                    );
-                  })
-                )}
-
-                {selectedPeriod === 'monthly' && chartData?.data?.monthlyBreakdown && (
-                  chartData.data.monthlyBreakdown.map((monthData, index) => {
-                    // Calculate max value from all data for proper scaling
-                    const maxValue = Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                      ));
-                    // Round to next nice number
-                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
-                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
-
-                    const purchaseHeight = roundedMax ? (((monthData.purchases || 0) * 2) / roundedMax) * 100 : 0;
-                    const salesHeight = roundedMax ? ((monthData.sales || 0) / roundedMax) * 100 : 0;
-
-                    return (
-                      <div key={index} className={styles.chartBar}>
-                        <div className={styles.barContainer}>
-                          <div 
-                            className={styles.barPurchase} 
-                            style={{height: `${purchaseHeight}%`}}
-                            title={`Purchases: ₹${(((monthData.purchases || 0) * 2)).toLocaleString()}`}
-                          ></div>
-                          <div 
-                            className={styles.barSales} 
-                            style={{height: `${salesHeight}%`}}
-                            title={`Sales: ₹${(monthData.sales || 0).toLocaleString()}`}
-                          ></div>
-                        </div>
-                        <div className={styles.barLabel}>{monthData.month.substring(0, 3)}</div>
-                      </div>
-                    );
-                  })
-                )}
-
-                {selectedPeriod === 'yearly' && chartData?.data?.yearlyData && (
-                  <div className={styles.chartBar}>
-                    <div className={styles.barContainer}>
-                      {/* Calculate max value for proper scaling */}
-                      {(() => {
-                        const maxValue = Math.max(
+              <div className={styles.chartContent}>
+                <div className={styles.chartGrid}>
+                  {(() => {
+                    const maxValue = chartData && chartData.data ? (() => {
+                      if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
+                        return Math.max(
+                          ...chartData.data.dailyBreakdown.map((d) => Math.max(((d.purchases || 0) * 2), d.sales || 0))
+                        );
+                      }
+                      if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
+                        return Math.max(
+                          ...chartData.data.monthlyBreakdown.map((d) => Math.max(((d.purchases || 0) * 2), d.sales || 0))
+                        );
+                      }
+                      if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
+                        return Math.max(
                           ((chartData.data.yearlyData.purchases || 0) * 2),
                           chartData.data.yearlyData.sales || 0
                         );
-                        let roundedMax = Math.ceil(maxValue / 10000) * 10000;
-                        if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                      }
+                      return 60000;
+                    })() : 60000;
+                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                    const yAxisValues = [];
+                    const step = roundedMax / 6;
+                    for (let i = 6; i >= 0; i--) {
+                      yAxisValues.push(Math.round(step * i));
+                    }
+                    return yAxisValues.map((value, index) => (
+                      <div key={index} className={styles.gridLine}></div>
+                    ));
+                  })()}
+                </div>
 
-                        const purchaseHeight = roundedMax ? (((chartData.data.yearlyData.purchases || 0) * 2) / roundedMax) * 100 : 0;
-                        const salesHeight = roundedMax ? ((chartData.data.yearlyData.sales || 0) / roundedMax) * 100 : 0;
+                <div className={styles.chartBars}>
+                  {selectedPeriod === 'weekly' && chartData?.data?.dailyBreakdown && (
+                    chartData.data.dailyBreakdown.map((dayData, index) => {
+                      const maxValue = Math.max(
+                        ...chartData.data.dailyBreakdown.map((d) => Math.max(((d.purchases || 0) * 2), d.sales || 0))
+                      );
+                      let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                      if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                      const purchaseHeight = roundedMax ? (((dayData.purchases || 0) * 2) / roundedMax) * 100 : 0;
+                      const salesHeight = roundedMax ? ((dayData.sales || 0) / roundedMax) * 100 : 0;
+                      return (
+                        <div key={index} className={styles.chartBar}>
+                          <div className={styles.barContainer}>
+                            <div
+                              className={styles.barPurchase}
+                              style={{ height: `${purchaseHeight}%` }}
+                              title={`Purchases: ₹${(((dayData.purchases || 0) * 2)).toLocaleString()}`}
+                            ></div>
+                            <div
+                              className={styles.barSales}
+                              style={{ height: `${salesHeight}%` }}
+                              title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`}
+                            ></div>
+                          </div>
+                          <div className={styles.barLabel}>{dayData.day.substring(0, 3)}</div>
+                        </div>
+                      );
+                    })
+                  )}
 
-                        return (
-                          <>
-                            <div 
-                              className={styles.barPurchase} 
-                              style={{height: `${purchaseHeight}%`}}
-                              title={`Purchases: ₹${(((chartData.data.yearlyData.purchases || 0) * 2)).toLocaleString()}`}
+                  {selectedPeriod === 'monthly' && chartData?.data?.monthlyBreakdown && (
+                    chartData.data.monthlyBreakdown.map((monthData, index) => {
+                      const maxValue = Math.max(
+                        ...chartData.data.monthlyBreakdown.map((d) => Math.max(((d.purchases || 0) * 2), d.sales || 0))
+                      );
+                      let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                      if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                      const purchaseHeight = roundedMax ? (((monthData.purchases || 0) * 2) / roundedMax) * 100 : 0;
+                      const salesHeight = roundedMax ? ((monthData.sales || 0) / roundedMax) * 100 : 0;
+                      return (
+                        <div key={index} className={styles.chartBar}>
+                          <div className={styles.barContainer}>
+                            <div
+                              className={styles.barPurchase}
+                              style={{ height: `${purchaseHeight}%` }}
+                              title={`Purchases: ₹${(((monthData.purchases || 0) * 2)).toLocaleString()}`}
                             ></div>
-                            <div 
-                              className={styles.barSales} 
-                              style={{height: `${salesHeight}%`}}
-                              title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`}
+                            <div
+                              className={styles.barSales}
+                              style={{ height: `${salesHeight}%` }}
+                              title={`Sales: ₹${(monthData.sales || 0).toLocaleString()}`}
                             ></div>
-                          </>
-                        );
-                      })()}
+                          </div>
+                          <div className={styles.barLabel}>{monthData.month.substring(0, 3)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+
+                  {selectedPeriod === 'yearly' && chartData?.data?.yearlyData && (
+                    <div className={styles.chartBar}>
+                      <div className={styles.barContainer}>
+                        {(() => {
+                          const maxValue = Math.max(
+                            ((chartData.data.yearlyData.purchases || 0) * 2),
+                            chartData.data.yearlyData.sales || 0
+                          );
+                          let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                          if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                          const purchaseHeight = roundedMax ? (((chartData.data.yearlyData.purchases || 0) * 2) / roundedMax) * 100 : 0;
+                          const salesHeight = roundedMax ? ((chartData.data.yearlyData.sales || 0) / roundedMax) * 100 : 0;
+                          return (
+                            <>
+                              <div
+                                className={styles.barPurchase}
+                                style={{ height: `${purchaseHeight}%` }}
+                                title={`Purchases: ₹${(((chartData.data.yearlyData.purchases || 0) * 2)).toLocaleString()}`}
+                              ></div>
+                              <div
+                                className={styles.barSales}
+                                style={{ height: `${salesHeight}%` }}
+                                title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`}
+                              ></div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className={styles.barLabel}>{chartData.data.year}</div>
                     </div>
-                    <div className={styles.barLabel}>{chartData.data.year}</div>
-                  </div>
-                )}
+                  )}
 
-                {(!chartData?.data?.dailyBreakdown && selectedPeriod === 'weekly') && (
-                  <div className={styles.noData}>
-                    <p>No weekly data available</p>
-                  </div>
-                )}
-
-                {(!chartData?.data?.monthlyBreakdown && selectedPeriod === 'monthly') && (
-                  <div className={styles.noData}>
-                    <p>No monthly data available</p>
-                  </div>
-                )}
-
-                {(!chartData?.data?.yearlyData && selectedPeriod === 'yearly') && (
-                  <div className={styles.noData}>
-                    <p>No yearly data available</p>
-                  </div>
-                )}
+                  {(!chartData?.data?.dailyBreakdown && selectedPeriod === 'weekly') && (
+                    <div className={styles.noData}>
+                      <p>No weekly data available</p>
+                    </div>
+                  )}
+                  {(!chartData?.data?.monthlyBreakdown && selectedPeriod === 'monthly') && (
+                    <div className={styles.noData}>
+                      <p>No monthly data available</p>
+                    </div>
+                  )}
+                  {(!chartData?.data?.yearlyData && selectedPeriod === 'yearly') && (
+                    <div className={styles.noData}>
+                      <p>No yearly data available</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className={styles.chartSummary}>
-              {chartData && chartData.data && chartData.data.summary && (
-                <div className={styles.chartTotals}>
-                  <div>Total Sales: ₹{(chartData.data.summary.totalSales || 0).toLocaleString()}</div>
-                  <div>Total Purchases: ₹{(((chartData.data.summary.totalPurchases || 0) * 2)).toLocaleString()}</div>
-                  <div>Profit: ₹{(chartData.data.summary.profit || 0).toLocaleString()}</div>
-                </div>
-              )}
-            </div>
-
+            {/* Removed totals summary per request */}
             <div className={styles.chartLegend}>
               <div className={styles.legendItem}>
-                <div className={styles.legendColor} style={{background: '#3498db'}}></div>
+                <div className={styles.legendColor} style={{ background: '#3498db' }}></div>
                 <span>Purchase</span>
               </div>
               <div className={styles.legendItem}>
-                <div className={styles.legendColor} style={{background: '#2ecc71'}}></div>
+                <div className={styles.legendColor} style={{ background: '#2ecc71' }}></div>
                 <span>Sales</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className={styles.topProducts}>
-        <h2>Top Products</h2>
-        <div className={styles.topProductsList}>
-          {topProducts.length > 0 ? (
-            topProducts.map((product, index) => (
-              <div key={product._id || index} className={styles.topProductItem}>
-                <div className={styles.productImage}>
-                  {product.imageUrl ? (
-                    <img 
-                      src={(() => {
-                        let url = product.imageUrl;
-                        if (!url) return '';
-                        if (url.startsWith('http')) return url;
-                        // Normalize backslashes to forward slashes (if any)
-                        url = url.replace(/\\\\/g, '/');
-                        const clean = url.startsWith('/') ? url.slice(1) : url;
-                        const path = clean.includes('uploads/') ? clean : `uploads/${clean}`;
-                        return `${API_BASE_URL}/${path}`;
-                      })()}
-                      alt={product.productName}
-                    />
-                  ) : null}
+        <div className={`${styles.topProducts} ${desat('top') ? styles.desaturate : ''}`}>
+          <h2>Top Products</h2>
+          <div className={styles.topProductsList}>
+            {topProducts.length > 0 ? (
+              topProducts.map((product, index) => (
+                <div key={product._id || index} className={styles.topProductItem}>
+                  <div className={styles.productImage}>
+                    {product.imageUrl ? (
+                      <img
+                        src={(() => {
+                          let url = product.imageUrl;
+                          if (!url) return '';
+                          if (url.startsWith('http')) return url;
+                          url = url.replace(/\\/g, '/');
+                          const clean = url.startsWith('/') ? url.slice(1) : url;
+                          const path = clean.includes('uploads/') ? clean : `uploads/${clean}`;
+                          return `${API_BASE_URL}/${path}`;
+                        })()}
+                        alt={product.productName}
+                      />
+                    ) : null}
+                  </div>
+                  <span className={styles.productName}>{product.productName}</span>
+                  <div className={styles.productRatingBars}>
+                    {(() => {
+                      const starCount = typeof product.ratingStars === 'string' ? ((product.ratingStars.match(/★/g) || []).length) : 0;
+                      const rating = Math.max(0, Math.min(5, Math.round((product.averageRating ?? starCount ?? 0))));
+                      return (
+                        <div className={styles.ratingBars} aria-label={`Rating: ${rating} of 5`}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span key={i} className={`${styles.ratingBar} ${i < rating ? styles.filled : ''}`}></span>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
-                <span className={styles.productName}>{product.productName}</span>
-                <div className={styles.productRating}>
-                  {product.ratingStars || '★'.repeat(Math.round(product.averageRating || 0))}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className={styles.noProducts}>No top-rated products found</div>
-          )}
+              ))
+            ) : (
+              <div className={styles.noProducts}>No top-rated products found</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
