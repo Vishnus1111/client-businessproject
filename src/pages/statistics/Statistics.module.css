@@ -42,6 +42,9 @@
   position: relative;
 }
 
+/* Mobile header should be hidden by default (only shown under 600px) */
+.mobileHeader { display: none; }
+
 .pageTitle {
   font-size: 24px;
   font-weight: 600;
@@ -141,9 +144,23 @@
   overflow: hidden;
 }
 
-.statsCard:nth-child(1) { background: #fad85d; }
-.statsCard:nth-child(2) { background: #0bf4c8; }
-.statsCard:nth-child(3) { background: #f2a0ff; }
+/* Title + right-aligned icon in one row */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.cardIcon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* Fixed colors by semantic class (do not change with position) */
+.revenueCard { background: #fad85d; }
+.soldCard { background: #0bf4c8; }
+.stockCard { background: #f2a0ff; }
 
 .statsCard h3 {
   font-size: 18px;
@@ -179,7 +196,7 @@
 /* Bottom layout: chart 2/3 width, top products 1/3 width, aligned top & bottom */
 .bottomGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: repeat(3, 1fr); /* enables fixed spans regardless of order */
   gap: 24px;
   align-items: stretch; /* make both columns equal height */
 }
@@ -195,6 +212,10 @@
   display: flex;
   flex-direction: column;
 }
+
+/* Grid span helpers applied to draggable wrappers */
+.span2 { grid-column: span 2; }
+.span1 { grid-column: span 1; }
 
 /* Allow the chart to consume the available height */
 .chartSection { display: flex; flex-direction: column; }
@@ -303,7 +324,13 @@
   justify-content: space-between;
 }
 
-.gridLine { height: 1px; background-color: rgba(0,0,0,0.05); width: 100%; }
+.gridLine { height: 1px; background-color: rgba(0,0,0,0.05); width: 100%; display: block; }
+/* Hide only the topmost and bottom (0-axis) grid lines (match Home behavior) */
+.chartGrid .gridLine:last-child,
+.chartGrid .gridLine:nth-last-child(1),
+.chartGrid .gridLine:last-of-type {
+  opacity: 0 !important; /* keep spacing but make invisible */
+}
 
 .chartBars {
   display: flex;
@@ -383,9 +410,13 @@
 .legendColor {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: 50%;
   margin-right: 6px;
 }
+
+/* Legend colors match bar gradients */
+.legendPurchase .legendColor { background: linear-gradient(to top, #7f7cf5 0%, #78c8f3 100%) !important; }
+.legendSales .legendColor { background: linear-gradient(to top, #49a769 0%, #56d864 100%) !important; }
 
 .noData {
   display: flex;
@@ -447,7 +478,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: none;
 }
 
 .topProductItem:last-child {
@@ -517,29 +548,65 @@
   .bottomGrid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .statisticsContainer {
-    padding: 1rem;
-  }
-  
-  .header {
+  padding: 1rem 1rem 20px; /* ensure 20px gap at bottom so rounded corners show */
+    display: flex;
     flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
   }
-  
+
+  /* Remove the desktop alignment line on mobile to avoid double borders */
+  .statisticsContainer::before { display: none; }
+
+  /* Mobile-only top bar with logo and settings */
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px; /* reduce height to move content up */
+    padding: 0 8px;
+    border-bottom: none; /* remove extra bottom border on mobile */
+    margin-bottom: 6px; /* less gap above chart */
+  }
+  .mobileLogo { height: 26px; width: auto; display: block; margin-top: 0; }
+  .mobileSettings img { height: 22px; width: 22px; display: block; margin-top: 0; }
+
+  /* Hide desktop header and search on mobile */
+  .header { display: none; }
+
+  /* Order: header (0), chart/top-products (1), then stats cards (2) */
+  .header { order: 0; flex-direction: column; gap: 1rem; align-items: stretch; }
+  .bottomGrid { order: 1; grid-template-columns: 1fr; }
+  .statsCards { order: 2; }
+
+  /* Hide Top Products entirely on mobile (including its DnD wrapper) */
+  .bottomGrid > .draggable:has(.topProducts) { display: none; }
+  .topProducts { display: none !important; }
+
+  /* Graph should be full width and first */
+  .bottomGrid > .draggable > .chartSection { width: 100%; min-height: 45vh; }
+  .chartSection { padding: 12px; }
+
+  /* Place the three stat cards in one row without horizontal overflow */
   .statsCards {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    overflow-x: none;
+    height: 150px; /* fixed height so inner rows don't push down */
+
+    align-items: stretch;
+    margin-top: 8px; /* gap between chart and cards */
   }
-  
-  .chartHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .periodSelect {
-    width: 100%;
-  }
-  .bottomGrid { grid-template-columns: 1fr; }
+  .statsCards > .draggable { min-width: 0; height: 100%; }
+  .statsCard { height: 100%; padding: 14px; display: flex; flex-direction: column; }
+  .statsCard h3 { font-size: 16px; }
+  .statsValue { font-size: 22px; }
+  .statsChange { font-size: 12px; }
+  .cardIcon { height: 24px; width: 24px; }
+  /* Even spacing for the three rows; avoid pushing the last row down */
+  .statsChange { margin-top: 0; }
+
+  .chartHeader { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .periodSelect { width: 100%; }
 }

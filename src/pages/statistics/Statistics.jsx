@@ -6,6 +6,9 @@ import calendar from '../../assets/statistics/Calendar.png';
 import revenueIcon from '../../assets/statistics/dollar-sign.png';
 import salesIcon from '../../assets/statistics/credit-card.png';
 import inventoryQuantityIcon from '../../assets/statistics/activity.png';
+import logo from '../../assets/dashboard/logo.png';
+import settingsIcon from '../../assets/mobile/Setting.png';
+
 
 const Statistics = () => {
   const [chartData, setChartData] = useState(null);
@@ -382,27 +385,33 @@ const Statistics = () => {
 
   const handleDropContainer = useCallback((area) => (e) => {
     e.preventDefault();
-    if (drag.area !== area || over.area !== area || over.index == null) {
+    if (drag.area !== area) {
       setDrag({ area: null, key: null });
       setOver({ area: null, index: null });
       return;
     }
+    // If not hovering an item at drop time, treat as append to end
+    const fallbackIndex = area === 'stats' ? statOrder.length : bottomOrder.length;
+    const targetIndex = (over.area === area && over.index != null) ? over.index : fallbackIndex;
+
     if (area === 'stats') {
-      setStatOrder(prev => moveInArray(prev, drag.key, over.index));
+      setStatOrder(prev => moveInArray(prev, drag.key, targetIndex));
     } else if (area === 'bottom') {
-      setBottomOrder(prev => moveInArray(prev, drag.key, over.index));
+      setBottomOrder(prev => moveInArray(prev, drag.key, targetIndex));
     }
     setDrag({ area: null, key: null });
     setOver({ area: null, index: null });
-  }, [drag.area, drag.key, over.area, over.index, moveInArray]);
+  }, [drag.area, drag.key, over.area, over.index, moveInArray, statOrder.length, bottomOrder.length]);
 
   // render helpers for cards/sections
   const renderStatCard = useCallback((key) => {
     if (key === 'revenue') {
       return (
-        <div className={`${styles.statsCard} ${desat('revenue') ? styles.desaturate : ''}`}>
-          <h3>Total Revenue</h3>
-          <img src={revenueIcon} alt="Revenue" />
+        <div className={`${styles.statsCard} ${styles.revenueCard} ${desat('revenue') ? styles.desaturate : ''}`}>
+          <div className={styles.cardHeader}>
+            <h3>Total Revenue</h3>
+            <img src={revenueIcon} alt="Revenue" className={styles.cardIcon} />
+          </div>
           <div className={styles.statsValue}>{formatCurrency(stats.totalRevenue)}</div>
           <div className={styles.statsChange}>
             {getDisplayedPercent(stats.revenueChange, stats.revenuePrev)} from {getComparisonSuffix()}
@@ -412,9 +421,11 @@ const Statistics = () => {
     }
     if (key === 'sold') {
       return (
-        <div className={`${styles.statsCard} ${desat('sold') ? styles.desaturate : ''}`}>
-          <h3>Products Sold</h3>
-          <img src={salesIcon} alt="Products Sold" />
+        <div className={`${styles.statsCard} ${styles.soldCard} ${desat('sold') ? styles.desaturate : ''}`}>
+          <div className={styles.cardHeader}>
+            <h3>Products Sold</h3>
+            <img src={salesIcon} alt="Products Sold" className={styles.cardIcon} />
+          </div>
           <div className={styles.statsValue}>{stats.productsSold.toLocaleString()}</div>
           <div className={styles.statsChange}>
             {getDisplayedPercent(stats.soldChange, stats.soldPrev)} from {getComparisonSuffix()}
@@ -424,9 +435,11 @@ const Statistics = () => {
     }
     // stock
     return (
-      <div className={`${styles.statsCard} ${desat('stock') ? styles.desaturate : ''}`}>
-        <h3>Products In Stock</h3>
-        <img src={inventoryQuantityIcon} alt="Products In Stock" />
+      <div className={`${styles.statsCard} ${styles.stockCard} ${desat('stock') ? styles.desaturate : ''}`}>
+        <div className={styles.cardHeader}>
+          <h3>Products In Stock</h3>
+          <img src={inventoryQuantityIcon} alt="Products In Stock" className={styles.cardIcon} />
+        </div>
         <div className={styles.statsValue}>{stats.productsInStock.toLocaleString()}</div>
         <div className={styles.statsChange}>
           {(() => {
@@ -651,12 +664,12 @@ const Statistics = () => {
 
         {/* Removed totals summary per request */}
         <div className={styles.chartLegend}>
-          <div className={styles.legendItem}>
-            <div className={styles.legendColor} style={{ background: '#3498db' }}></div>
+          <div className={`${styles.legendItem} ${styles.legendPurchase}`}>
+            <div className={styles.legendColor}></div>
             <span>Purchase</span>
           </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendColor} style={{ background: '#2ecc71' }}></div>
+          <div className={`${styles.legendItem} ${styles.legendSales}`}>
+            <div className={styles.legendColor}></div>
             <span>Sales</span>
           </div>
         </div>
@@ -721,6 +734,13 @@ const Statistics = () => {
 
   return (
     <div className={styles.statisticsContainer}>
+      {/* Mobile-only header (hidden on desktop via CSS) */}
+      <div className={styles.mobileHeader}>
+        <img src={logo} alt="Logo" className={styles.mobileLogo} />
+        <a href="/dashboard/settings" className={styles.mobileSettings} aria-label="Settings">
+          <img src={settingsIcon} alt="Settings" />
+        </a>
+      </div>
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Statistics & Analytics</h1>
         <div className={styles.searchContainer}>
@@ -758,14 +778,14 @@ const Statistics = () => {
         })}
       </div>
 
-      <div className={styles.bottomGrid} onDrop={handleDropContainer('bottom')} onDragOver={(e) => e.preventDefault()}>
+  <div className={styles.bottomGrid} onDrop={handleDropContainer('bottom')} onDragOver={(e) => e.preventDefault()}>
         {bottomOrder.map((key, idx) => {
           const draggingClass = drag.key === key && drag.area === 'bottom' ? styles.dragging : '';
           const shiftClass = over.area === 'bottom' && over.index === idx ? styles.shiftRight : '';
           return (
             <div
               key={key}
-              className={`${styles.draggable} ${draggingClass} ${shiftClass}`}
+      className={`${styles.draggable} ${key === 'chart' ? styles.span2 : styles.span1} ${draggingClass} ${shiftClass}`}
               draggable
               onDragStart={handleDragStart('bottom', key)}
               onDragEnd={handleDragEnd}
