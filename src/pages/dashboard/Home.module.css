@@ -359,6 +359,9 @@
   border-radius: 50%;
 }
 
+/* Mobile-only header (hidden on desktop) */
+.mobileHeader { display: none; }
+
 /* Right Sidebar */
 .rightSidebar {
   display: flex;
@@ -501,11 +504,100 @@
 @media (max-width: 600px) {
   .homeContainer {
     padding: 0;
+    /* Allow vertical scrolling on mobile and hide scrollbars visually */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: 100vh;                 /* create an internal scroll container */
+  -webkit-overflow-scrolling: touch; /* smooth native momentum */
+  overscroll-behavior: contain;      /* isolate from parent scroll */
+  touch-action: pan-y !important;    /* ensure vertical panning works */
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;    /* Firefox */
   }
+  .homeContainer::-webkit-scrollbar { width: 0; height: 0; }
+  :global(html), :global(body), :global(#root) { height: 100%; }
+  /* Keep content clear of the bottom nav */
+  .homeContainer { padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important; }
+  /* Hide desktop header and top white line on mobile */
+  .homeContainer::before { display: none !important; }
+  .header { display: none !important; }
+
+  /* Show compact mobile header with logo + settings */
+  .mobileHeader { 
+    display: flex !important; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 10px 16px; 
+  }
+  .mobileLogo { height: 28px; width: auto; }
+  .mobileSettings { display: inline-flex; align-items: center; }
+  .mobileSettings img { height: 22px; width: 22px; display: block; }
   
-  .header {
-    padding: 1rem;
+  /* Stack all sections full width and give each 40% of viewport height */
+  .dashboardGrid { 
+    grid-template-columns: 1fr !important; 
+    display: block !important; /* flatten grid to a single column flow */
   }
+  /* Flatten the two columns so all six sections render one below another */
+  .leftColumn, .rightColumn { 
+    display: contents !important; 
+  }
+  /* Each section occupies full width and 40% viewport height */
+  .draggable > .summaryCard{
+    width: 91% !important;
+    height: 27vh !important;
+    min-height: 27vh !important;
+  }
+
+  .draggable > .overviewSection {
+    width: 99% !important;
+    height: 33vh !important;
+    min-height: 33vh !important;
+  }
+
+  .draggable > .topProductsCard {
+    width: 91% !important;
+    height: 86vh !important;
+    min-height: 90vh !important;
+  }
+
+    .draggable > .chartSection {
+    width: 90% !important;
+    height: 40vh !important;
+    min-height: 40vh !important;
+  }
+  /* Make Top Products fully visible on mobile */
+  /* .draggable > .topProductsCard { height: auto !important; min-height: 0 !important; } */
+  .topProductsCard .topProductsList { overflow: visible !important; margin-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important; }
+  /* Increase specificity to override global hidden overflow rule */
+  .homeContainer .rightColumn .topProductsCard .topProductsList,
+  .homeContainer .topProductsCard .topProductsList { 
+    overflow: visible !important; 
+    margin-bottom: 0 !important; 
+    max-height: none !important;
+  }
+  /* Exclusively increase graph height by ~10% */
+  .draggable > .chartSection { height: 44vh !important; min-height: 44vh !important; }
+
+  /* Add vertical gaps between stacked sections */
+  .draggable { margin-bottom: 12px !important; }
+
+  /* ——— Compact spacing: Sales & Purchase (left) ——— */
+  .leftColumn .overviewSection .statContent { gap: 8px !important; }
+  .leftColumn .overviewSection .statValue,
+  .leftColumn .overviewSection .statTitle { margin: 0 !important; }
+  .leftColumn .overviewSection .statsGrid { padding: 0 0.75rem 8px 0.75rem !important; gap: 0.5rem !important; }
+
+  /* ——— Compact spacing: Inventory & Product summaries (right) ——— */
+  .rightColumn .summaryCard .inventoryItems { padding: 0 1rem 8px !important; }
+  .rightColumn .summaryCard .inventoryContent { gap: 8px !important; margin-bottom: 0 !important; }
+
+  /* Sales & Purchase overview: 2 rows x 2 cols on mobile */
+  .overviewSection .statsGrid { grid-template-columns: repeat(2, 1fr) !important; }
+  /* Keep Product & Inventory summary items horizontal (2 columns) */
+  .inventoryItems { grid-template-columns: repeat(2, 1fr) !important; }
+  
+  /* header removed on mobile */
   
   .headerContent {
     flex-direction: column;
@@ -710,7 +802,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  bottom: 1px; /* reduced space for x labels */
+  bottom: 18px; /* reduced space for x labels */
   width: 50px;
   display: flex;
   flex-direction: column;
@@ -816,7 +908,7 @@
 }
 
 @media (max-width: 600px) {
-  .inventoryItems { grid-template-columns: 1fr; }
+  .inventoryItems { grid-template-columns: repeat(2, 1fr) !important; }
   .chartContent {
     margin-left: 40px;
   }
@@ -1321,4 +1413,22 @@
   margin-top: 10px !important;
   margin-left: 20px !important;
   margin-bottom: 30px !important;
+}
+
+/* ===== Final mobile overrides: ensure visible 10px gap above bottom nav ===== */
+@media (max-width: 600px) {
+  /* Some later rules set a negative bottom margin on the Top Products list;
+     neutralize that on mobile and let the container provide the clearance */
+  .topProductsCard .topProductsList {
+    margin-bottom: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Always add a small spacer after the last section so there's ~10px
+     visible gap above the fixed bottom navigation */
+  .homeContainer::after {
+    content: '';
+    display: block;
+    height: 10px;
+  }
 }

@@ -1,7 +1,7 @@
 /* Invoice Page Styles */
 .invoiceContainer {
   padding: 20px;
-  background: #343a40;
+  background: #424457;
   min-height: 100vh;
   font-family: Arial, sans-serif;
 }
@@ -336,7 +336,7 @@
   border-radius: 4px;
   padding: 8px 15px;
   cursor: pointer;
-  color: #343a40;
+  color: #424457;
   font-weight: 500;
   transition: all 0.2s;
 }
