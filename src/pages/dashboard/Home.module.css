@@ -710,7 +710,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  bottom: 18px; /* reduced space for x labels */
+  bottom: 1px; /* reduced space for x labels */
   width: 50px;
   display: flex;
   flex-direction: column;
