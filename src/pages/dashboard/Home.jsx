@@ -22,6 +22,11 @@ const Home = () => {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('weekly');
+  // Drag & drop state
+  const [leftOrder, setLeftOrder] = useState(['sales', 'purchase', 'chart']);
+  const [rightOrder, setRightOrder] = useState(['inventory', 'product', 'topProducts']);
+  const [dragging, setDragging] = useState({ key: null, side: null });
+  const [over, setOver] = useState({ side: null, index: null });
   // Additional metrics derived from available endpoints
   const [cancelMetrics, setCancelMetrics] = useState({ count: 0 });
   const [returnMetrics, setReturnMetrics] = useState({ count: 0, amount: 0 });
@@ -200,7 +205,7 @@ const Home = () => {
 
         setChartData(data);
         console.log(`Chart data for ${selectedPeriod} loaded:`, data);
-  } else {
+      } else {
         toast.error('Failed to load chart data');
       }
     } catch (error) {
@@ -245,6 +250,330 @@ const Home = () => {
     fetchChartData();
   }, [fetchChartData]);
 
+  // ---- Drag & Drop helpers ----
+  const moveInArray = (arr, key, toIndex) => {
+    const fromIndex = arr.indexOf(key);
+    if (fromIndex === -1) return arr;
+    const next = arr.slice();
+    const [item] = next.splice(fromIndex, 1);
+    const adjusted = toIndex > fromIndex ? toIndex - 1 : toIndex;
+    const clamped = Math.max(0, Math.min(next.length, adjusted));
+    next.splice(clamped, 0, item);
+    return next;
+  };
+
+  const handleDragStart = useCallback((side, key) => (e) => {
+    setDragging({ key, side });
+    setOver({ side: null, index: null });
+    try {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', `${side}:${key}`);
+    } catch {}
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDragging({ key: null, side: null });
+    setOver({ side: null, index: null });
+  }, []);
+
+  const handleDragOverItem = (side, index) => (e) => {
+    e.preventDefault();
+    if (dragging.side !== side) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    const insertionIndex = before ? index : index + 1;
+    setOver({ side, index: insertionIndex });
+  };
+
+  const handleDropContainer = (side) => (e) => {
+    e.preventDefault();
+    if (dragging.side !== side || over.side !== side || over.index == null) {
+      setDragging({ key: null, side: null });
+      setOver({ side: null, index: null });
+      return;
+    }
+    if (side === 'left') {
+      const next = moveInArray(leftOrder, dragging.key, over.index);
+      setLeftOrder(next);
+    } else if (side === 'right') {
+      const next = moveInArray(rightOrder, dragging.key, over.index);
+      setRightOrder(next);
+    }
+    setDragging({ key: null, side: null });
+    setOver({ side: null, index: null });
+  };
+
+  const renderLeftSection = useCallback((keyName) => {
+    const draggingClass = dragging.key === keyName && dragging.side === 'left' ? styles.dragging : '';
+    const commonProps = {
+      className: `${styles.draggable} ${draggingClass}`,
+      draggable: true,
+      onDragStart: handleDragStart('left', keyName),
+      onDragEnd: handleDragEnd,
+    };
+    if (keyName === 'sales') {
+      return (
+        <div {...commonProps}>
+          <div className={styles.overviewSection} style={{ height: 'var(--row1Height)' }}>
+            <div className={styles.sectionHeader}>
+              <h2>Sales Overview</h2>
+            </div>
+            <div className={styles.statsGrid}>
+              <StatCard title="Sales" value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`} icon={<img src={salesale} alt="Sales Cost" />} />
+              <StatCard title="Revenue" value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`} icon={<img src={revenueIcon} alt="Revenue" />} />
+              <StatCard title="Profit" value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`} icon={<img src={profitIcon} alt="Profit" />} />
+              <StatCard title="Cost" value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`} icon={<img src={costIcon} alt="Cost" />} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (keyName === 'purchase') {
+      return (
+        <div {...commonProps}>
+          <div className={styles.overviewSection} style={{ height: 'var(--row2Height)' }}>
+            <div className={styles.sectionHeader}>
+              <h2>Purchase Overview</h2>
+            </div>
+            <div className={styles.statsGrid}>
+              <StatCard title="Purchase" value={dashboardData?.overallInventory?.totalProducts?.recent || 0} icon={<img src={purchaseIcon} alt="Purchase" />} />
+              <StatCard title="Cost" value={`₹ ${((((chartData?.data?.summary?.totalPurchases) || 0) * 2).toLocaleString())}`} icon={<img src={costIcon2} alt="Cost" />} />
+              <StatCard title="Cancel" value={cancelMetrics.count || 0} icon={<img src={cancelIcon} alt="Cancel" />} />
+              <StatCard title="Return" value={`₹ ${(returnMetrics.amount || 0).toLocaleString()}`} icon={<img src={returnIcon} alt="Return" />} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div {...commonProps}>
+        <div className={styles.chartSection} style={{ height: 'calc(var(--topProductsHeader) + (var(--topProductsItemRow) * 6))' }}>
+          <div className={styles.chartHeader}>
+            <h3>Sales & Purchase</h3>
+            <div className={styles.periodSelector}>
+              <select value={selectedPeriod} onChange={(e) => setSelectedPeriod(e.target.value)} className={styles.periodSelect} style={{ backgroundImage: `url(${calendar})`, backgroundRepeat: 'no-repeat', backgroundPosition: '10px center', backgroundSize: '18px', paddingLeft: '36px' }}>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+          </div>
+          <div className={styles.chartContainer}>
+            <div className={styles.chartPlaceholder}>
+              <div className={styles.yAxis}>
+                {(() => {
+                  const maxValue = chartData && chartData.data ? (() => {
+                    if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
+                      return Math.max(...chartData.data.dailyBreakdown.map(d => Math.max(((d.purchases || 0) * 2), d.sales || 0)));
+                    }
+                    if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
+                      return Math.max(...chartData.data.monthlyBreakdown.map(d => Math.max(((d.purchases || 0) * 2), d.sales || 0)));
+                    }
+                    if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
+                      return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
+                    }
+                    return 60000;
+                  })() : 60000;
+                  let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                  if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                  const yAxisValues = [];
+                  const step = roundedMax / 6;
+                  for (let i = 6; i >= 0; i--) yAxisValues.push(Math.round(step * i));
+                  return yAxisValues.map((value, index) => (<div key={index} className={styles.yAxisLabel}>{value.toLocaleString()}</div>));
+                })()}
+              </div>
+              <div className={styles.chartContent}>
+                <div className={styles.chartGrid}>
+                  {(() => {
+                    const maxValue = chartData && chartData.data ? (() => {
+                      if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
+                        return Math.max(...chartData.data.dailyBreakdown.map(d => Math.max(((d.purchases || 0) * 2), d.sales || 0)));
+                      }
+                      if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
+                        return Math.max(...chartData.data.monthlyBreakdown.map(d => Math.max(((d.purchases || 0) * 2), d.sales || 0)));
+                      }
+                      if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
+                        return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
+                      }
+                      return 60000;
+                    })() : 60000;
+                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
+                    const yAxisValues = [];
+                    const step = roundedMax / 6;
+                    for (let i = 6; i >= 0; i--) yAxisValues.push(Math.round(step * i));
+                    return yAxisValues.map((_, index) => (<div key={index} className={styles.gridLine}></div>));
+                  })()}
+                </div>
+                <div className={styles.chartBars}>
+                  {selectedPeriod === 'weekly' && chartData?.data?.dailyBreakdown && (
+                    chartData.data.dailyBreakdown.map((dayData, index) => {
+                      const maxValue = Math.max(...chartData.data.dailyBreakdown.map(d => Math.max(((d.purchases || 0) * 2), d.sales || 0)));
+                      const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                      const purchaseHeight = roundedMax ? (((dayData.purchases || 0) * 2) / roundedMax) * 100 : 0;
+                      const salesHeight = roundedMax ? ((dayData.sales || 0) / roundedMax) * 100 : 0;
+                      return (
+                        <div key={index} className={styles.chartBar}>
+                          <div className={styles.barContainer}>
+                            <div className={styles.barPurchase} style={{height: `${purchaseHeight}%`}} title={`Purchases: ₹${(((dayData.purchases || 0) * 2)).toLocaleString()}`} />
+                            <div className={styles.barSales} style={{height: `${salesHeight}%`}} title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`} />
+                          </div>
+                          <div className={styles.barLabel}>{dayData.day.substring(0, 3)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                  {selectedPeriod === 'monthly' && chartData?.data?.monthlyBreakdown && (
+                    chartData.data.monthlyBreakdown.map((monthData, index) => {
+                      const maxValue = Math.max(...chartData.data.monthlyBreakdown.map(d => Math.max(((d.purchases || 0) * 2), d.sales || 0)));
+                      const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                      const purchaseHeight = roundedMax ? (((monthData.purchases || 0) * 2) / roundedMax) * 100 : 0;
+                      const salesHeight = roundedMax ? ((monthData.sales || 0) / roundedMax) * 100 : 0;
+                      return (
+                        <div key={index} className={styles.chartBar}>
+                          <div className={styles.barContainer}>
+                            <div className={styles.barPurchase} style={{height: `${purchaseHeight}%`}} title={`Purchases: ₹${(((monthData.purchases || 0) * 2)).toLocaleString()}`} />
+                            <div className={styles.barSales} style={{height: `${salesHeight}%`}} title={`Sales: ₹${(monthData.sales || 0).toLocaleString()}`} />
+                          </div>
+                          <div className={styles.barLabel}>{monthData.month.substring(0, 3)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                  {selectedPeriod === 'yearly' && chartData?.data?.yearlyData && (
+                    <div className={styles.chartBar}>
+                      <div className={styles.barContainer}>
+                        {(() => {
+                          const maxValue = Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
+                          const roundedMax = Math.ceil(maxValue / 10000) * 10000;
+                          const purchaseHeight = roundedMax ? (((chartData.data.yearlyData.purchases || 0) * 2) / roundedMax) * 100 : 0;
+                          const salesHeight = roundedMax ? ((chartData.data.yearlyData.sales || 0) / roundedMax) * 100 : 0;
+                          return (<>
+                            <div className={styles.barPurchase} style={{height: `${purchaseHeight}%`}} title={`Purchases: ₹${(((chartData.data.yearlyData.purchases || 0) * 2)).toLocaleString()}`} />
+                            <div className={styles.barSales} style={{height: `${salesHeight}%`}} title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`} />
+                          </>);
+                        })()}
+                      </div>
+                      <div className={styles.barLabel}>{chartData.data.year}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className={styles.chartLegend}>
+                <div className={styles.legendItem}><div className={styles.legendColor} style={{background: '#3498db'}}></div><span>Purchase</span></div>
+                <div className={styles.legendItem}><div className={styles.legendColor} style={{background: '#2ecc71'}}></div><span>Sales</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }, [dashboardData, chartData, selectedPeriod, cancelMetrics, returnMetrics, dragging.key, dragging.side, handleDragStart, handleDragEnd]);
+
+  const renderRightSection = useCallback((keyName) => {
+    const draggingClass = dragging.key === keyName && dragging.side === 'right' ? styles.dragging : '';
+    const commonProps = {
+      className: `${styles.draggable} ${draggingClass}`,
+      draggable: true,
+      onDragStart: handleDragStart('right', keyName),
+      onDragEnd: handleDragEnd,
+    };
+    if (keyName === 'inventory') {
+      return (
+        <div {...commonProps}>
+          <div className={styles.summaryCard}>
+        <h3>Inventory Summary</h3>
+        <div className={styles.inventoryItems}>
+          <div className={styles.inventoryItem}>
+            <div className={styles.inventoryIcon}><img src={inventoryQuantityIcon} alt="Inventory" /></div>
+            <div className={`${styles.inventoryContent} ${styles.inventoryContent1}`}>
+          <span className={styles.inventoryLabel}>Quantity in Hand</span>
+          <span className={styles.inventoryValue}>{dashboardData?.inventoryMetrics?.totalQuantity || 0}</span>
+            </div>
+          </div>
+          <div className={`${styles.inventoryContent} ${styles.inventoryContent1}`}>
+            <span className={styles.inventoryLabel}>To be received</span>
+            <span className={styles.inventoryValue}>{dashboardData?.inventoryMetrics?.expectedStock || 0}</span>
+          </div>
+        </div>
+          </div>
+        </div>
+      );
+    }
+    if (keyName === 'product') {
+      return (
+        <div {...commonProps}>
+          <div className={styles.summaryCard}>
+            <h3>Product Summary</h3>
+            <div className={styles.inventoryItems}>
+              <div className={styles.inventoryItem}>
+                <div className={styles.inventoryIcon}><img src={supplierIcon} alt="Suppliers" /></div>
+                <div className={`${styles.inventoryContent} ${styles.inventoryContent2}`}>
+                  <span className={styles.inventoryLabel}>Number of <br />Suppliers</span>
+                  <span className={styles.inventoryValue}>{dashboardData?.productMetrics?.suppliersCount || 0}</span>
+                </div>
+              </div>
+              <div className={styles.inventoryItem}>
+                <div className={styles.inventoryIcon}><img src={categoryIcon} alt="Categories" /></div>
+                <div className={`${styles.inventoryContent} ${styles.inventoryContent2}`}>
+                  <span className={styles.inventoryLabel}>Number of <br /> Categories</span>
+                  <span className={styles.inventoryValue}>{dashboardData?.productMetrics?.categoriesCount || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div {...commonProps}>
+        <div className={`${styles.summaryCard} ${styles.topProductsCard}`}>
+          <h3>Top Products</h3>
+          <div className={styles.topProductsList}>
+            {topProducts.length > 0 ? (
+              topProducts.map((product, index) => (
+                <div key={product._id || index} className={styles.topProductItem}>
+                  <div className={styles.productImage}>
+                    {product.imageUrl ? (
+                      <img 
+                        src={(() => {
+                          let url = product.imageUrl;
+                          if (!url) return '';
+                          if (url.startsWith('http')) return url;
+                          url = url.replace(/\\\\/g, '/');
+                          const clean = url.startsWith('/') ? url.slice(1) : url;
+                          const path = clean.includes('uploads/') ? clean : `uploads/${clean}`;
+                          return `${API_BASE_URL}/${path}`;
+                        })()}
+                        alt={product.productName}
+                      />
+                    ) : null}
+                  </div>
+                  <span className={styles.productName}>{product.productName}</span>
+                  <div className={styles.productRating}>
+                    {(() => {
+                      const starCount = typeof product.ratingStars === 'string' ? ((product.ratingStars.match(/★/g) || []).length) : 0;
+                      const rating = Math.max(0, Math.min(5, Math.round((product.averageRating ?? starCount ?? 0))));
+                      return (
+                        <div className={styles.ratingBars} aria-label={`Rating: ${rating} of 5`}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span key={i} className={`${styles.ratingBar} ${i < rating ? styles.filled : ''}`}></span>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className={styles.noProducts}>No top-rated products found</div>
+            )}
+            </div>
+          </div>
+        </div>
+      );
+  }, [dashboardData, topProducts, dragging.key, dragging.side, handleDragStart, handleDragEnd]);
+
   const StatCard = ({ title, value, subtitle, color, icon }) => (
     <div className={`${styles.statCard} ${styles[color]}`}>
       <div className={styles.statIcon}>{icon}</div>
@@ -286,419 +615,40 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Grid */}
+      {/* Main Dashboard Grid with DnD-enabled columns */}
       <div className={styles.dashboardGrid}>
-        <div className={styles.leftColumn}>
-          {/* Overviews Section - within left column */}
-          <div className={styles.overviewsContainer}>
-            {/* Sales Overview */}
-            <div className={styles.overviewSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Sales Overview</h2>
-              </div>
-              <div className={styles.statsGrid}>
-                <StatCard
-                  title="Sales"
-                  value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`}
-                  icon={<img src={salesale} alt="Sales Cost" />}
-                />
-                <StatCard
-                  title="Revenue"
-                  value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`}
-                  icon={<img src={revenueIcon} alt="Revenue" />}
-                />
-                <StatCard
-                  title="Profit"
-                  value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`}
-                  icon={<img src={profitIcon} alt="Profit" />}
-                />
-                <StatCard
-                  title="Cost"
-                  value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`}
-                  icon={<img src={costIcon} alt="Cost" />}
-                />
-              </div>
-            </div>
-
-            {/* Purchase Overview */}
-            <div className={styles.overviewSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Purchase Overview</h2>
-              </div>
-              <div className={styles.statsGrid}>
-                <StatCard
-                  title="Purchase"
-                  value={dashboardData?.overallInventory?.totalProducts?.recent || 0}
-                  icon={<img src={purchaseIcon} alt="Purchase" />}
-                />
-                <StatCard
-                  title="Cost"
-                  value={`₹ ${((((chartData?.data?.summary?.totalPurchases) || 0) * 2).toLocaleString())}`}
-                  icon={<img src={costIcon2} alt="Cost" />}
-                />
-                <StatCard
-                  title="Cancel"
-                  value={cancelMetrics.count || 0}
-                  icon={<img src={cancelIcon} alt="Cancel" />}
-                />
-                <StatCard
-                  title="Return"
-                  value={`₹ ${(returnMetrics.amount || 0).toLocaleString()}`}
-                  icon={<img src={returnIcon} alt="Return" />}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Sales & Purchase Chart */}
-          <div className={styles.chartSection}>
-          <div className={styles.chartHeader}>
-            <h3>Sales & Purchase</h3>
-            <div className={styles.periodSelector}>
-              <select 
-                value={selectedPeriod} 
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className={styles.periodSelect}
-                style={{
-                  backgroundImage: `url(${calendar})`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: '10px center',
-                  backgroundSize: '18px',
-                  paddingLeft: '36px'
-                }}
-              >
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
-          </div>
-          <div className={styles.chartContainer}>
-            <div className={styles.chartPlaceholder}>
-              <div className={styles.yAxis}>
-                {(() => {
-                  // Dynamic y-axis based on max value
-                  const maxValue = chartData && chartData.data ? (() => {
-                    if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
-                      return Math.max(...chartData.data.dailyBreakdown.map(d => 
-                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                      ));
-                    }
-                    if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
-                      return Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                        Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                      ));
-                    }
-                    if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
-                      return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
-                    }
-                    return 60000;
-                  })() : 60000;
-                  
-                  // Round to next nice number (multiple of 10000)
-                  let roundedMax = Math.ceil(maxValue / 10000) * 10000;
-                  if (!roundedMax || roundedMax === 0) roundedMax = 1000;
-                  const yAxisValues = [];
-                  const step = roundedMax / 6;
-                  
-                  for (let i = 6; i >= 0; i--) {
-                    yAxisValues.push(Math.round(step * i));
-                  }
-                  
-                  return yAxisValues.map((value, index) => (
-                    <div key={index} className={styles.yAxisLabel}>
-                      {value.toLocaleString()}
-                    </div>
-                  ));
-                })()}
-              </div>
-              
-              <div className={styles.chartContent}>
-                <div className={styles.chartGrid}>
-                  {(() => {
-                    // Use same values as y-axis
-                    const maxValue = chartData && chartData.data ? (() => {
-                      if (selectedPeriod === 'weekly' && chartData.data.dailyBreakdown) {
-                        return Math.max(...chartData.data.dailyBreakdown.map(d => 
-                          Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                        ));
-                      }
-                      if (selectedPeriod === 'monthly' && chartData.data.monthlyBreakdown) {
-                        return Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                          Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                        ));
-                      }
-                      if (selectedPeriod === 'yearly' && chartData.data.yearlyData) {
-                        return Math.max(((chartData.data.yearlyData.purchases || 0) * 2), chartData.data.yearlyData.sales || 0);
-                      }
-                      return 60000;
-                    })() : 60000;
-                    
-                    let roundedMax = Math.ceil(maxValue / 10000) * 10000;
-                    if (!roundedMax || roundedMax === 0) roundedMax = 1000;
-                    const yAxisValues = [];
-                    const step = roundedMax / 6;
-                    
-                    for (let i = 6; i >= 0; i--) {
-                      yAxisValues.push(Math.round(step * i));
-                    }
-                    
-                    return yAxisValues.map((value, index) => (
-                      <div key={index} className={styles.gridLine}></div>
-                    ));
-                  })()}
+        {/* Left column reorderable */}
+        <div className={styles.leftColumn} onDrop={handleDropContainer('left')} onDragOver={(e)=>e.preventDefault()}>
+          {(() => {
+            const nodes = [];
+            leftOrder.forEach((keyName, idx) => {
+              if (over.side === 'left' && over.index === idx) nodes.push(<div key={`l-di-${idx}`} className={styles.dropIndicator} />);
+              nodes.push(
+                <div key={`l-${keyName}`} onDragOver={handleDragOverItem('left', idx)}>
+                  {renderLeftSection(keyName)}
                 </div>
-                
-                <div className={styles.chartBars}>
-                  {selectedPeriod === 'weekly' && chartData?.data?.dailyBreakdown && (
-                    chartData.data.dailyBreakdown.map((dayData, index) => {
-                      // Calculate max value from all data for proper scaling
-                      const maxValue = Math.max(...chartData.data.dailyBreakdown.map(d => 
-                          Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                        ));
-                      // Round to next nice number
-                      const roundedMax = Math.ceil(maxValue / 10000) * 10000;
-
-                        const purchaseHeight = roundedMax ? (((dayData.purchases || 0) * 2) / roundedMax) * 100 : 0;
-                      const salesHeight = roundedMax ? ((dayData.sales || 0) / roundedMax) * 100 : 0;
-                      
-                      return (
-                        <div key={index} className={styles.chartBar}>
-                          <div className={styles.barContainer}>
-                            <div 
-                              className={styles.barPurchase} 
-                              style={{height: `${purchaseHeight}%`}}
-                              title={`Purchases: ₹${(((dayData.purchases || 0) * 2)).toLocaleString()}`}
-                            ></div>
-                            <div 
-                              className={styles.barSales} 
-                              style={{height: `${salesHeight}%`}}
-                              title={`Sales: ₹${(dayData.sales || 0).toLocaleString()}`}
-                            ></div>
-                          </div>
-                          <div className={styles.barLabel}>{dayData.day.substring(0, 3)}</div>
-                        </div>
-                      );
-                    })
-                  )}
-                  
-                  {selectedPeriod === 'monthly' && chartData?.data?.monthlyBreakdown && (
-                    chartData.data.monthlyBreakdown.map((monthData, index) => {
-                      // Calculate max value from all data for proper scaling
-                      const maxValue = Math.max(...chartData.data.monthlyBreakdown.map(d => 
-                          Math.max(((d.purchases || 0) * 2), d.sales || 0)
-                        ));
-                      // Round to next nice number
-                      const roundedMax = Math.ceil(maxValue / 10000) * 10000;
-
-                      const purchaseHeight = roundedMax ? (((monthData.purchases || 0) * 2) / roundedMax) * 100 : 0;
-                      const salesHeight = roundedMax ? ((monthData.sales || 0) / roundedMax) * 100 : 0;
-                      
-                      return (
-                        <div key={index} className={styles.chartBar}>
-                          <div className={styles.barContainer}>
-                            <div 
-                              className={styles.barPurchase} 
-                              style={{height: `${purchaseHeight}%`}}
-                              title={`Purchases: ₹${(((monthData.purchases || 0) * 2)).toLocaleString()}`}
-                            ></div>
-                            <div 
-                              className={styles.barSales} 
-                              style={{height: `${salesHeight}%`}}
-                              title={`Sales: ₹${(monthData.sales || 0).toLocaleString()}`}
-                            ></div>
-                          </div>
-                          <div className={styles.barLabel}>{monthData.month.substring(0, 3)}</div>
-                        </div>
-                      );
-                    })
-                  )}
-                  
-                  {selectedPeriod === 'yearly' && chartData?.data?.yearlyData && (
-                    <div className={styles.chartBar}>
-                      <div className={styles.barContainer}>
-                        {/* Calculate max value for proper scaling */}
-                        {(() => {
-                          const maxValue = Math.max(
-                            ((chartData.data.yearlyData.purchases || 0) * 2),
-                            chartData.data.yearlyData.sales || 0
-                          );
-                          const roundedMax = Math.ceil(maxValue / 10000) * 10000;
-
-                          const purchaseHeight = roundedMax ? (((chartData.data.yearlyData.purchases || 0) * 2) / roundedMax) * 100 : 0;
-                          const salesHeight = roundedMax ? ((chartData.data.yearlyData.sales || 0) / roundedMax) * 100 : 0;
-                          
-                          return (
-                            <>
-                              <div 
-                                className={styles.barPurchase} 
-                                style={{height: `${purchaseHeight}%`}}
-                                title={`Purchases: ₹${(((chartData.data.yearlyData.purchases || 0) * 2)).toLocaleString()}`}
-                              ></div>
-                              <div 
-                                className={styles.barSales} 
-                                style={{height: `${salesHeight}%`}}
-                                title={`Sales: ₹${(chartData.data.yearlyData.sales || 0).toLocaleString()}`}
-                              ></div>
-                            </>
-                          );
-                        })()}
-                      </div>
-                      <div className={styles.barLabel}>{chartData.data.year}</div>
-                    </div>
-                  )}
-                  
-                  {(!chartData?.data?.dailyBreakdown && selectedPeriod === 'weekly') && (
-                    [...Array(7)].map((_, index) => (
-                      <div key={index} className={styles.chartBar}>
-                        <div className={styles.barContainer}>
-                          <div className={styles.barPurchase} style={{height: `${Math.random() * 40 + 10}%`}}></div>
-                          <div className={styles.barSales} style={{height: `${Math.random() * 35 + 20}%`}}></div>
-                        </div>
-                        <div className={styles.barLabel}>{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index]}</div>
-                      </div>
-                    ))
-                  )}
-                  
-                  {(!chartData?.data?.monthlyBreakdown && selectedPeriod === 'monthly') && (
-                    [...Array(12)].map((_, index) => (
-                      <div key={index} className={styles.chartBar}>
-                        <div className={styles.barContainer}>
-                          <div className={styles.barPurchase} style={{height: `${Math.random() * 40 + 10}%`}}></div>
-                          <div className={styles.barSales} style={{height: `${Math.random() * 35 + 20}%`}}></div>
-                        </div>
-                        <div className={styles.barLabel}>{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][index]}</div>
-                      </div>
-                    ))
-                  )}
-                  
-                  {(!chartData?.data?.yearlyData && selectedPeriod === 'yearly') && (
-                    <div className={styles.chartBar}>
-                      <div className={styles.barContainer}>
-                        <div className={styles.barPurchase} style={{height: '40%'}}></div>
-                        <div className={styles.barSales} style={{height: '60%'}}></div>
-                      </div>
-                      <div className={styles.barLabel}>{new Date().getFullYear()}</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              
-              <div className={styles.chartLegend}>
-                <div className={styles.legendItem}>
-                  <div className={styles.legendColor} style={{background: '#3498db'}}></div>
-                  <span>Purchase</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <div className={styles.legendColor} style={{background: '#2ecc71'}}></div>
-                  <span>Sales</span>
-                </div>
-              </div>
-            </div>
-          </div>
+              );
+            });
+            if (over.side === 'left' && over.index === leftOrder.length) nodes.push(<div key={`l-di-end`} className={styles.dropIndicator} />);
+            return nodes;
+          })()}
         </div>
-  </div>
 
-  {/* Right Column (Summaries + Top Products) */}
-  <div className={styles.rightColumn}>
-          {/* Inventory Summary */}
-          <div className={styles.summaryCard}>
-            <h3>Inventory Summary</h3>
-            <div className={styles.inventoryItems}>
-              <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}><img src={inventoryQuantityIcon} alt="Inventory" /></div>
-                <div className={styles.inventoryContent}>
-                  <span className={styles.inventoryLabel}>Quantity in Hand</span>
-                  <span className={styles.inventoryValue}>
-                    {dashboardData?.inventoryMetrics?.totalQuantity || 0}
-                  </span>
+        {/* Right column reorderable */}
+        <div className={styles.rightColumn} onDrop={handleDropContainer('right')} onDragOver={(e)=>e.preventDefault()}>
+          {(() => {
+            const nodes = [];
+            rightOrder.forEach((keyName, idx) => {
+              if (over.side === 'right' && over.index === idx) nodes.push(<div key={`r-di-${idx}`} className={styles.dropIndicator} />);
+              nodes.push(
+                <div key={`r-${keyName}`} onDragOver={handleDragOverItem('right', idx)}>
+                  {renderRightSection(keyName)}
                 </div>
-              </div>
-              <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}><img src={inventoryReceivedIcon} alt="Incoming" /></div>
-                <div className={styles.inventoryContent}>
-                  <span className={styles.inventoryLabel}>To be received</span>
-                  <span className={styles.inventoryValue}>
-                    {dashboardData?.inventoryMetrics?.expectedStock || 0}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Product Summary */}
-          <div className={styles.summaryCard}>
-            <h3>Product Summary</h3>
-            <div className={styles.inventoryItems}>
-              <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}><img src={supplierIcon} alt="Suppliers" /></div>
-                <div className={styles.inventoryContent}>
-                  <span className={styles.inventoryLabel}>Number of <br />Suppliers</span>
-                  <span className={styles.inventoryValue}>
-                    {dashboardData?.productMetrics?.suppliersCount || 0}
-                  </span>
-                </div>
-              </div>
-              <div className={styles.inventoryItem}>
-                <div className={styles.inventoryIcon}><img src={categoryIcon} alt="Categories" /></div>
-                <div className={styles.inventoryContent}>
-                  <span className={styles.inventoryLabel}>Number of <br /> Categories</span>
-                  <span className={styles.inventoryValue}>
-                    {dashboardData?.productMetrics?.categoriesCount || 0}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Products */}
-          <div className={styles.summaryCard}>
-            <h3>Top Products</h3>
-            <div className={styles.topProductsList}>
-              {topProducts.length > 0 ? (
-                topProducts.map((product, index) => (
-                  <div key={product._id || index} className={styles.topProductItem}>
-                    <div className={styles.productImage}>
-                    {product.imageUrl ? (
-                      <img 
-                        src={(() => {
-                          let url = product.imageUrl;
-                          if (!url) return '';
-                          if (url.startsWith('http')) return url;
-                          // Normalize backslashes to forward slashes (if any)
-                          url = url.replace(/\\\\/g, '/');
-                          const clean = url.startsWith('/') ? url.slice(1) : url;
-                          const path = clean.includes('uploads/') ? clean : `uploads/${clean}`;
-                          return `${API_BASE_URL}/${path}`;
-                        })()}
-                        alt={product.productName}
-                      />
-                    ) : null}
-                  </div>
-                    <span className={styles.productName}>{product.productName}</span>
-                    <div className={styles.productRating}>
-                      {(() => {
-                        const starCount = typeof product.ratingStars === 'string'
-                          ? ((product.ratingStars.match(/★/g) || []).length)
-                          : 0;
-                        const rating = Math.max(0, Math.min(5, Math.round((product.averageRating ?? starCount ?? 0))));
-                        return (
-                          <div className={styles.ratingBars} aria-label={`Rating: ${rating} of 5`}>
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <span key={i} className={`${styles.ratingBar} ${i < rating ? styles.filled : ''}`}></span>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.noProducts}>No top-rated products found</div>
-              )}
-            </div>
-          </div>
+              );
+            });
+            if (over.side === 'right' && over.index === rightOrder.length) nodes.push(<div key={`r-di-end`} className={styles.dropIndicator} />);
+            return nodes;
+          })()}
         </div>
       </div>
     </div>

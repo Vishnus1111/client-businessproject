@@ -381,6 +381,7 @@
   margin: 0 0 0.5rem 0;
   text-align: left;
   margin-left: 10px !important;
+  margin-top: 10px;
 }
 
 .inventoryItems {
@@ -414,6 +415,7 @@
   flex-direction: column-reverse; /* value above label */
   align-items: center;
   gap: 6px;
+  margin-bottom: 5px !important;
 }
 
 .inventoryLabel {
@@ -833,18 +835,14 @@
 .dashboardGrid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
+  gap:0.8rem;
   padding: 0 1rem; /* decrease background page padding */
   align-items: stretch; /* make both columns equal in row height */
 }
 
-.leftColumn { display: grid; grid-template-rows: auto 1fr; gap: 1.5rem; min-height: 0; }
+.leftColumn { display: flex; flex-direction: column; gap: 1.5rem; min-height: 0; }
 
-.rightColumn {
-  display: grid;
-  grid-template-rows: auto auto 1fr; /* Top two summaries + growing Top Products */
-  gap: 1.5rem;
-}
+.rightColumn { display: flex; flex-direction: column; gap: 1.5rem; }
 
 /* Overviews: white section with four horizontal stat items */
 .overviewSection {
@@ -898,8 +896,8 @@
 .chartSection .chartContainer { height: 300px; }
 
 /* Right column cards already white; make Top Products grow */
-.rightColumn .summaryCard:last-child { display: flex; flex-direction: column; }
-.rightColumn .topProductsList { flex: 1; overflow-y: auto; }
+.topProductsCard { display: flex; flex-direction: column; }
+.topProductsCard .topProductsList { flex: 1; overflow-y: auto; }
 
 /* Mobile tweaks for new grid */
 @media (max-width: 1200px) {
@@ -938,7 +936,7 @@
 
 /* ===== Exact alignment for both rows using fixed heights ===== */
 /* Define row heights (tweak these values to fine-tune) */
-.homeContainer { --row1Height: 170px; --row2Height: 150px; }
+.homeContainer { --row1Height: var(--row2Height); --row2Height: 150px; }
 
 /* Row 1: Sales Overview (left) and Inventory Summary (right) */
 .overviewsContainer .overviewSection:first-child,
@@ -1242,11 +1240,10 @@
 
 /* ===== Top Products: fixed height for 6 items and no scroll ===== */
 .homeContainer { --topProductsItemRow: 85px; --topProductsHeader: 56px; }
-.rightColumn > .summaryCard:last-child {
+.topProductsCard {
   height: calc(var(--topProductsHeader) + (var(--topProductsItemRow) * 6));
-  
 }
-.rightColumn .topProductsList {
+.topProductsCard .topProductsList {
   overflow-y: hidden !important; /* disable scrolling regardless of item count */
   margin-bottom: -30px !important;
 }
@@ -1263,3 +1260,58 @@
   width: 0;                    /* Chrome/Safari/Edge (Blink/WebKit) */
   height: 0;
 }
+
+/* ===== Drag & Drop visuals ===== */
+.draggable {
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+  cursor: grab;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.95;
+  transform: scale(0.998);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.dropIndicator {
+  height: 12px;
+  margin: 6px 0;
+  border-radius: 6px;
+  outline: 2px dashed rgba(127, 124, 245, 0.5);
+  background: rgba(127, 124, 245, 0.08);
+}
+
+/* Ensure a visible gap between Purchase Overview and the Chart in the left column */
+.leftColumn .chartSection { margin-top: 0 !important; }
+
+/* ===== Left overviews: remove extra gaps between title, icons, and values ===== */
+.leftColumn .overviewSection .sectionHeader { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+.leftColumn .overviewSection .statsGrid { gap: 0.5rem !important; padding: 0 0.75rem 0.25rem 0.75rem !important; }
+.leftColumn .overviewSection .statCard { padding: 0.25rem 0.2rem !important; gap: 0.15rem !important; }
+.leftColumn .overviewSection .statContent { gap: 4px !important; }
+.leftColumn .overviewSection .statValue,
+.leftColumn .overviewSection .statTitle { margin: 0 !important; line-height: 1.15 !important; }
+
+/* Place the metrics row at the bottom of the card; remove any bottom padding */
+.leftColumn .overviewSection .statsGrid { margin-top: auto !important; padding-bottom: 0 !important; }
+
+/* ===== Left overview cards: match value/title typography with right-side summaries ===== */
+.leftColumn .overviewSection .statValue {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: black !important;
+}
+
+.leftColumn .overviewSection .statTitle {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: black !important;
+}
+
+/* Ensure left top/second rows respect the shared row height variables (parity with right) */
+.leftColumn > .draggable:nth-child(1) .overviewSection { height: var(--row1Height); }
+.leftColumn > .draggable:nth-child(2) .overviewSection { height: var(--row2Height); }
