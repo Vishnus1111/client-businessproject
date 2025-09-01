@@ -465,7 +465,7 @@
   flex-basis: 100%; /* push to next line */
   margin-left: 180px !important; /* slight right indent (align with image width) */
   margin-top: -15px  !important; /* minimal vertical gap */
-  margin-bottom: 15px  !important;
+  margin-bottom: 14px  !important;
   /* margin-bottom: -0px !important; */
 }
 
@@ -1272,17 +1272,18 @@
 }
 
 .dragging {
-  opacity: 0.95;
+  opacity: 1;
   transform: scale(0.998);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
-.dropIndicator {
-  height: 12px;
-  margin: 6px 0;
-  border-radius: 6px;
-  outline: 2px dashed rgba(127, 124, 245, 0.5);
-  background: rgba(127, 124, 245, 0.08);
+.dropIndicator { display: none !important; height: 0 !important; margin: 0 !important; padding: 0 !important; }
+
+/* Desaturate non-matching sections during search */
+.desaturate {
+  filter: grayscale(1) brightness(0.85) contrast(0.9);
+  opacity: 0.6;
+  transition: filter 120ms ease, opacity 120ms ease;
 }
 
 /* Ensure a visible gap between Purchase Overview and the Chart in the left column */
@@ -1315,3 +1316,9 @@
 /* Ensure left top/second rows respect the shared row height variables (parity with right) */
 .leftColumn > .draggable:nth-child(1) .overviewSection { height: var(--row1Height); }
 .leftColumn > .draggable:nth-child(2) .overviewSection { height: var(--row2Height); }
+
+.topProductsCard h3{
+  margin-top: 10px !important;
+  margin-left: 20px !important;
+  margin-bottom: 30px !important;
+}

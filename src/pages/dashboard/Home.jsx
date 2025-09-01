@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './Home.module.css';
@@ -22,11 +22,14 @@ const Home = () => {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('weekly');
+  const [searchTerm, setSearchTerm] = useState('');
   // Drag & drop state
   const [leftOrder, setLeftOrder] = useState(['sales', 'purchase', 'chart']);
   const [rightOrder, setRightOrder] = useState(['inventory', 'product', 'topProducts']);
   const [dragging, setDragging] = useState({ key: null, side: null });
   const [over, setOver] = useState({ side: null, index: null });
+  // Keep a reference to a custom drag image so we can remove it on drag end
+  const dragImageRef = useRef(null);
   // Additional metrics derived from available endpoints
   const [cancelMetrics, setCancelMetrics] = useState({ count: 0 });
   const [returnMetrics, setReturnMetrics] = useState({ count: 0, amount: 0 });
@@ -268,12 +271,36 @@ const Home = () => {
     try {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', `${side}:${key}`);
+      // Use a full-opacity custom drag image to avoid the browser's semi-transparent ghost
+      const srcEl = e.currentTarget;
+      if (srcEl) {
+        const rect = srcEl.getBoundingClientRect();
+        const clone = srcEl.cloneNode(true);
+        clone.style.position = 'fixed';
+        clone.style.top = '-9999px';
+        clone.style.left = '-9999px';
+        clone.style.width = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+        clone.style.opacity = '1';
+        clone.style.transform = 'none';
+        clone.style.pointerEvents = 'none';
+        document.body.appendChild(clone);
+        dragImageRef.current = clone;
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        e.dataTransfer.setDragImage(clone, offsetX, offsetY);
+      }
     } catch {}
   }, []);
 
   const handleDragEnd = useCallback(() => {
     setDragging({ key: null, side: null });
     setOver({ side: null, index: null });
+    // Clean up the custom drag image if we created one
+    if (dragImageRef.current && dragImageRef.current.parentNode) {
+      try { dragImageRef.current.parentNode.removeChild(dragImageRef.current); } catch {}
+    }
+    dragImageRef.current = null;
   }, []);
 
   const handleDragOverItem = (side, index) => (e) => {
@@ -303,10 +330,29 @@ const Home = () => {
     setOver({ side: null, index: null });
   };
 
+  // ---- Search helpers ----
+  const shouldDesaturate = useCallback((keyName) => {
+    const q = (searchTerm || '').trim().toLowerCase();
+    if (!q) return false;
+    const titles = {
+      sales: 'sales overview',
+      purchase: 'purchase overview',
+      chart: 'sales & purchase',
+      inventory: 'inventory summary',
+      product: 'product summary',
+      topProducts: 'top products',
+    };
+    const title = titles[keyName] || '';
+    const matched = title.includes(q);
+    const anyMatch = Object.values(titles).some(t => t.includes(q));
+    return anyMatch ? !matched : true;
+  }, [searchTerm]);
+
   const renderLeftSection = useCallback((keyName) => {
     const draggingClass = dragging.key === keyName && dragging.side === 'left' ? styles.dragging : '';
+    const desatClass = shouldDesaturate(keyName) ? styles.desaturate : '';
     const commonProps = {
-      className: `${styles.draggable} ${draggingClass}`,
+      className: `${styles.draggable} ${draggingClass} ${desatClass}`,
       draggable: true,
       onDragStart: handleDragStart('left', keyName),
       onDragEnd: handleDragEnd,
@@ -468,12 +514,13 @@ const Home = () => {
         </div>
       </div>
     );
-  }, [dashboardData, chartData, selectedPeriod, cancelMetrics, returnMetrics, dragging.key, dragging.side, handleDragStart, handleDragEnd]);
+  }, [dashboardData, chartData, selectedPeriod, cancelMetrics, returnMetrics, dragging.key, dragging.side, handleDragStart, handleDragEnd, shouldDesaturate]);
 
   const renderRightSection = useCallback((keyName) => {
     const draggingClass = dragging.key === keyName && dragging.side === 'right' ? styles.dragging : '';
+    const desatClass = shouldDesaturate(keyName) ? styles.desaturate : '';
     const commonProps = {
-      className: `${styles.draggable} ${draggingClass}`,
+      className: `${styles.draggable} ${draggingClass} ${desatClass}`,
       draggable: true,
       onDragStart: handleDragStart('right', keyName),
       onDragEnd: handleDragEnd,
@@ -572,7 +619,7 @@ const Home = () => {
           </div>
         </div>
       );
-  }, [dashboardData, topProducts, dragging.key, dragging.side, handleDragStart, handleDragEnd]);
+  }, [dashboardData, topProducts, dragging.key, dragging.side, handleDragStart, handleDragEnd, shouldDesaturate]);
 
   const StatCard = ({ title, value, subtitle, color, icon }) => (
     <div className={`${styles.statCard} ${styles[color]}`}>
@@ -610,6 +657,8 @@ const Home = () => {
               type="text" 
               placeholder="Search here..." 
               className={styles.searchInput}
+              value={searchTerm}
+              onChange={(e)=>setSearchTerm(e.target.value)}
             />
           </div>
         </div>
