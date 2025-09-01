@@ -5,6 +5,7 @@
   min-height: 100vh;
   position: relative;
   --barWidth: 6px; /* single source of truth for bar thickness */
+
 }
 
 /* Top horizontal line that aligns with sidebar top line */
@@ -244,6 +245,7 @@
   border: 1px solid #dfe3f0; /* subtle border like mock */
   padding: 1.1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  margin-top: -25px !important;
 }
 
 .chartHeader {
@@ -378,6 +380,7 @@
   color: #2c3e50;
   margin: 0 0 0.5rem 0;
   text-align: left;
+  margin-left: 10px !important;
 }
 
 .inventoryItems {
@@ -446,12 +449,9 @@
   flex-wrap: wrap; /* allow rating to wrap below name */
   gap: 8px 10px;
   padding: 0.75rem 0;
-  border-bottom: none; /* remove separator line */
+  border-bottom: none !important; /* remove separator line */
 }
 
-.topProductItem:last-child {
-  border-bottom: none;
-}
 
 .productName {
   font-size: 0.9rem;
@@ -461,8 +461,10 @@
 
 .productRating {
   flex-basis: 100%; /* push to next line */
-  margin-left: 50px; /* slight right indent (align with image width) */
-  margin-top: 6px; /* minimal vertical gap */
+  margin-left: 180px !important; /* slight right indent (align with image width) */
+  margin-top: -15px  !important; /* minimal vertical gap */
+  margin-bottom: 15px  !important;
+  /* margin-bottom: -0px !important; */
 }
 
 /* Rating bars */
@@ -833,9 +835,10 @@
   grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
   padding: 0 1rem; /* decrease background page padding */
+  align-items: stretch; /* make both columns equal in row height */
 }
 
-.leftColumn { display: flex; flex-direction: column; gap: 1.5rem; }
+.leftColumn { display: grid; grid-template-rows: auto 1fr; gap: 1.5rem; min-height: 0; }
 
 .rightColumn {
   display: grid;
@@ -996,8 +999,12 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   padding: 20px;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 0;         /* remove extra bottom space to align with Top Products card */
   border: none; /* remove container border including bottom line */
+  display: flex;            /* allow the chart to grow to match Top Products height */
+  flex-direction: column;
+  flex: 1 1 auto;           /* grow to fill remaining vertical space in left column */
+  min-height: 0;            /* enable child flex item to shrink/grow properly */
 }
 
 .chartHeader {
@@ -1032,7 +1039,12 @@
 .periodSelect::-ms-expand { display: none; }
 
 /* Chart layout */
-.chartContainer { height: 340px; }
+.chartContainer { 
+  /* Let the chart fill the available third-row height to align top/bottom with Top Products */
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
 
 .chartPlaceholder {
   height: 100%;
@@ -1045,7 +1057,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 240px;
+  /* Reserve minimal space for x-axis labels to maximize plotting height */
+  bottom: 16px;             /* was 24px */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1061,9 +1074,9 @@
 
 .chartContent {
   margin-left: 60px;
-  height: 240px;
   position: relative;
-  margin-bottom: 12px;
+  height: 100%;
+  min-height: 0;
 }
 
 .chartGrid {
@@ -1071,7 +1084,8 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* Match y-axis bottom anchor so the grid ends above x labels */
+  bottom: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -1091,7 +1105,8 @@
 .chartGrid .gridLine:nth-last-child(1),
 .chartGrid .gridLine:first-of-type,
 .chartGrid .gridLine:last-of-type {
-  display: none !important;
+  /* Keep them in the layout to preserve spacing, but make them invisible */
+  opacity: 0 !important;
 }
 
 .chartBars {
@@ -1099,13 +1114,14 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom: -3px; /* BASELINE NUDGE #1: move bars closer to the 0-axis (increase magnitude to push lower) */
+  /* Align the bars area to end above the x-axis labels */
+  bottom: 16px;
   display: flex;
   padding: 0 20px;
   justify-content: space-around;
   align-items: flex-end;
-  height: 240px;
-  transform: translateY(10px); /* BASELINE NUDGE #2: extra pixel push to visually touch the baseline */
+  height: auto;
+  transform: none;
   border-bottom: none !important; /* Ensure no baseline/border shows at the bottom of the plot */
 }
 
@@ -1117,11 +1133,12 @@
   max-width: 60px;
   justify-content: flex-end; /* ensure barContainer sits on baseline */
   border-bottom: none !important;
+  position: relative;        /* allow absolute positioning of labels */
 }
 
 .barContainer {
   width: 100%;
-  height: 220px;
+  height: 100%;           /* bars scale with available height */
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -1135,6 +1152,7 @@
   border-top-right-radius: 9999px; /* semicircle top like the 1st screenshot */
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0; /* semicircular top */
+  min-height: 0; /* allow true zero so baseline aligns with 0-axis */
 }
 
 .barPurchase {
@@ -1145,10 +1163,15 @@
   background: linear-gradient(to top, #49a769 0%, #56d864 100%) !important; /* smooth sales gradient */
 }
 
-.barLabel {
-  margin-top: 8px;
+.chartSection .barLabel {
+  position: absolute;
+  bottom: -16px;           /* sit just below the plot area reserved by bottom:16px */
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   font-size: 12px;
   color: #666;
+  line-height: 1;
 }
 
 .chartSummary { margin-top: auto; margin-left: 60px; }
@@ -1181,16 +1204,19 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-start; /* avoid space-between */
-  gap: 10px;
+  gap: 0.1px 0.1px; /* first value = row-gap (vertical). Lowering this removes the space between name and bars */
   flex-wrap: wrap; /* allow rating to wrap below */
 }
 
 .rightColumn .topProductsList .productImage {
   flex: 0 0 40px; /* fixed width for alignment */
+  margin-left: 10px;
 }
 
 .rightColumn .topProductsList .productName {
   flex: 1 1 auto;
+  text-align: left;
+  margin-left: 8px;
 }
 
 .rightColumn .topProductsList .productRating {
@@ -1198,4 +1224,42 @@
   margin-left: 50px;      /* slight rightward indent (image width + padding) */
   margin-top: 6px;        /* spacing under name */
   text-align: left;
+}
+
+/* ===== Final overrides to keep chart height aligned with Top Products ===== */
+/* Let the left column and chart fully stretch inside the grid row */
+.leftColumn { min-height: 0; }
+/* Ensure chart fills available row height without forcing a larger height than Top Products */
+.chartSection .chartContainer { flex: 1 1 auto; height: 100% !important; min-height: 0; }
+
+/* Consistent label gap under the plotting area */
+.chartSection .yAxis { bottom: 16px !important; }
+.chartSection .chartGrid { bottom: 16px !important; }
+.chartSection .chartBars { 
+  bottom: 16px !important;
+  top: 25px !important;
+}
+
+/* ===== Top Products: fixed height for 6 items and no scroll ===== */
+.homeContainer { --topProductsItemRow: 85px; --topProductsHeader: 56px; }
+.rightColumn > .summaryCard:last-child {
+  height: calc(var(--topProductsHeader) + (var(--topProductsItemRow) * 6));
+  
+}
+.rightColumn .topProductsList {
+  overflow-y: hidden !important; /* disable scrolling regardless of item count */
+  margin-bottom: -30px !important;
+}
+
+/* ===== Global: keep vertical scroll but hide page scrollbars visually ===== */
+:global(html),
+:global(body) {
+  overflow-y: auto;            /* scrolling still works */
+  -ms-overflow-style: none;    /* IE/Edge */
+  scrollbar-width: none;       /* Firefox */
+}
+:global(html::-webkit-scrollbar),
+:global(body::-webkit-scrollbar) {
+  width: 0;                    /* Chrome/Safari/Edge (Blink/WebKit) */
+  height: 0;
 }
