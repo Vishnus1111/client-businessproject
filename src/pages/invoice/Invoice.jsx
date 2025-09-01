@@ -29,6 +29,22 @@ const Invoice = () => {
   // Delete confirmation state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState(null);
+  // Detect mobile to alter table structure per requirements
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia('(max-width: 600px)').matches;
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia('(max-width: 600px)');
+    const onChange = (e) => setIsMobile(e.matches);
+    if (mql.addEventListener) mql.addEventListener('change', onChange);
+    else if (mql.addListener) mql.addListener(onChange);
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener('change', onChange);
+      else if (mql.removeListener) mql.removeListener(onChange);
+    };
+  }, []);
 
   // Format currency with Indian Rupee symbol
   const formatCurrency = (amount) => {
@@ -473,7 +489,7 @@ const Invoice = () => {
                 <th>Amount (₹)</th>
                 <th>Status</th>
                 <th>Due Date</th>
-                <th>Actions</th>
+                {isMobile && (<th>Actions</th>)}
               </tr>
             </thead>
             <tbody>
@@ -498,17 +514,107 @@ const Invoice = () => {
                         {invoice.status}
                       </span>
                     </td>
-                    <td>{formatDate(invoice.dueDate)}</td>
                     <td>
-                      <div className={styles.actionDropdown} ref={invoice._id === openDropdownId ? dropdownRef : null}>
-                        <button 
-                          className={styles.actionButton} 
-                          onClick={() => toggleDropdown(invoice._id)}
-                        >⋮</button>
-                        <div className={`${styles.dropdownContent} ${invoice._id === openDropdownId ? styles.show : ''}`}>
-                          {/* For Paid invoices, show View Invoice and Delete options */}
-                          {invoice.status === "Paid" && (
-                            <>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+                        <span>{formatDate(invoice.dueDate)}</span>
+                        {!isMobile && (
+                          <div className={styles.actionDropdown} ref={invoice._id === openDropdownId ? dropdownRef : null}>
+                            <button 
+                              className={styles.actionButton} 
+                              onClick={() => toggleDropdown(invoice._id)}
+                            >⋮</button>
+                            <div className={`${styles.dropdownContent} ${invoice._id === openDropdownId ? styles.show : ''}`}>
+                              {invoice.status === "Paid" && (
+                                <>
+                                  <button 
+                                    className={styles.viewButton}
+                                    onClick={() => {
+                                      handleViewInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
+                                  </button>
+                                  <button 
+                                    className={styles.deleteButton}
+                                    onClick={() => {
+                                      handleDeleteInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.deleteIcon}><img src={deleteInvoiceImg} alt="Delete Invoice" /></span> Delete
+                                  </button>
+                                </>
+                              )}
+                              {invoice.status === "Returned" && (
+                                <button 
+                                  className={styles.viewButton}
+                                  onClick={() => {
+                                    handleViewInvoice(invoice);
+                                    setOpenDropdownId(null);
+                                  }}
+                                >
+                                  <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
+                                </button>
+                              )}
+                              {invoice.status === "Unpaid" && (
+                                <>
+                                  <button 
+                                    className={styles.payButton}
+                                    onClick={() => {
+                                      handlePayInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.payIcon}>💲</span> Pay
+                                  </button>
+                                  <button 
+                                    className={styles.returnButton}
+                                    onClick={() => {
+                                      handleReturnInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.returnIcon}>↩️</span> Return/Cancel
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    {isMobile && (
+                      <td>
+                        <div className={styles.actionDropdown} ref={invoice._id === openDropdownId ? dropdownRef : null}>
+                          <button 
+                            className={styles.actionButton} 
+                            onClick={() => toggleDropdown(invoice._id)}
+                          >⋮</button>
+                          <div className={`${styles.dropdownContent} ${invoice._id === openDropdownId ? styles.show : ''}`}>
+                            {invoice.status === "Paid" && (
+                              <>
+                                <button 
+                                  className={styles.viewButton}
+                                  onClick={() => {
+                                    handleViewInvoice(invoice);
+                                    setOpenDropdownId(null);
+                                  }}
+                                >
+                                  <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
+                                </button>
+                                <button 
+                                  className={styles.deleteButton}
+                                  onClick={() => {
+                                    handleDeleteInvoice(invoice);
+                                    setOpenDropdownId(null);
+                                  }}
+                                >
+                                  <span className={styles.deleteIcon}><img src={deleteInvoiceImg} alt="Delete Invoice" /></span> Delete
+                                </button>
+                              </>
+                            )}
+                            {invoice.status === "Returned" && (
                               <button 
                                 className={styles.viewButton}
                                 onClick={() => {
@@ -518,63 +624,39 @@ const Invoice = () => {
                               >
                                 <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
                               </button>
-                              <button 
-                                className={styles.deleteButton}
-                                onClick={() => {
-                                  handleDeleteInvoice(invoice);
-                                  setOpenDropdownId(null);
-                                }}
-                              >
-                                <span className={styles.deleteIcon}><img src={deleteInvoiceImg} alt="Delete Invoice" /></span> Delete
-                              </button>
-                            </>
-                          )}
-                          
-                          {/* For Returned invoices, only show View Invoice */}
-                          {invoice.status === "Returned" && (
-                            <button 
-                              className={styles.viewButton}
-                              onClick={() => {
-                                handleViewInvoice(invoice);
-                                setOpenDropdownId(null);
-                              }}
-                            >
-                              <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
-                            </button>
-                          )}
-                          
-                          {/* For Unpaid invoices, show Pay and Return/Cancel options */}
-                          {invoice.status === "Unpaid" && (
-                            <>
-                              <button 
-                                className={styles.payButton}
-                                onClick={() => {
-                                  handlePayInvoice(invoice);
-                                  setOpenDropdownId(null);
-                                }}
-                              >
-                                <span className={styles.payIcon}>💲</span> Pay
-                              </button>
-                              <button 
-                                className={styles.returnButton}
-                                onClick={() => {
-                                  handleReturnInvoice(invoice);
-                                  setOpenDropdownId(null);
-                                }}
-                              >
-                                <span className={styles.returnIcon}>↩️</span> Return/Cancel
-                              </button>
-                            </>
-                          )}
+                            )}
+                            {invoice.status === "Unpaid" && (
+                              <>
+                                <button 
+                                  className={styles.payButton}
+                                  onClick={() => {
+                                    handlePayInvoice(invoice);
+                                    setOpenDropdownId(null);
+                                  }}
+                                >
+                                  <span className={styles.payIcon}>💲</span> Pay
+                                </button>
+                                <button 
+                                  className={styles.returnButton}
+                                  onClick={() => {
+                                    handleReturnInvoice(invoice);
+                                    setOpenDropdownId(null);
+                                  }}
+                                >
+                                  <span className={styles.returnIcon}>↩️</span> Return/Cancel
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
+                    )}
                   </tr>
                 ));
               })()}
-              {filteredInvoices.length === 0 && (
+        {filteredInvoices.length === 0 && (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+          <td colSpan={isMobile ? 6 : 5} style={{ textAlign: "center", padding: "20px" }}>
                     {searchTerm ? "No matching invoices found" : "No invoices found"}
                   </td>
                 </tr>

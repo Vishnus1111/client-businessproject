@@ -339,9 +339,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 13px;
-  position: absolute !important; /* Use absolute positioning */
-  right: -560px !important; /* Place it at the right edge with some padding */
-  bottom: 20px !important; /* Position from bottom */
+  position: static !important; /* Use normal flow inside actionRow */
 }
 
 .saveButton:hover {
@@ -355,13 +353,12 @@
 
 @media (max-width: 600px) {
   .saveButton {
-    position: relative !important;
     width: 100%;
     padding: 12px;
     background: #1d242e;
     margin-bottom: 20px;
-    right: 0 !important;
-    bottom: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   }
 }
 
@@ -399,6 +396,46 @@
   content: "Double click to edit";
   color: #888;
   font-style: italic;
+}
+
+/* Row for Save + Logout buttons */
+.actionRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px !important;
+  width: 100% !important;
+  justify-content: flex-end !important; /* push buttons to right end */
+  flex-direction: row !important; /* Save should be the last child to sit at far right */
+  right: 200px !important;
+}
+
+.logoutButton {
+  background: #da3e33;
+  color: #ffffff;
+  border: 1px solid transparent; /* border color not visible */
+  width: 150px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+}
+
+.logoutButton:hover {
+  filter: brightness(0.95);
+}
+
+@media (max-width: 600px) {
+  .actionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .logoutButton {
+    width: 100%;
+  }
 }
 
 @media (max-width: 600px) {

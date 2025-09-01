@@ -220,6 +220,15 @@
 /* Allow the chart to consume the available height */
 .chartSection { display: flex; flex-direction: column; }
 
+/* ===== Fixed heights to match Home (desktop) =====
+  Home uses a fixed Top Products card height equal to 6 rows. Mirror that here
+  and make the chart take the exact same height so both align top and bottom. */
+.statisticsContainer { --topProductsItemRow: 85px; --topProductsHeader: 56px; --bottomRowHeight: calc(var(--topProductsHeader) + (var(--topProductsItemRow) * 6)); }
+.bottomGrid > .draggable > .topProducts { height: var(--bottomRowHeight); }
+.bottomGrid > .draggable > .chartSection { height: var(--bottomRowHeight); }
+/* Match Home: disable scrolling inside Top Products list and keep layout stable */
+.topProductsList { overflow-y: hidden !important; }
+
 .chartHeader {
   display: flex;
   justify-content: space-between;
@@ -422,7 +431,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px;
+  height: 100%;
+  min-height: 300px; /* keep a sensible minimum like Home */
   color: #7f8c8d;
   font-weight: 600;
 }
@@ -431,7 +441,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px;
+  height: 100%;
+  min-height: 300px;
   font-weight: 600;
 }
 
@@ -584,7 +595,7 @@
   .topProducts { display: none !important; }
 
   /* Graph should be full width and first */
-  .bottomGrid > .draggable > .chartSection { width: 100%; min-height: 45vh; }
+  .bottomGrid > .draggable > .chartSection { width: 100%; min-height: 45vh; height: auto; }
   .chartSection { padding: 12px; }
 
   /* Place the three stat cards in one row without horizontal overflow */

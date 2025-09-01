@@ -14,7 +14,7 @@
   margin-bottom: 20px;
   padding: 10px;
   margin-top: -26px;
-  border-bottom: 2px solid #acaaaa;
+  border-bottom: 2px solid #a0a0a0;
   margin-left: -20px;
   margin-right: -25px;
 }
@@ -121,41 +121,44 @@
 }
 
 .statTitle {
-  font-size: 14px;
-  color: #444;
-  margin-bottom: 8px;
-  font-weight: 400;
+  font-size: 16px;
+  color: #000000;
+  margin-bottom: 14px;
+  font-weight: 550;
 }
 
 .statValue {
   font-size: 20px;
-  color: #000;
+  color: #5d6679;
   font-weight: 600;
-  margin-bottom: 5px;
+  margin-bottom: 25px;
 }
 
 .statSubText {
   font-size: 12px;
-  color: #888;
+  color: #858d9d;
   position: absolute;
+  font-weight: 500;
   bottom: 15px;
 }
 
 .statProcessed {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  /* top: -1px;
+   */
+  bottom: 43px; 
+  left: 160px;
   font-size: 16px;
   font-weight: 600;
-  color: #000;
+  color: #5d6679;
 }
 
 .statfieldname {
   position: absolute;
-  right: 15px;
-  top: 38px;
+  bottom: 15px; 
+  left: 160px;
   font-size: 12px;
-  color: #666;
+  color: #7b8495;
 }
 
 /* Invoice list */
@@ -205,6 +208,12 @@
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+}
+
+.invoiceTable th,
+.invoiceTable td {
+  text-align: center; /* Center headers and values on desktop */
+  vertical-align: middle; /* Vertically center content */
 }
 
 .invoiceTable th {
@@ -331,7 +340,7 @@
 }
 
 .paginationButton {
-  background: #e9ecef;
+  background: #e9ecef !important;
   border: none;
   border-radius: 4px;
   padding: 8px 15px;
@@ -339,6 +348,7 @@
   color: #424457;
   font-weight: 500;
   transition: all 0.2s;
+  justify-content: space-between !important;
 }
 
 .paginationButton:hover:not([disabled]) {
@@ -723,8 +733,8 @@
   .invoiceTable th:first-child {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    width: 40%;
-    text-align: left;
+  width: 40%;
+  text-align: left; /* Keep first column left-aligned on mobile */
     padding-left: 15px;
   }
   
@@ -736,7 +746,7 @@
   }
   
   .invoiceTable td:first-child {
-    text-align: left;
+  text-align: left; /* Keep label left-aligned on mobile */
     padding-left: 15px;
     width: 40%;
     font-weight: 500;
@@ -745,7 +755,7 @@
   }
   
   .invoiceTable td:last-child {
-    text-align: left;
+  text-align: left; /* Keep value left-aligned on mobile layout */
     width: 60%;
     padding-right: 0;
     padding-left: 5px;

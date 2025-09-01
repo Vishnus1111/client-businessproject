@@ -234,6 +234,16 @@ const Settings = () => {
     }
   };
 
+  // Logout handler: clear auth and redirect to login
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      toast.success('Logged out');
+    } catch (_) {}
+    navigate('/login');
+  };
+
   return (
     <div 
       className={styles.settingsContainer}
@@ -377,9 +387,14 @@ const Settings = () => {
               )}
             </div>
             
-            <button type="submit" className={styles.saveButton}>
-              Save
-            </button>
+            <div className={styles.actionRow}>
+              <button type="button" className={styles.logoutButton} onClick={handleLogout}>
+                Logout
+              </button>
+              <button type="submit" className={styles.saveButton}>
+                Save
+              </button>
+            </div>
           </form>
         )}
       </div>

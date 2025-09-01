@@ -245,7 +245,40 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       }
       
       const formData = new FormData();
-      formData.append('csv', csvFile); // Changed from 'csvFile' to 'csv' to match backend expectation
+
+      // If validation found invalid rows, build a filtered CSV that only keeps eligible rows
+      let fileToUpload = csvFile;
+      if (validationData && Array.isArray(validationData.errors) && validationData.errors.length > 0) {
+        const invalidRows = new Set(
+          validationData.errors
+            .map((e) => Number(e.row))
+            .filter((n) => Number.isFinite(n))
+        );
+
+        try {
+          const originalText = await csvFile.text();
+          const lines = originalText.split(/\r?\n/);
+          const filteredLines = lines.filter((line, idx) => {
+            // Keep header (index 0). Data rows map to rowNumber = idx + 1 (server validation uses 1-based including header)
+            if (idx === 0) return true;
+            const rowNumber = idx + 1;
+            // Exclude rows flagged invalid during validation and any empty trailing lines
+            return !invalidRows.has(rowNumber) && line.trim() !== '';
+          });
+          const filteredText = filteredLines.join('\r\n');
+          fileToUpload = new File(
+            [filteredText],
+            csvFile.name.replace(/\.csv$/i, '') + '-filtered.csv',
+            { type: 'text/csv' }
+          );
+        } catch (e) {
+          // If anything goes wrong, fall back to original file
+          console.warn('Falling back to original CSV due to filtering error:', e);
+          fileToUpload = csvFile;
+        }
+      }
+
+      formData.append('csv', fileToUpload); // Send only eligible rows
       
       // Add validation info to help the backend filter out invalid rows
       if (validationData && validationData.errors && validationData.errors.length > 0) {
@@ -299,7 +332,7 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
       const data = await response.json();
       console.log("📋 Response data:", data);
 
-  // Check if products were actually added, regardless of success flag
+      // Check if products were actually added, regardless of success flag
       // Backend may return counts as numbers (in results) and arrays (in details)
       const successCount = Array.isArray(data.results?.successful)
         ? data.results.successful.length
@@ -352,19 +385,11 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
             localStorage.setItem('csv_upload_timestamp', Date.now().toString());
             localStorage.setItem('csv_upload_count', successCount.toString());
             
-            // Collect successful product IDs in the exact processed order (last added should appear first)
-            const successfulList = Array.isArray(data.details?.successful) ? data.details.successful : [];
-            const successIds = successfulList
-              .map(entry => entry.productId)
-              .filter(Boolean)
-              .reverse(); // last added first
-
             // Call the callback function with CSV flag AND upload metadata
             onProductsAdded(true, { 
               uploadId: uniqueId,
               count: successCount,
-              timestamp: Date.now(),
-              successIds
+              timestamp: Date.now()
             });
             
             // Show a toast to inform the user the process is ongoing

@@ -411,7 +411,17 @@ const Home = () => {
               <StatCard title="Sales" value={`${dashboardData?.detailed?.sales?.totalOrders || 0}`} icon={<img src={salesale} alt="Sales Cost" />} />
               <StatCard title="Revenue" value={`₹ ${(dashboardData?.detailed?.sales?.totalRevenue || 0).toLocaleString()}`} icon={<img src={revenueIcon} alt="Revenue" />} />
               <StatCard title="Profit" value={`₹ ${(dashboardData?.detailed?.sales?.profit || 0).toLocaleString()}`} icon={<img src={profitIcon} alt="Profit" />} />
-              <StatCard title="Cost" value={`₹ ${(dashboardData?.detailed?.sales?.totalCost || 0).toLocaleString()}`} icon={<img src={costIcon} alt="Cost" />} />
+              <StatCard
+                title="Cost"
+                value={`₹ ${(
+                  (
+                    Number(dashboardData?.detailed?.sales?.totalCost || 0) * 1.10
+                  ) + (
+                    Number(dashboardData?.detailed?.sales?.totalOrders || 0) * 50
+                  )
+                ).toLocaleString()}`}
+                icon={<img src={costIcon} alt="Cost" />}
+              />
             </div>
           </div>
         </div>
