@@ -7,6 +7,11 @@
   overflow-x: hidden;
 }
 
+/* Mobile header hidden by default (shown in mobile via media query) */
+.mobileHeader { display: none; }
+.mobileLogo { display: none; }
+.mobileSettings { display: none; }
+
 /* Top horizontal line that aligns with sidebar top line */
 .productContainer::before {
   content: '';
@@ -119,6 +124,9 @@
   position: relative;
 }
 
+/* Hide info button by default (desktop) */
+.infoBtn { display: none; }
+
 /* Add borders between stat cards */
 .statCard {
   background: white; /* Same as container background */
@@ -154,8 +162,8 @@
 
 .statValue {
   font-size: 20px;
-  font-weight: 700;
-  color: #333;
+  font-weight: 550; /* Match Inventory style weight */
+  color: #000000; /* Match Inventory value color */
   margin-bottom: 5px;
   line-height: 1.2;
   width: 100%;
@@ -171,7 +179,7 @@
 
 .statSubtext {
   font-size: 12px;
-  color: #6c757d;
+  color: #5d6679; /* Match Inventory subtext color */
   display: block;
   text-align: left;
   padding-left: 5px;
@@ -253,7 +261,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 15px;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 2px solid #dee2e6;
   background-color: #f8f9fa;
 }
 
@@ -304,11 +312,11 @@
   background: #b6b9cf; /* Light gray header */
   padding: 12px 15px;
   text-align: center;
-  font-weight: 500;
-  color: #48505e;
-  border-bottom: 1px solid #dee2e6;
-  border-right: 1px solid #dee2e6;
-  font-size: 13px;
+  font-weight: 600; /* Match Invoice header weight */
+  color: #333; /* Match Invoice header color */
+  border-bottom: 1px solid #ddd; /* Match Invoice border */
+  border-right: 2px solid #9294a6; /* Match Invoice header right border */
+  font-size: 14px; /* Match Invoice font size */
 }
 
 .productsTable th:last-child {
@@ -317,10 +325,10 @@
 
 .productsTable td {
   padding: 12px 15px;
-  border-bottom: 1px solid #dee2e6;
-  border-right: 1px solid #dee2e6;
-  color: #48505e;
-  font-size: 13px;
+  border-bottom: 1px solid #cccccc; /* Match Invoice cell border */
+  border-right: 2px solid #cccccc; /* Match Invoice cell right border */
+  color: #333; /* Match Invoice text color */
+  font-size: 14px; /* Match Invoice font size */
 }
 
 .productsTable td:last-child {
@@ -337,7 +345,7 @@
 }
 
 .productsTable tbody tr:hover {
-  background-color: #f8f9fa;
+  background-color: #e1e3f3;
 }
 
 .productCell {
@@ -394,6 +402,19 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+/* Ensure prev at far left, info centered, next at far right */
+.paginationLeft,
+.paginationCenter,
+.paginationRight {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+}
+
+.paginationLeft { justify-content: flex-start; }
+.paginationCenter { justify-content: center; }
+.paginationRight { justify-content: flex-end; }
 
 .pageButton {
   padding: 6px 12px;
@@ -550,15 +571,149 @@
 }
 
 /* Responsive Design */
+/* Hide floating Add button by default (desktop) */
+.fabAddButton { display: none; }
+/* Hide mobile info overlay by default (desktop and larger) */
+.mobileInfoOverlay { display: none; }
+
 @media (max-width: 600px) {
+  /* Ensure the small Add Product chooser overlay (with blur) repositions on mobile */
+  .modalOverlay { left: 0 !important; }
+  /* Hide the inline Add Product button under Products title on mobile */
+  .sectionHeader .addButton { display: none !important; }
   .productContainer {
     padding: 15px;
+    /* keep vertical scroll if needed, but do not alter scrollbar behavior here */
   }
+  /* Overall Inventory: 2 rows x 2 columns */
+  .statsGrid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .statCard { width: 100% !important; border-right: none !important; }
+  .statCard { overflow: hidden; }
+  .statInfoContainer { padding-top: 0 !important; }
+
+  /* Nudge right-column numbers inward on mobile to avoid appearing outside */
+  .statRightColumn { padding-right: 16px; }
+
+  /* Nudge main big value slightly inward */
+  .statValue { padding-left: 6px; }
+
+  /* Reduce negative vertical offsets so values don't overlap across grid cells */
+  .statRevenueValue,
+  .statCostValue,
+  .statNotInStockValue {
+    margin-top: -20px; /* was -35px on desktop */
+  }
+
+  /* Products table: show only Product name and Availability; add right info button */
+  .productsTable thead th:nth-child(2),
+  .productsTable thead th:nth-child(3),
+  .productsTable thead th:nth-child(4),
+  .productsTable thead th:nth-child(5),
+  .productsTable tbody td:nth-child(2),
+  .productsTable tbody td:nth-child(3),
+  .productsTable tbody td:nth-child(4),
+  .productsTable tbody td:nth-child(5) {
+    display: none !important;
+  }
+
+  /* Availability cell layout with inline info button */
+  .productsTable tbody td:last-child {
+    display: flex;
+    align-items: center;
+  gap: 8px;
+  justify-content: center; /* center availability content on mobile */
+  position: relative; /* allow absolute positioning of the info button */
+  padding-right: 36px; /* reserve space on the right for the fixed-position info button */
+  }
+
+  .infoBtn {
+    display: inline-flex !important;
+    /* Fix the info button to a consistent right position for perfect vertical alignment */
+    margin-left: 0;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e7f1ff;
+    color: #0b74de;
+    border: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .infoBtn img { width: 14px; height: 14px; display: block; }
+
+  /* Floating add product button */
+  .fabAddButton {
+    display: inline-flex;
+    position: fixed;
+    right: 16px;
+    bottom: 84px; /* above bottom nav */
+    background: #242531;
+    color: #fff;
+  border: 1px solid transparent;
+  border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 13px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    z-index: 100;
+  }
+
+  /* Mobile info modal styles */
+  .mobileInfoOverlay {
+    display: flex !important;
+    position: fixed;
+    inset: 0;
+  background: transparent; /* remove dark background effect behind the info modal */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .mobileInfoCard {
+    width: calc(100% - 48px);
+    max-width: 380px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    padding: 16px;
+  }
+  .infoHeader { display: flex; align-items: center; justify-content: space-between; }
+  .infoTitle { font-weight: 600; font-size: 16px; color: #111; }
+  .infoClose { background: transparent; border: none; font-size: 18px; color: #111; cursor: pointer; }
+  .infoName { font-weight: 600; margin: 8px 0 12px; color: #111; text-align: left; }
+  .infoList { display: flex; flex-direction: column; gap: 10px; }
+  .infoRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .infoLabel { color: #222; font-weight: 500; }
+  .infoValue { color: #111; font-weight: 500; }
+  /* Hide the desktop header and the thin top line in mobile */
+  .productContainer::before { display: none !important; }
+  .header { display: none !important; }
+
+  /* Show compact mobile header with logo + settings (same as Home) */
+  .mobileHeader { 
+    display: flex !important; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 10px 16px; 
+  }
+  .mobileLogo { height: 28px; width: auto; display: block; }
+  .mobileSettings { display: inline-flex; align-items: center; }
+  .mobileSettings img { height: 22px; width: 22px; display: block; }
   
   .header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
   }
   
   .searchContainer {
@@ -588,6 +743,12 @@
   .productOptions {
     flex-direction: column;
   }
+  
+  /* Prevent horizontal overflow on mobile */
+  .productContainer { max-width: 100vw; overflow-x: hidden !important; }
+  .productsSection { max-width: 100%; overflow-x: hidden; }
+  .tableContainer { overflow-x: hidden !important; }
+  .productsTable { width: 100% !important; max-width: 100% !important; table-layout: fixed; }
 }
 .productRow {
   cursor: pointer;

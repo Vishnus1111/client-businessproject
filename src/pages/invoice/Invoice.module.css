@@ -6,6 +6,11 @@
   font-family: Arial, sans-serif;
 }
 
+/* Mobile header hidden by default (shown via media query) */
+.mobileHeader { display: none; }
+.mobileLogo { display: none; }
+.mobileSettings { display: none; }
+
 /* Header styles */
 .header {
   display: flex;
@@ -334,25 +339,45 @@
 .pagination {
   margin-top: 20px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
+  gap: 0;
+  width: 100%;
 }
 
+/* Align Previous (left), page info (center), Next (right) */
+.paginationLeft,
+.paginationCenter,
+.paginationRight {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+}
+
+.paginationLeft { justify-content: flex-start; }
+.paginationCenter { justify-content: center; }
+.paginationRight { justify-content: flex-end; }
+
 .paginationButton {
-  background: #e9ecef !important;
-  border: none;
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  background: white;
+  color: #48505e;
   border-radius: 4px;
-  padding: 8px 15px;
   cursor: pointer;
-  color: #424457;
-  font-weight: 500;
   transition: all 0.2s;
-  justify-content: space-between !important;
+  font-size: 13px;
 }
 
 .paginationButton:hover:not([disabled]) {
-  background: #dee2e6;
+  background: #242531;
+  color: white;
+  border-color: #242531;
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .pageInfo {
@@ -383,7 +408,10 @@
     min-height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;    /* Firefox */
   }
+  .invoiceContainer::-webkit-scrollbar { width: 0; height: 0; }
   
   .header {
     flex-direction: row;
@@ -396,7 +424,18 @@
     margin-left: 0;
     margin-right: 0;
     border-bottom: none;
+    display: none !important; /* hide desktop header on mobile */
   }
+  /* Show compact mobile header with logo + settings (match Home) */
+  .mobileHeader { 
+    display: flex !important; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 10px 16px; 
+  }
+  .mobileLogo { height: 28px; width: auto; display: block; }
+  .mobileSettings { display: inline-flex; align-items: center; }
+  .mobileSettings img { height: 22px; width: 22px; display: block; }
   
   .headerMobile {
     width: 100%;
@@ -535,6 +574,12 @@
     padding: 10px;
     border: none;
   }
+
+  /* Add vertical divider between the two mobile columns */
+  .invoiceTable th:last-child,
+  .invoiceTable td:last-child {
+    border-left: 1px solid #e0e0e0;
+  }
   
   .invoiceTable th {
     background-color: #c5c7e1;
@@ -605,6 +650,14 @@
   .payButton > *:not(.payIcon),
   .returnButton > *:not(.returnIcon) {
     display: none;
+  }
+
+  /* Also hide raw text nodes inside buttons: reduce font-size to zero */
+  .viewButton,
+  .deleteButton,
+  .payButton,
+  .returnButton {
+    font-size: 0 !important; /* hides inline text such as "View Invoice" and "Delete" */
   }
   
   /* Improve the dropdown for mobile */
@@ -794,26 +847,10 @@
     object-fit: contain;
   }
   
-  .viewButton::after {
-    content: "View";
-    position: absolute;
-    bottom: -15px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    color: #0084d6;
-  }
-  
+  /* Ensure no pseudo-labels appear under icons on mobile */
+  .viewButton::after,
   .deleteButton::after {
-    content: "Delete";
-    position: absolute;
-    bottom: -15px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    color: #e74c3c;
+    content: none !important;
   }
   
   /* Ensure all buttons are evenly spaced */
@@ -843,7 +880,7 @@
   
   /* Add alternating row colors for better readability */
   .invoiceTable tbody tr:nth-child(even) {
-    background-color: #f4f5f9;
+  background-color: transparent; /* Remove striping on mobile */
   }
   
   /* Ensure pagination is visible and usable */
@@ -852,27 +889,41 @@
     margin-bottom: 60px; /* Add space above the bottom navigation */
     padding: 15px 0 5px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between; /* Match desktop alignment */
     align-items: center;
-    gap: 15px;
+    gap: 0;
+    width: 100%;
     position: relative;
     z-index: 5;
   }
   
   .paginationButton {
-    background-color: #4a5beb;
-    color: white;
-    border: none;
+    padding: 6px 12px; /* Same as desktop */
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #48505e;
     border-radius: 4px;
-    padding: 10px 16px;
-    min-width: 80px;
-    font-size: 14px;
-    font-weight: 500;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .paginationButton:hover:not([disabled]) {
+    background: #242531;
+    color: white;
+    border-color: #242531;
+  }
+
+  .paginationButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .cancelledText {
+    color: #e24035;
+    font-weight: 600;
+    font-size: 14px;
   }
   
   .pageInfo {

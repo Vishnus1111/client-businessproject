@@ -5,6 +5,9 @@ import AddProductForm from './AddProductForm';
 import CSVUploadModal from './CSVUploadModal';
 import ProductOrderHandler from './ProductOrderHandler';
 import styles from './Product.module.css';
+import infoIcon from '../../assets/mobile/i btn.png';
+import logo from '../../assets/dashboard/logo.png';
+import settingsIcon from '../../assets/mobile/Setting.png';
 import './SidebarFix.css';
 
 const Product = () => {
@@ -33,6 +36,8 @@ const Product = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const searchInputRef = useRef(null);
+  // Mobile-only info modal state
+  const [mobileInfoProduct, setMobileInfoProduct] = useState(null);
 
   const fetchProducts = useCallback(async (searchTerm = '') => {
     console.log("🔍 fetchProducts called - starting to fetch products...");
@@ -457,45 +462,15 @@ const Product = () => {
         }
         
         // Get fresh data
-  const data = await fetchWithNoCaching();
+        const data = await fetchWithNoCaching();
         console.log(`✅ Attempt ${attempt}: Fresh data received:`, data.products?.length || 0, "products");
         
         // Verify we have products in the response
         const hasProducts = Array.isArray(data.products) && data.products.length > 0;
         console.log(`Received ${data.products?.length || 0} products in response`);
         
-        // If this was a CSV upload and we have an ordered list of productIds, place them at the very top in that order
-        let sortedProducts = (data.products || []).slice();
-        if (isCsvUpload && uploadMetadata?.successIds && uploadMetadata.successIds.length > 0) {
-          const idSet = new Set(uploadMetadata.successIds);
-          const topItems = [];
-          const restItems = [];
-          for (const p of sortedProducts) {
-            if (p?.productId && idSet.has(p.productId)) {
-              topItems.push(p);
-            } else {
-              restItems.push(p);
-            }
-          }
-          // Order topItems to match successIds order exactly
-          const topOrdered = uploadMetadata.successIds
-            .map(id => topItems.find(p => p.productId === id))
-            .filter(Boolean);
-          sortedProducts = [...topOrdered, ...restItems];
-        } else {
-          // Otherwise sort deterministically so newly-added items appear at the top (stable order)
-          sortedProducts.sort((a, b) => {
-            const t = new Date(b.createdAt) - new Date(a.createdAt);
-            if (t !== 0) return t;
-            const aid = String(a._id || '');
-            const bid = String(b._id || '');
-            return bid.localeCompare(aid);
-          });
-        }
-
-        // Update state with sorted data and reset to first page to show new items on top
-        setProducts(sortedProducts);
-        setCurrentPage(1);
+        // Update state with fresh data
+        setProducts(data.products || []);
         setTotalPages(Math.ceil((data.products?.length || 0) / 9));
         
         // Refresh stats too
@@ -584,6 +559,13 @@ const Product = () => {
 
   return (
     <div className={styles.productContainer}>
+      {/* Mobile-only header (hidden on desktop via CSS) */}
+      <div className={styles.mobileHeader}>
+        <img src={logo} alt="Logo" className={styles.mobileLogo} />
+        <a href="/dashboard/settings" className={styles.mobileSettings} aria-label="Settings">
+          <img src={settingsIcon} alt="Settings" />
+        </a>
+      </div>
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Product</h1>
@@ -688,9 +670,6 @@ const Product = () => {
             className={styles.addButton}
             onClick={() => setShowAddModal(true)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
             Add Product
           </button>
         </div>
@@ -723,6 +702,15 @@ const Product = () => {
                     <span className={`${styles.status} ${getStatusColor(product.availability)}`}>
                       {product.availability}
                     </span>
+                    {/* Mobile-only info button */}
+                    <button
+                      type="button"
+                      className={styles.infoBtn}
+                      aria-label="Product details"
+                      onClick={(e) => { e.stopPropagation(); setMobileInfoProduct(product); }}
+                    >
+                      <img src={infoIcon} alt="info" />
+                    </button>
                   </td>
                 </tr>
               )) : (
@@ -768,6 +756,16 @@ const Product = () => {
         )}
       </div>
 
+      {/* Floating Add Product button (mobile only) */}
+      <button
+        type="button"
+        className={styles.fabAddButton}
+        onClick={() => setShowAddModal(true)}
+        aria-label="Add Product"
+      >
+        Add Product
+      </button>
+
       {/* Add Product Modal */}
       {showAddModal && <AddProductModal />}
 
@@ -794,6 +792,37 @@ const Product = () => {
           onClose={() => setSelectedProductId(null)}
           refreshInventory={handleRefreshInventory}
         />
+      )}
+
+      {/* Mobile info modal */}
+      {mobileInfoProduct && (
+        <div className={styles.mobileInfoOverlay} onClick={() => setMobileInfoProduct(null)}>
+          <div className={styles.mobileInfoCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.infoHeader}>
+              <div className={styles.infoTitle}>Products Details</div>
+              <button className={styles.infoClose} onClick={() => setMobileInfoProduct(null)} aria-label="Close">×</button>
+            </div>
+            <div className={styles.infoName}>{mobileInfoProduct.productName}</div>
+            <div className={styles.infoList}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Price</span>
+                <span className={styles.infoValue}>{formatCurrency(mobileInfoProduct.sellingPrice)}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Quantity</span>
+                <span className={styles.infoValue}>{mobileInfoProduct.quantity} {mobileInfoProduct.unit || 'Packets'}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Threshold Value</span>
+                <span className={styles.infoValue}>{mobileInfoProduct.thresholdValue} {mobileInfoProduct.unit || 'Packets'}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Expiry Date</span>
+                <span className={styles.infoValue}>{formatDate(mobileInfoProduct.expiryDate)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -130,11 +130,7 @@
   background: #eff6ff;
 }
 
-.uploadArea.hasFile {
-  border-color: #10b981;
-  background: #f0fdf4;
-  border-style: solid;
-}
+/* Keep the dotted box style static even when a file is selected */
 
 .uploadContent {
   position: relative;
@@ -225,6 +221,25 @@
 .removeFileButton:hover {
   background: #dc2626;
 }
+
+/* File row below dotted border */
+.fileList { margin-top: 14px; }
+.fileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+}
+.fileLeft { display: flex; align-items: center; gap: 10px; }
+.fileThumb { width: 26px; height: 26px; display: block; }
+.fileMeta { display: flex; flex-direction: column; }
+.fileNameText { font-size: 14px; color: #111827; font-weight: 500; }
+.fileSizeText { font-size: 12px; color: #6b7280; }
+.fileRemove { background: transparent; border: none; cursor: pointer; padding: 4px; }
+.fileRemove img { width: 16px; height: 16px; display: block; }
 
 .validationStatus {
   display: flex;
@@ -454,9 +469,7 @@
 
 /* Responsive Design */
 @media (max-width: 600px) {
-  .modalOverlay {
-    padding: 10px;
-  }
+  .modalOverlay { left: 0; padding: 10px; }
   
   .modalHeader {
     padding: 20px;
@@ -478,13 +491,16 @@
     font-size: 14px;
   }
   
+  /* Keep desktop layout on mobile: buttons side-by-side with desktop sizing */
   .actionButtons {
-    flex-direction: column-reverse;
+    flex-direction: row;
+    justify-content: right;
   }
-  
+
   .cancelButton,
-  .nextButton {
-    width: 100%;
+  .nextButton,
+  .uploadButton2 {
+    width: auto;
     justify-content: center;
   }
 }

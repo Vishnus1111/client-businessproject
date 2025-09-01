@@ -317,7 +317,8 @@
 @media (max-width: 600px) {
   .modalOverlay {
     padding: 10px;
-    left: 0; /* For mobile, take full width */
+    left: 0px !important;
+    right: -280px !important;
   }
   
   .modal {

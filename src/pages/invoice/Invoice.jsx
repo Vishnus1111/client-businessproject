@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import styles from "./Invoice.module.css";
+import logo from '../../assets/dashboard/logo.png';
+import settingsIcon from '../../assets/mobile/Setting.png';
 import InvoiceView from "./InvoiceView";
 import API_BASE_URL from "../config";
 import viewInvoiceImg from '../../assets/invoice/viewinvoice.png';
@@ -395,6 +397,13 @@ const Invoice = () => {
 
   return (
     <div className={styles.invoiceContainer}>
+      {/* Mobile-only header (hidden on desktop via CSS) */}
+      <div className={styles.mobileHeader}>
+        <img src={logo} alt="Logo" className={styles.mobileLogo} />
+        <a href="/dashboard/settings" className={styles.mobileSettings} aria-label="Settings">
+          <img src={settingsIcon} alt="Settings" />
+        </a>
+      </div>
       {/* Header with search */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>Invoice</h1>
@@ -584,71 +593,64 @@ const Invoice = () => {
                         )}
                       </div>
                     </td>
-                    {isMobile && (
+          {isMobile && (
                       <td>
-                        <div className={styles.actionDropdown} ref={invoice._id === openDropdownId ? dropdownRef : null}>
-                          <button 
-                            className={styles.actionButton} 
-                            onClick={() => toggleDropdown(invoice._id)}
-                          >⋮</button>
-                          <div className={`${styles.dropdownContent} ${invoice._id === openDropdownId ? styles.show : ''}`}>
-                            {invoice.status === "Paid" && (
-                              <>
-                                <button 
-                                  className={styles.viewButton}
-                                  onClick={() => {
-                                    handleViewInvoice(invoice);
-                                    setOpenDropdownId(null);
-                                  }}
-                                >
-                                  <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
-                                </button>
-                                <button 
-                                  className={styles.deleteButton}
-                                  onClick={() => {
-                                    handleDeleteInvoice(invoice);
-                                    setOpenDropdownId(null);
-                                  }}
-                                >
-                                  <span className={styles.deleteIcon}><img src={deleteInvoiceImg} alt="Delete Invoice" /></span> Delete
-                                </button>
-                              </>
-                            )}
-                            {invoice.status === "Returned" && (
-                              <button 
-                                className={styles.viewButton}
-                                onClick={() => {
-                                  handleViewInvoice(invoice);
-                                  setOpenDropdownId(null);
-                                }}
-                              >
-                                <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
-                              </button>
-                            )}
-                            {invoice.status === "Unpaid" && (
-                              <>
-                                <button 
-                                  className={styles.payButton}
-                                  onClick={() => {
-                                    handlePayInvoice(invoice);
-                                    setOpenDropdownId(null);
-                                  }}
-                                >
-                                  <span className={styles.payIcon}>💲</span> Pay
-                                </button>
-                                <button 
-                                  className={styles.returnButton}
-                                  onClick={() => {
-                                    handleReturnInvoice(invoice);
-                                    setOpenDropdownId(null);
-                                  }}
-                                >
-                                  <span className={styles.returnIcon}>↩️</span> Return/Cancel
-                                </button>
-                              </>
-                            )}
+            {(invoice.status === "Returned" || invoice.status === "Cancelled") ? (
+                          <span className={styles.cancelledText}>Cancelled</span>
+                        ) : (
+                          <div className={styles.actionDropdown} ref={invoice._id === openDropdownId ? dropdownRef : null}>
+                            <button 
+                              className={styles.actionButton} 
+                              onClick={() => toggleDropdown(invoice._id)}
+                            >⋮</button>
+                            <div className={`${styles.dropdownContent} ${invoice._id === openDropdownId ? styles.show : ''}`}>
+                              {invoice.status === "Paid" && (
+                                <>
+                                  <button 
+                                    className={styles.viewButton}
+                                    onClick={() => {
+                                      handleViewInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.viewIcon}><img src={viewInvoiceImg} alt="View Invoice" /></span> View Invoice
+                                  </button>
+                                  <button 
+                                    className={styles.deleteButton}
+                                    onClick={() => {
+                                      handleDeleteInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.deleteIcon}><img src={deleteInvoiceImg} alt="Delete Invoice" /></span> Delete
+                                  </button>
+                                </>
+                              )}
+                              {invoice.status === "Unpaid" && (
+                                <>
+                                  <button 
+                                    className={styles.payButton}
+                                    onClick={() => {
+                                      handlePayInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.payIcon}>💲</span> Pay
+                                  </button>
+                                  <button 
+                                    className={styles.returnButton}
+                                    onClick={() => {
+                                      handleReturnInvoice(invoice);
+                                      setOpenDropdownId(null);
+                                    }}
+                                  >
+                                    <span className={styles.returnIcon}>↩️</span> Return/Cancel
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </td>
                     )}
                   </tr>

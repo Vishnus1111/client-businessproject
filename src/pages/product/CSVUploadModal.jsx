@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import API_BASE_URL from '../config';
 import styles from './CSVUploadModal.module.css';
+import csvIcon from '../../assets/mobile/csv.png';
+import cancelbtn from '../../assets/mobile/cancel btn.png';
 
 const CSVUploadModal = ({ onClose, onProductsAdded }) => {
   const [csvFile, setCsvFile] = useState(null);
@@ -447,6 +449,13 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
     return 'Next   >';
   };
 
+  const formatSize = (bytes) => {
+    if (!bytes && bytes !== 0) return '';
+    const mb = bytes / (1024 * 1024);
+    if (mb >= 1) return `${mb.toFixed(1)}MB`;
+    return `${(bytes / 1024).toFixed(2)} KB`;
+  };
+
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
@@ -460,39 +469,12 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
 
           {/* File Upload Area */}
           <div
-            className={`${styles.uploadArea} ${isDragging ? styles.dragging : ''} ${csvFile ? styles.hasFile : ''}`}
+            className={`${styles.uploadArea} ${isDragging ? styles.dragging : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             <div className={styles.uploadContent}>
-              {csvFile ? (
-                <div className={styles.fileSelected}>
-                  <div className={styles.fileIcon}>📄</div>
-                  <div className={styles.fileName}>{csvFile.name}</div>
-                  <div className={styles.fileSize}>
-                    {(csvFile.size / 1024).toFixed(2)} KB
-                  </div>
-                  {validationStep === 'upload' && (
-                    <button 
-                      className={styles.removeFileButton}
-                      onClick={resetUpload}
-                      type="button"
-                    >
-                      ✕
-                    </button>
-                  )}
-                  {validationStep === 'validated' && validationData && (
-                    <div className={styles.validationStatus}>
-                      <span className={styles.validIcon}>✅</span>
-                      <span className={styles.validText}>
-                        Validated - {validationData.validProducts} valid product(s)
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
                   <div className={styles.uploadIcon}>
                     <img src={require("../../assets/dashboard/upload.png")} alt="Upload" />
                   </div>
@@ -508,69 +490,33 @@ const CSVUploadModal = ({ onClose, onProductsAdded }) => {
                       />
                     </label>
                   </div>
-                </>
-              )}
             </div>
           </div>
 
-          {/* Validation Results */}
-          {validationStep === 'validated' && validationData && (
-            <div className={styles.validationResults}>
-              <h4 className={styles.validationTitle}>Validation Results</h4>
-              <div className={styles.validationStats}>
-                <div className={styles.statItem}>
-                  <span className={styles.statLabel}>Successfully Added:</span>
-                  <span className={styles.statValue}>{validationData.validProducts || 0}</span>
-                </div>
-                {validationData.errors && validationData.errors.length > 0 && (
-                  <div className={styles.statItem}>
-                    <span className={styles.statLabel}>Failed:</span>
-                    <span className={styles.statValue}>{validationData.errors.length}</span>
+          {/* Selected file row shown below the dotted box */}
+          {csvFile && (
+            <div className={styles.fileList}>
+              <div className={styles.fileRow}>
+                <div className={styles.fileLeft}>
+                  <img src={csvIcon} alt="CSV" className={styles.fileThumb} />
+                  <div className={styles.fileMeta}>
+                    <div className={styles.fileNameText}>{csvFile.name}</div>
+                    <div className={styles.fileSizeText}>{formatSize(csvFile.size)}</div>
                   </div>
-                )}
-                <div className={styles.statItem}>
-                  <span className={styles.statLabel}>Total Processed:</span>
-                  <span className={styles.statValue}>{validationData.totalRows || 0}</span>
                 </div>
+                <button
+                  type="button"
+                  className={styles.fileRemove}
+                  onClick={resetUpload}
+                  aria-label="Remove file"
+                >
+                  <img src={cancelbtn} alt="Remove" />
+                </button>
               </div>
-              {validationData.errors && validationData.errors.length > 0 && (
-                <div className={styles.errorsList}>
-                  <p className={styles.errorsTitle}>Issues Found:</p>
-                  <div className={styles.errorsContainer}>
-                    <ul className={styles.errorsItems}>
-                      {(() => {
-                        // Group errors by message for cleaner display
-                        const errorsByType = {};
-                        validationData.errors.forEach(error => {
-                          const key = error.message || 'Unknown error';
-                          if (!errorsByType[key]) {
-                            errorsByType[key] = [];
-                          }
-                          errorsByType[key].push(error.row);
-                        });
-                        
-                        // Display grouped errors
-                        return Object.entries(errorsByType).map(([message, rows], idx) => (
-                          <li key={idx} className={styles.errorItem}>
-                            <strong>{message}:</strong> {
-                              rows.length <= 3 
-                                ? `Row${rows.length > 1 ? 's' : ''} ${rows.join(', ')}`
-                                : `${rows.length} rows (${rows.slice(0, 3).join(', ')}...)`
-                            }
-                          </li>
-                        ));
-                      })()}
-                    </ul>
-                  </div>
-                </div>
-              )}
-              {validationData.validProducts > 0 && (
-                <div className={styles.successMessage}>
-                  ✅ {validationData.validProducts} valid product{validationData.validProducts > 1 ? 's' : ''} ready to upload
-                </div>
-              )}
             </div>
           )}
+
+          {/* Validation summary UI intentionally removed per request; toasts remain for feedback. */}
 
           {/* Action Buttons */}
           <div className={styles.actionButtons}>

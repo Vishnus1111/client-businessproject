@@ -5,6 +5,8 @@ import downloadbtn from "../../assets/invoice/download.png"
 import closebtn from "../../assets/invoice/close.png"
 import printbtn from "../../assets/invoice/print.png"
 
+
+
 const InvoiceView = ({ invoice, onClose }) => {
   // Format currency with Indian Rupee symbol
   const formatCurrency = (amount) => {
