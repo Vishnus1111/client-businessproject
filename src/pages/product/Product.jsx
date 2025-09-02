@@ -59,16 +59,8 @@ const Product = () => {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Timestamp': timestamp.toString()
-        },
-        // Ensure no caching
-        cache: 'no-store',
-        credentials: 'same-origin'
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.ok) {
@@ -403,22 +395,11 @@ const Product = () => {
       try {
         // Use Promise.race to implement timeout
         const fetchPromise = fetch(`${API_BASE_URL}/api/products/all${noCacheParam}`, {
-          method: 'GET', // Explicitly set method
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-            'X-Request-Time': timestamp.toString(),
-            'X-Refresh-Attempt': attempt.toString(),
-            'X-CSV-Upload': isCsvUpload ? 'true' : 'false',
-            'X-Upload-ID': uniqueId
+            'Content-Type': 'application/json'
           },
-          cache: 'no-store',
-          credentials: 'same-origin', // Include credentials
-          redirect: 'follow',
-          referrerPolicy: 'no-referrer',
           signal: controller.signal
         });
         
