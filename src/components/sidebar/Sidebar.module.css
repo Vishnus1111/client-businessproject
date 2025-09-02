@@ -133,7 +133,7 @@
 .userInfo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 7px !important; /* exact requested gap between avatar and name */
   margin-bottom: 0; /* Removed bottom margin */
 }
 
@@ -278,6 +278,8 @@
     align-items: center;
     justify-content: space-between;
   }
+  /* Keep mobile spacing natural; do not force 7px on mobile */
+  .userInfo { gap: 0.5rem !important; }
   
   .logoutBtn {
     width: auto;
