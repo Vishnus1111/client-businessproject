@@ -11,6 +11,7 @@ import costIcon2 from '../../assets/dashboard/Cost (1).png';
 import cancelIcon from '../../assets/dashboard/Cancel.png';
 import returnIcon from '../../assets/dashboard/return.png';
 import inventoryQuantityIcon from '../../assets/dashboard/Quantity.png';
+import tobereceivedicon from "../../assets/dashboard/inventoryreceived.png"
 import supplierIcon from '../../assets/dashboard/pro. summary.png';
 import categoryIcon from '../../assets/dashboard/pro. Categories.png';
 import calendar from '../../assets/statistics/Calendar.png';
@@ -592,9 +593,12 @@ const Home = () => {
           <span className={styles.inventoryValue}>{dashboardData?.inventoryMetrics?.totalQuantity || 0}</span>
             </div>
           </div>
+          
           <div className={`${styles.inventoryContent} ${styles.inventoryContent1}`}>
+            
             <span className={styles.inventoryLabel}>To be received</span>
             <span className={styles.inventoryValue}>{dashboardData?.inventoryMetrics?.expectedStock || 0}</span>
+            <div className={styles.inventoryIcon}><img src={tobereceivedicon} alt="Inventory received" /></div>
           </div>
         </div>
           </div>

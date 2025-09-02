@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styles from './MobileNavigation.module.css';
-import home from "../../assets/mobile/homes.png"
+import home from "../../assets/mobile/desktophome.png"
 import product from "../../assets/mobile/products.png"
 import invoice from "../../assets/mobile/invoice.png"  
 import statistics from '../../assets/mobile/statistics.png';

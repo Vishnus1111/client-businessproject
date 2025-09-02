@@ -318,7 +318,6 @@
   .modalOverlay {
     padding: 10px;
     left: 0px !important;
-    right: -280px !important;
   }
   
   .modal {
@@ -338,13 +337,15 @@
   }
   
   .imageSection {
-    align-self: center;
+    align-self: flex-start; /* left align */
+    width: 50vw;           /* 50% of available screen width */
   }
   
   .imageUpload {
-    width: 150px;
-    height: 150px;
+    width: 50vw;  /* dotted box matches 50% width */
+    height: 120px;
   }
+  .uploadInstructions { align-items: flex-start; }
   
   .formRow {
     grid-template-columns: 1fr;
@@ -352,12 +353,18 @@
   }
   
   .formActions {
-    flex-direction: column-reverse;
+    flex-direction: row;       /* buttons in a row */
+    justify-content: flex-end; /* align right */
+    gap: 8px;
+    margin-top: 8px;           /* reduce top margin */
+    padding: 8px 10px;         /* compact padding */
+    margin-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); /* lift above bottom nav */
   }
   
   .discardButton,
   .addButton {
-    width: 100%;
+  width: 20vw; /* each 20% of available width */
+  min-width: 88px; /* keep tappable size */
   }
 }
 

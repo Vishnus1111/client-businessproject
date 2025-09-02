@@ -12,12 +12,16 @@
 .homeContainer::before {
   content: '';
   position: absolute;
-  top: 60px; /* Aligns with sidebar top line (matches Product page) */
+  top: 56px; /* moved up 4px for alignment */
   left: 0;
   right: 0;
-  height: 1px;
-  background-color: #ffffff; /* solid white line */
+  height: 0; /* use border for precision */
+  border-bottom: 2px solid #a0a0a0;
   z-index: 10;
+}
+
+@media (max-width: 600px) {
+  .homeContainer::before { display: none; }
 }
 
 .loadingContainer {
@@ -517,7 +521,7 @@
   .homeContainer::-webkit-scrollbar { width: 0; height: 0; }
   :global(html), :global(body), :global(#root) { height: 100%; }
   /* Keep content clear of the bottom nav */
-  .homeContainer { padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important; }
+  .homeContainer { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
   /* Hide desktop header and top white line on mobile */
   .homeContainer::before { display: none !important; }
   .header { display: none !important; }
@@ -568,12 +572,11 @@
   }
   /* Make Top Products fully visible on mobile */
   /* .draggable > .topProductsCard { height: auto !important; min-height: 0 !important; } */
-  .topProductsCard .topProductsList { overflow: visible !important; margin-bottom: calc(90px + env(safe-area-inset-bottom, 0px)) !important; }
+  .topProductsCard .topProductsList { overflow: visible !important; margin-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important; }
   /* Increase specificity to override global hidden overflow rule */
   .homeContainer .rightColumn .topProductsCard .topProductsList,
   .homeContainer .topProductsCard .topProductsList { 
     overflow: visible !important; 
-    margin-bottom: 0 !important; 
     max-height: none !important;
   }
   /* Exclusively increase graph height by ~10% */
@@ -1337,7 +1340,7 @@
 }
 .topProductsCard .topProductsList {
   overflow-y: hidden !important; /* disable scrolling regardless of item count */
-  margin-bottom: -30px !important;
+  margin-bottom: -60px !important;
 }
 
 /* ===== Global: keep vertical scroll but hide page scrollbars visually ===== */
@@ -1413,22 +1416,4 @@
   margin-top: 10px !important;
   margin-left: 20px !important;
   margin-bottom: 30px !important;
-}
-
-/* ===== Final mobile overrides: ensure visible 10px gap above bottom nav ===== */
-@media (max-width: 600px) {
-  /* Some later rules set a negative bottom margin on the Top Products list;
-     neutralize that on mobile and let the container provide the clearance */
-  .topProductsCard .topProductsList {
-    margin-bottom: 0 !important;
-    overflow: visible !important;
-  }
-
-  /* Always add a small spacer after the last section so there's ~10px
-     visible gap above the fixed bottom navigation */
-  .homeContainer::after {
-    content: '';
-    display: block;
-    height: 10px;
-  }
 }

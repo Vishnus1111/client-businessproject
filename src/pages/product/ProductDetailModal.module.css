@@ -1,7 +1,7 @@
 .modalOverlay {
   position: fixed;
   top: 0;
-  left: 250px; /* Start after sidebar width */
+  left: 250px; /* Start after sidebar width (desktop) */
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.7);
@@ -273,9 +273,15 @@
 
 /* Responsive Adjustments */
 @media (max-width: 576px) {
+  .modalOverlay {
+    left: 0 !important; /* center overlay on mobile */
+    padding: 0 10px;
+  }
   .modalContent {
     width: 95%;
     padding: 1rem;
+    margin: 0 auto; /* ensure centered */
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); /* space for bottom nav */
   }
   
   .detailRow {
@@ -284,4 +290,5 @@
     border-bottom: 1px solid #f5f5f5;
     padding-bottom: 0.5rem;
   }
+  .orderButton { margin-bottom: env(safe-area-inset-bottom, 0px); }
 }

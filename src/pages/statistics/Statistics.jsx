@@ -8,6 +8,7 @@ import salesIcon from '../../assets/statistics/credit-card.png';
 import inventoryQuantityIcon from '../../assets/statistics/activity.png';
 import logo from '../../assets/dashboard/logo.png';
 import settingsIcon from '../../assets/mobile/Setting.png';
+import { percentChangeLabel } from '../../utils/percentChange';
 
 
 const Statistics = () => {
@@ -295,10 +296,16 @@ const Statistics = () => {
     }
   };
 
-  const calculatePercentChange = (value) => (value >= 0 ? `+${value}%` : `${value}%`);
-  const getComparisonSuffix = () => (selectedPeriod === 'weekly' ? 'last day' : selectedPeriod === 'monthly' ? 'last month' : 'last year');
-  const getDisplayedPercent = (changeValue, previousValue) => (previousValue === 0 ? '+100%' : calculatePercentChange(changeValue || 0));
-  const formatCurrency = (amount) => `₹${parseFloat(amount || 0).toLocaleString()}`;
+  // Determine suffix text for comparison label based on selectedPeriod
+  const getComparisonSuffix = useCallback(() =>
+    selectedPeriod === 'weekly' ? 'last day' : selectedPeriod === 'monthly' ? 'last month' : 'last year',
+    [selectedPeriod]
+  );
+  // Compute label per rules using previous and current values
+  const getDisplayedPercent = useCallback((currentValue, previousValue) => {
+    return percentChangeLabel(currentValue, previousValue);
+  }, []);
+  const formatCurrency = useCallback((amount) => `₹${parseFloat(amount || 0).toLocaleString()}` , []);
 
   const sectionTitles = useMemo(
     () => ({
@@ -317,13 +324,13 @@ const Statistics = () => {
     return Object.values(sectionTitles).some((t) => t.includes(q));
   }, [searchTerm, sectionTitles]);
 
-  const desat = (key) => {
+  const desat = useCallback((key) => {
     const q = (searchTerm || '').trim().toLowerCase();
     if (!q) return false;
     const title = sectionTitles[key] || '';
     const matched = title.includes(q);
     return anyMatch ? !matched : true;
-  };
+  }, [anyMatch, searchTerm, sectionTitles]);
 
   // ---- Horizontal DnD helpers (reused from Home, adapted to X axis) ----
   const moveInArray = useCallback((arr, key, toIndex) => {
@@ -414,7 +421,7 @@ const Statistics = () => {
           </div>
           <div className={styles.statsValue}>{formatCurrency(stats.totalRevenue)}</div>
           <div className={styles.statsChange}>
-            {getDisplayedPercent(stats.revenueChange, stats.revenuePrev)} from {getComparisonSuffix()}
+            {getDisplayedPercent(stats.totalRevenue, stats.revenuePrev, stats.revenueChange)} from {getComparisonSuffix()}
           </div>
         </div>
       );
@@ -428,7 +435,7 @@ const Statistics = () => {
           </div>
           <div className={styles.statsValue}>{stats.productsSold.toLocaleString()}</div>
           <div className={styles.statsChange}>
-            {getDisplayedPercent(stats.soldChange, stats.soldPrev)} from {getComparisonSuffix()}
+            {getDisplayedPercent(stats.productsSold, stats.soldPrev, stats.soldChange)} from {getComparisonSuffix()}
           </div>
         </div>
       );
@@ -442,14 +449,7 @@ const Statistics = () => {
         </div>
         <div className={styles.statsValue}>{stats.productsInStock.toLocaleString()}</div>
         <div className={styles.statsChange}>
-          {(() => {
-            const backendMaskedZero = stats.stockChange === 0 && stats.stockPrev === stats.productsInStock;
-            const prevZero = stats.stockPrev === 0;
-            const prevMissing = stats.stockPrev === null || stats.stockPrev === undefined || Number.isNaN(stats.stockPrev);
-            const currentPositive = (stats.productsInStock || 0) > 0;
-            if (currentPositive && (prevZero || prevMissing || backendMaskedZero)) return '+100%';
-            return getDisplayedPercent(stats.stockChange, stats.stockPrev);
-          })()} from {getComparisonSuffix()}
+          {getDisplayedPercent(stats.productsInStock, stats.stockPrev, stats.stockChange)} from {getComparisonSuffix()}
         </div>
       </div>
     );

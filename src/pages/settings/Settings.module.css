@@ -3,6 +3,18 @@
   /* padding: 2rem; */
   background: #424457;
   min-height: 100vh;
+  position: relative;
+}
+
+.settingsContainer::before {
+  content: '';
+  position: absolute;
+  top: 56px; /* moved up 4px for alignment */
+  left: 0;
+  right: 0;
+  height: 0; /* use border for precision */
+  border-bottom: 2px solid #a0a0a0;
+  z-index: 10;
 }
 
 .header {
@@ -16,7 +28,7 @@
   color: white;
   margin: 0;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: none; /* prevent double line; top border provided by container ::before */
 }
 
 .content {
@@ -402,12 +414,10 @@
 .actionRow {
   display: flex;
   gap: 10px;
-  align-items: center;
-  margin-top: 10px !important;
+  margin-top: 1px !important;
   width: 100% !important;
   justify-content: flex-end !important; /* push buttons to right end */
-  flex-direction: row !important; /* Save should be the last child to sit at far right */
-  right: 200px !important;
+  margin-left: 500px;
 }
 
 .logoutButton {
@@ -421,7 +431,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+  margin-top: 12px;
 }
 
 .logoutButton:hover {
@@ -430,11 +440,12 @@
 
 @media (max-width: 600px) {
   .actionRow {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .logoutButton {
-    width: 100%;
+    flex-direction: row;
+    align-items: right;
+    margin-left: 280px;
+    display: flex;
+    gap: 1px;
+    width: 180px !important;
   }
 }
 
@@ -453,10 +464,7 @@
   }
 
   .saveButton {
-    width: 100px;
-    height: 40px;
     position: relative !important;
-    margin-left: auto;
     margin-right: 40px;
     border-radius: 8px;
     font-weight: 500;

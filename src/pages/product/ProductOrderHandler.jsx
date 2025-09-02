@@ -78,9 +78,16 @@ const ProductOrderHandler = ({ productId, onClose, onOrderPlaced, refreshInvento
           refreshInventory();
         }
         
-        // Call onOrderPlaced if provided
+        // Call onOrderPlaced if provided, include context about the product ordered
         if (onOrderPlaced) {
-          onOrderPlaced(data.order);
+          onOrderPlaced(
+            data.order,
+            {
+              productId: selectedProduct?.productId || orderData.productId,
+              initialAvailability: selectedProduct?.availability,
+              updatedProduct: data.updatedProduct
+            }
+          );
         }
         
         // Close the modal

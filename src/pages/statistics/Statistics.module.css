@@ -12,12 +12,16 @@
 .statisticsContainer::before {
   content: '';
   position: absolute;
-  top: 60px; /* Aligns with sidebar top line */
+  top: 56px; /* moved up 4px for alignment with sidebar */
   left: 0;
   right: 0;
-  height: 2px; /* visible bottom border under header */
-  background-color: #ffffff; /* user requested white */
+  height: 0; /* use border for precise color/size */
+  border-bottom: 2px solid #a0a0a0;
   z-index: 10;
+}
+
+@media (max-width: 600px) {
+  .statisticsContainer::before { display: none; }
 }
 
 /* DnD helpers: light transform animation to make reordering feel smooth */

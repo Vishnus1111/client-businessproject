@@ -24,6 +24,8 @@ const Product = () => {
   topSelling: 0,
   lowStocks: { ordered: 0, notInStock: 0 }
   });
+  // Session-local counter to make the Low Stocks -> Ordered metric responsive
+  const [lowStockOrdersSession, setLowStockOrdersSession] = useState(0);
   
   // State for product ordering
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -175,8 +177,8 @@ const Product = () => {
           // Use backend revenue as-is to stay responsive to DB and avoid phantom ₹50
           totalRevenue: Number(data.overallInventory?.totalProducts?.revenue || 0),
           lowStocks: {
-            // Show actual count of products currently in Low stock from the loaded list
-            ordered: (products || []).filter(p => p?.availability === 'Low stock').length,
+            // Start Ordered at 0; it will increment when a Low stock product is ordered
+            ordered: 0,
             // Keep backend-provided notInStock if present
             notInStock: data.overallInventory?.lowStocks?.notInStock || 0
           }
@@ -543,6 +545,21 @@ const Product = () => {
     fetchInventoryStats();
   }, [fetchProducts, fetchInventoryStats, searchQuery]);
 
+  // When an order is placed, if the product was Low stock, add +1 to the session counter
+  const handleOrderPlaced = useCallback((order, ctx) => {
+    try {
+      const pid = ctx?.productId || order?.productId || order?.product?.productId || order?.product?._id || null;
+      if (!pid) return;
+      const prod = (products || []).find(p => (p.productId || p._id) === pid);
+      const wasLowStock = ctx?.initialAvailability === 'Low stock' || prod?.availability === 'Low stock';
+      if (wasLowStock) {
+        setLowStockOrdersSession((n) => n + 1);
+      }
+    } catch (_) {
+      // no-op: keep changes minimal per request
+    }
+  }, [products]);
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -648,7 +665,7 @@ const Product = () => {
             <div className={styles.statHeader}>
               <span className={styles.statTitle}>Low Stocks</span>
             </div>
-            <div className={styles.statValue}>{inventoryStats.lowStocks.ordered}</div>
+            <div className={styles.statValue}>{inventoryStats.lowStocks.ordered + lowStockOrdersSession}</div>
             <div className={styles.statInfoContainer}>
               <div className={styles.statLeftColumn}>
                 <span className={styles.statSubtext}>Ordered</span>
@@ -791,6 +808,7 @@ const Product = () => {
           productId={selectedProductId}
           onClose={() => setSelectedProductId(null)}
           refreshInventory={handleRefreshInventory}
+          onOrderPlaced={handleOrderPlaced}
         />
       )}
 

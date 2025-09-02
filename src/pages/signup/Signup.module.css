@@ -150,7 +150,8 @@
   text-align: center;
   color: black;
   font-size: 1rem;
-  margin-top: 60px; /* spacing above footer */
+  margin-top: 20px; /* spacing above footer */
+  margin-left: -170px;
 }
 
 .signInLink {

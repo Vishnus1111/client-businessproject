@@ -16,11 +16,11 @@
 .productContainer::before {
   content: '';
   position: absolute;
-  top: 60px; /* Aligns with sidebar top line */
+  top: 56px; /* moved up 4px to align with sidebar border */
   left: 0;
   right: 0;
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
+  height: 0; /* draw line using border for exact color/size */
+  border-bottom: 2px solid #a0a0a0;
   z-index: 10;
 }
 
@@ -161,9 +161,10 @@
 }
 
 .statValue {
-  font-size: 20px;
-  font-weight: 550; /* Match Inventory style weight */
-  color: #000000; /* Match Inventory value color */
+  /* Match Invoice page value styles */
+  font-size: 20px; /* from Invoice .statValue */
+  font-weight: 600; /* from Invoice .statValue */
+  color: #5d6679; /* from Invoice .statValue */
   margin-bottom: 5px;
   line-height: 1.2;
   width: 100%;
@@ -178,8 +179,10 @@
 }
 
 .statSubtext {
-  font-size: 12px;
-  color: #5d6679; /* Match Inventory subtext color */
+  /* Match Invoice page subtext styles */
+  font-size: 12px; /* from Invoice .statSubText */
+  color: #858d9d; /* from Invoice .statSubText */
+  font-weight: 480; /* from Invoice .statSubText */
   display: block;
   text-align: left;
   padding-left: 5px;
@@ -201,7 +204,7 @@
 .statRevenueValue {
   font-size: 16px;
   font-weight: 600;
-  color: #323844;
+  color: #5d6679;
   display: block;
   margin-top: -35px;
 }
@@ -217,7 +220,7 @@
 .statCostValue {
   font-size: 16px;
   font-weight: 600;
-  color: #303540; /* Yellow color */
+  color: #5d6679; /* Yellow color */
   display: block;
   margin-top: -35px;
 }
@@ -233,7 +236,7 @@
 .statNotInStockValue {
   font-size: 16px;
   font-weight: 600;
-  color: #3b404d; /* Red color */
+  color: #5d6679; /* Red color */
   display: block;
   margin-top: -35px;
 }
@@ -327,8 +330,20 @@
   padding: 12px 15px;
   border-bottom: 1px solid #cccccc; /* Match Invoice cell border */
   border-right: 2px solid #cccccc; /* Match Invoice cell right border */
-  color: #333; /* Match Invoice text color */
-  font-size: 14px; /* Match Invoice font size */
+  /* Copy font color, weight, size from inventory list columns */
+  color: black; 
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Decrease font size by 50% for tbody values in columns: Products, Price, Quantity, Threshold Value, Expiry Date */
+.productsTable tbody td:nth-child(1),
+.productsTable tbody td:nth-child(2),
+.productsTable tbody td:nth-child(3),
+.productsTable tbody td:nth-child(4),
+.productsTable tbody td:nth-child(5) {
+  font-size: 80%;
+  font-weight: 500;
 }
 
 .productsTable td:last-child {
@@ -348,10 +363,7 @@
   background-color: #e1e3f3;
 }
 
-.productCell {
-  font-weight: 500;
-  color: black;
-}
+.productCell { font-weight: 600; color: black; }
 
 .status {
   padding: 4px 8px;
@@ -593,19 +605,50 @@
   }
   .statCard { width: 100% !important; border-right: none !important; }
   .statCard { overflow: hidden; }
-  .statInfoContainer { padding-top: 0 !important; }
+  /* Align the info rows in each card into two clean columns */
+  .statInfoContainer {
+    padding-top: 0 !important;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* left subtext | right value+label */
+    align-items: start;
+  }
 
   /* Nudge right-column numbers inward on mobile to avoid appearing outside */
-  .statRightColumn { padding-right: 16px; }
+  .statRightColumn { 
+    padding-right: 16px;
+    justify-self: end; 
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* right align value and its label */
+  }
+  .statLeftColumn {
+    justify-self: start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
   /* Nudge main big value slightly inward */
-  .statValue { padding-left: 6px; }
+  .statValue { padding-left: 6px; margin-bottom: 6px; min-height: 24px; }
 
-  /* Reduce negative vertical offsets so values don't overlap across grid cells */
+  /* Unify position of right-column value + bring slightly up/left */
   .statRevenueValue,
   .statCostValue,
   .statNotInStockValue {
-    margin-top: -20px; /* was -35px on desktop */
+    margin-top: 0;          /* remove negative offset */
+    margin-left: -4px;      /* slight left as requested */
+    line-height: 1;         /* compact line height for tight vertical alignment */
+  }
+  /* Unify label/subtext spacing and horizontal alignment */
+  .statRevenueLabel,
+  .statCostLabel,
+  .statNotInStockLabel {
+    margin-top: 4px;
+  }
+  .statSubtext { margin-top: 4px; }
+
+    .statRevenueValue {
+    margin-top: -30px; /* was -35px on desktop */
   }
 
   /* Products table: show only Product name and Availability; add right info button */
